@@ -331,7 +331,7 @@ button {
   color: var(--white);
   background:
     linear-gradient(180deg, rgba(7, 52, 87, 0.26), rgba(7, 52, 87, 0.42)),
-    url("/expo/serenidade.jpg") center / cover;
+    url("expo/serenidade.jpg") center / cover;
   box-shadow: 0 22px 70px rgba(2, 18, 31, 0.45);
 }
 

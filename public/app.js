@@ -95,7 +95,7 @@ async function loadToday() {
 }
 
 async function loadTodayFromStaticData() {
-  const response = await fetch("/data/meditations.json");
+  const response = await fetch("data/meditations.json");
   if (!response.ok) {
     throw new Error("A base local de meditações não respondeu.");
   }
