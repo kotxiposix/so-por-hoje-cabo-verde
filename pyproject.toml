@@ -1,0 +1,24 @@
+[project]
+name = "so-por-hoje-cabo-verde"
+version = "0.1.0"
+description = "API e automacao modular para meditacoes diarias So Por Hoje Cabo Verde."
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.111",
+  "pydantic>=2.7",
+  "uvicorn[standard]>=0.30",
+]
+
+[project.optional-dependencies]
+import = [
+  "pandas>=2.2",
+  "openpyxl>=3.1",
+]
+test = [
+  "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+

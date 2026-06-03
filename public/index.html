@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="pt-CV">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Só Por Hoje · Guerreiros de Luz</title>
+    <link rel="icon" type="image/png" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="brand">
+        <img class="brand-logo" src="/icon-512.png" alt="Só Por Hoje · Guerreiros de Luz" />
+        <h1>Só Por Hoje</h1>
+        <p>Guerreiros de Luz</p>
+      </header>
+
+      <section class="date-strip" aria-label="Resumo do dia">
+        <span id="current-date">A carregar data...</span>
+        <span class="streak-pill"><span aria-hidden="true">◆</span><strong id="streak-count">0 leituras seguidas</strong></span>
+      </section>
+
+      <article class="meditation-card view-section" id="meditation-card" data-section="meditation" aria-live="polite">
+        <div class="loading-state" id="loading-state">
+          <div class="wave" aria-hidden="true">∿</div>
+          <h2>A carregar meditação</h2>
+          <p>A ligar à base de dados local...</p>
+        </div>
+
+        <div class="error-state" id="error-state" hidden>
+          <div class="wave" aria-hidden="true">∿</div>
+          <h2>Não foi possível carregar</h2>
+          <p id="error-message">A API local não respondeu.</p>
+          <button class="ghost-button" id="retry-button" type="button">Tentar novamente</button>
+        </div>
+
+        <div class="meditation-content" id="meditation-content" hidden>
+          <span class="section-label">Meditação do Dia</span>
+          <h2 id="meditation-title"></h2>
+          <p class="body-text" id="meditation-body"></p>
+          <div class="reflection-box">
+            <span>Só por hoje</span>
+            <p id="meditation-reflection"></p>
+          </div>
+          <footer class="source-note">
+            <p>
+              Fonte oficial:
+              <a href="https://na-pt.erlog.pt/sph.php" target="_blank" rel="noreferrer">Narcóticos Anónimos Portugal</a>
+            </p>
+            <p>© NA World Services, Inc. Reprinted by permission.</p>
+          </footer>
+        </div>
+      </article>
+
+      <section class="status-card view-section" id="status-card" data-section="meditation" hidden>
+        <div class="status-icon" id="status-icon">✓</div>
+        <div>
+          <strong id="status-title">Meditação lida!</strong>
+          <p id="status-copy">Um dia de cada vez.</p>
+        </div>
+      </section>
+
+      <section class="action-row view-section" data-section="meditation" aria-label="Ações principais">
+        <button class="icon-action read-action" id="complete-button" type="button" aria-label="Marcar meditação como lida">
+          <span id="complete-label" aria-hidden="true">✓</span>
+        </button>
+        <button class="primary-action prayer-action" id="prayer-button" type="button" aria-label="Abrir Oração da Serenidade">
+          <span aria-hidden="true">✦</span>
+          <span>Oração da Serenidade</span>
+        </button>
+        <button class="notify-action" id="reminder-button" type="button" aria-label="Ativar notificação">
+          <span aria-hidden="true">◷</span>
+          <span>Ativar notificação</span>
+        </button>
+        <button class="icon-action share-action" id="share-button" type="button" aria-label="Partilhar meditação no formato do grupo">
+          <span aria-hidden="true">↗</span>
+        </button>
+      </section>
+
+      <section class="quick-tools view-section" data-section="meditation" aria-label="Ferramentas do dia">
+        <button class="tool-tile" data-tool="activity" type="button">
+          <span aria-hidden="true">◎</span>
+          <strong>Atividade do dia</strong>
+        </button>
+        <button class="tool-tile" data-tool="phrase" type="button">
+          <span aria-hidden="true">✦</span>
+          <strong>Frase do dia</strong>
+        </button>
+        <button class="tool-tile" data-tool="challenge" type="button">
+          <span aria-hidden="true">⌖</span>
+          <strong>Desafio mental</strong>
+        </button>
+      </section>
+
+      <section class="thought-card view-section" id="tool-output" data-section="meditation">
+        <span id="tool-label">✦ Pensamento de recuperação</span>
+        <p id="tool-text">O maior ato de coragem é continuar, mesmo quando tudo parece difícil.</p>
+      </section>
+
+      <section class="progress-panel view-section" id="progress-panel" data-section="journey" hidden>
+        <header class="view-header">
+          <span>Caminhada</span>
+          <h2>Dias limpos e meditações lidas</h2>
+          <p>Um espaço para acompanhar a recuperação diária, a sequência de leituras e os passos que ajudam a manter firme.</p>
+        </header>
+        <div class="metric-grid">
+          <div>
+            <span class="metric" id="month-count">0</span>
+            <small>meditações este mês</small>
+          </div>
+          <div>
+            <span class="metric" id="total-count">0</span>
+            <small>meditações lidas</small>
+          </div>
+          <div>
+            <span class="metric" id="best-streak">0</span>
+            <small>melhor sequência</small>
+          </div>
+        </div>
+        <div class="reward-list">
+          <div><strong>Só por hoje</strong><span>Primeira meditação lida e marcada.</span></div>
+          <div><strong>Sete dias</strong><span>Uma semana de leitura diária.</span></div>
+          <div><strong>Trinta dias</strong><span>Um mês de compromisso com a caminhada.</span></div>
+          <div><strong>Próxima etapa</strong><span>Adicionar data limpo/sóbrio, dias limpos e registo de pedido de ajuda.</span></div>
+        </div>
+      </section>
+
+      <section class="platform-panel view-section" data-section="overcoming" hidden>
+        <div class="expo-hero">
+          <img src="/expo/hero.jpg" alt="Capa da exposição Só Por Hoje" fetchpriority="high" />
+          <div class="expo-hero-copy">
+            <span>Exposição fotográfica</span>
+            <h2>Só Por Hoje</h2>
+            <p>Uma caminhada de recuperação em 12 obras.</p>
+          </div>
+        </div>
+        <header class="view-header expo-intro">
+          <span>Superação</span>
+          <h2>SPH: Uma caminhada de recuperação</h2>
+          <p>Fotografias de Sandro Fonseca sobre presença, fé, coragem, serenidade e recomeço. Histórias e testemunhos podem entrar numa fase posterior.</p>
+        </header>
+        <section class="media-block">
+          <h3>Podcast · Só Por Hoje Cabo Verde</h3>
+          <iframe
+            src="https://www.youtube.com/embed/videoseries?list=PL0OE86edjnSn8OtYM5ypta80L_dye1p58"
+            title="Playlist do podcast Só Por Hoje Cabo Verde"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+          ></iframe>
+        </section>
+        <div class="social-links" aria-label="Canais digitais">
+          <a href="https://www.youtube.com/playlist?list=PL0OE86edjnSn8OtYM5ypta80L_dye1p58" target="_blank" rel="noreferrer">Podcast</a>
+          <a href="https://youtube.com/@soporhojecaboverde?sub_confirmation=1" target="_blank" rel="noreferrer">YouTube</a>
+          <a href="https://www.facebook.com/230886890116895" target="_blank" rel="noreferrer">Facebook</a>
+          <a href="https://www.instagram.com/soporhojecaboverde/" target="_blank" rel="noreferrer">Instagram</a>
+        </div>
+        <div class="expo-grid" aria-label="12 obras da exposição">
+          <figure>
+            <img src="/expo/amar.jpg" alt="Obra Amar" loading="lazy" />
+            <figcaption>Amar</figcaption>
+          </figure>
+          <figure>
+            <img src="/expo/koragi.jpg" alt="Obra Koragi" loading="lazy" />
+            <figcaption>Koragi</figcaption>
+          </figure>
+          <figure>
+            <img src="/expo/kosequensia.jpg" alt="Obra Kosequensia" loading="lazy" />
+            <figcaption>Kosequensia</figcaption>
+          </figure>
+          <figure>
+            <img src="/expo/naluajpg.jpg" alt="Obra Na Lua" loading="lazy" />
+            <figcaption>Na Lua</figcaption>
+          </figure>
+          <figure>
+            <img src="/expo/fogovialactea.jpg" alt="Obra Fogo Via Lactea" loading="lazy" />
+            <figcaption>Fogo Via Lactea</figcaption>
+          </figure>
+          <figure>
+            <img src="/expo/onlygoodvibes.jpg" alt="Obra Only Good Vibes" loading="lazy" />
+            <figcaption>Only Good Vibes</figcaption>
+          </figure>
+          <figure>
+            <img src="/expo/lola.jpg" alt="Obra Lola" loading="lazy" />
+            <figcaption>Lola</figcaption>
+          </figure>
+          <figure>
+            <img src="/expo/resistencia.jpg" alt="Obra Resistencia" loading="lazy" />
+            <figcaption>Resistencia</figcaption>
+          </figure>
+          <figure>
+            <img src="/expo/serenidade.jpg" alt="Obra Serenidade" loading="lazy" />
+            <figcaption>Serenidade</figcaption>
+          </figure>
+          <figure>
+            <img src="/expo/soporhoje.jpg" alt="Obra Só Por Hoje" loading="lazy" />
+            <figcaption>Só Por Hoje</figcaption>
+          </figure>
+          <figure>
+            <img src="/expo/pontdluz.jpg" alt="Obra Pont d'Luz" loading="lazy" />
+            <figcaption>Pont d'Luz</figcaption>
+          </figure>
+          <figure>
+            <img src="/expo/unsaltodefe.jpg" alt="Obra Um Salto de Fé" loading="lazy" />
+            <figcaption>Um Salto de Fé</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="platform-panel view-section" data-section="help" hidden>
+        <header class="view-header">
+          <span>Ajuda</span>
+          <h2>Reuniões, centros e contactos</h2>
+          <p>Informação inicial para encontrar apoio próximo. Esta lista deve ser validada antes de publicação definitiva.</p>
+        </header>
+
+        <section class="community-block">
+          <h3>Reuniões NA/AA conhecidas <span>a validar</span></h3>
+          <div class="info-list">
+            <article><strong>Praia</strong><p>Santiago · grupo NA/AA referido pela CCAD. Validar local, horário e contacto.</p></article>
+            <article><strong>Ribeira Grande de Santiago</strong><p>Santiago · grupo referido pela CCAD. Validar se continua ativo.</p></article>
+            <article><strong>Santa Catarina</strong><p>Santiago · grupo referido pela CCAD. Validar local e dias.</p></article>
+            <article><strong>Santa Cruz</strong><p>Santiago · grupo referido pela CCAD. Validar local e dias.</p></article>
+            <article><strong>Tarrafal</strong><p>Santiago · grupo referido pela CCAD. Validar local e contacto.</p></article>
+            <article><strong>Espargos</strong><p>Sal · grupo referido pela CCAD. Validar horário atual.</p></article>
+            <article><strong>Ribeira Bote</strong><p>São Vicente · grupo referido pela CCAD. Validar local, horário e contacto.</p></article>
+          </div>
+        </section>
+
+        <section class="community-block">
+          <h3>Centros e respostas de apoio <span>a validar</span></h3>
+          <div class="info-list">
+            <article><strong>CCAD</strong><p>Comissão de Coordenação do Álcool e outras Drogas · Achada Santo António, Praia · 262 31 29 / 333 72 43.</p></article>
+            <article><strong>Linha SOS Álcool</strong><p>800 25 27 · serviço nacional de informação, aconselhamento e encaminhamento.</p></article>
+            <article><strong>ERID Achadinha</strong><p>Espaço de Respostas Integradas às Dependências no Centro de Saúde de Achadinha.</p></article>
+            <article><strong>Comunidade Terapêutica Granja São Filipe</strong><p>Unidade residencial especializada para tratamento e reinserção social.</p></article>
+            <article><strong>Tendas do El Shaddai</strong><p>ONG · centro de resgate e restauração para homens, referido pela CCAD.</p></article>
+            <article><strong>Remar Cabo Verde</strong><p>ONG · resposta de reabilitação para álcool e outras drogas, referida pela CCAD.</p></article>
+            <article><strong>Fazenda da Esperança</strong><p>Centro residencial iniciado em Cabo Verde em 2018, referido pela CCAD.</p></article>
+            <article><strong>Serviços de Psiquiatria</strong><p>Internamentos curtos para desabituação física e atendimento ambulatório.</p></article>
+          </div>
+        </section>
+
+        <div class="source-note community-source">
+          <p>Base inicial retirada da CCAD. Antes de publicar, validar horários, moradas, contactos e estado atual de cada resposta.</p>
+          <p><a href="https://www.ccad.cv/site/index.php/tratamento/12-servicos-respostas-de-tratamento-das-dependencias-disponiveis-em-cabo-verde" target="_blank" rel="noreferrer">Ver fonte CCAD</a></p>
+        </div>
+      </section>
+
+      <nav class="bottom-nav" aria-label="Navegação">
+        <button class="active" type="button" data-view="meditation">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 7v14" />
+              <path d="M3 18a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H3Z" />
+              <path d="M21 18a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1h-5a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h6Z" />
+            </svg>
+          </span>
+          Meditação
+        </button>
+        <button type="button" data-view="journey">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M7 20v-2.4c0-2.1-1.5-3.5-1.5-5.6S7 8 9 8s3.5 1.7 3.5 4-1.5 3.5-1.5 5.6V20a2 2 0 0 1-4 0Z" />
+              <path d="M17 16v-2.4c0-2.1 1.5-3.5 1.5-5.6S17 4 15 4s-3.5 1.7-3.5 4 1.5 3.5 1.5 5.6V16a2 2 0 0 0 4 0Z" />
+            </svg>
+          </span>
+          Caminhada
+        </button>
+        <button type="button" data-view="overcoming">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3l1.7 5.1L19 10l-5.3 1.9L12 17l-1.7-5.1L5 10l5.3-1.9L12 3Z" />
+              <path d="M19 15l.7 2.1L22 18l-2.3.9L19 21l-.7-2.1L16 18l2.3-.9L19 15Z" />
+            </svg>
+          </span>
+          Superação
+        </button>
+        <button type="button" data-view="help">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 5v14" />
+              <path d="M5 12h14" />
+            </svg>
+          </span>
+          Ajuda
+        </button>
+      </nav>
+    </main>
+
+    <div class="modal-backdrop" id="prayer-modal" hidden>
+      <section class="prayer-modal" role="dialog" aria-modal="true" aria-labelledby="prayer-title">
+        <button class="modal-close" id="prayer-close" type="button" aria-label="Fechar oração">×</button>
+        <div class="prayer-content">
+          <h2 id="prayer-title">✦ Oração da Serenidade ✦</h2>
+          <p>Concedei-me, Senhor, a serenidade necessária para aceitar as coisas que não posso modificar, a coragem para modificar aquelas que eu posso, e a sabedoria para distinguir umas das outras.</p>
+          <p>Vivendo um dia de cada vez, desfrutando um momento de cada vez, aceitando as dificuldades como um caminho para alcançar a paz.</p>
+          <p>Aceitando, como tu, este mundo pecador tal como ele é, e não como eu gostaria que fosse, confiando que endireitarás todas as coisas, se me render à Sua vontade.</p>
+          <p>Para que eu possa ser moderadamente feliz nesta vida, e sumamente feliz contigo na eternidade.</p>
+          <p>Amém.</p>
+          <img src="/icon-512.png" alt="Só Por Hoje" />
+        </div>
+      </section>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

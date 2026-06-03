@@ -1,0 +1,11 @@
+{
+  "total_records": 366,
+  "unique_month_days": 366,
+  "has_leap_day": true,
+  "duplicates": [],
+  "missing": [],
+  "unexpected": [],
+  "empty_title": [],
+  "empty_body": [],
+  "empty_reflection": []
+}
