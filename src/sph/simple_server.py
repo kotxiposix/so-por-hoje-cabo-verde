@@ -66,6 +66,8 @@ class Handler(BaseHTTPRequestHandler):
     def serve_static(self, path: str, write_body: bool = True) -> None:
         relative_path = "index.html" if path in {"", "/"} else path.lstrip("/")
         file_path = (PUBLIC_DIR / relative_path).resolve()
+        if file_path.is_dir():
+            file_path = (file_path / "index.html").resolve()
 
         if not self._is_public_file(file_path):
             self.respond({"detail": "Not found"}, HTTPStatus.NOT_FOUND, write_body=write_body)

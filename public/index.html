@@ -100,30 +100,57 @@
 
       <section class="progress-panel view-section" id="progress-panel" data-section="journey" hidden>
         <header class="view-header">
-          <span>Caminhada</span>
-          <h2>Dias limpos e meditações lidas</h2>
-          <p>Um espaço para acompanhar a recuperação diária, a sequência de leituras e os passos que ajudam a manter firme.</p>
+          <span>Jornada</span>
+          <h2>Dias limpos, presença e apoio</h2>
+          <p>Um espaço pessoal para acompanhar a recuperação diária, sem julgamento. Os dados ficam guardados apenas neste navegador.</p>
         </header>
+
+        <div class="sobriety-card">
+          <div>
+            <span class="mini-label">Data de sobriedade</span>
+            <strong id="clean-days">Ainda não definida</strong>
+            <p id="clean-days-copy">Define a tua data para contar os dias limpos.</p>
+          </div>
+          <label class="date-field">
+            <span>Limpo/sóbrio desde</span>
+            <input id="sobriety-date" type="date" />
+          </label>
+        </div>
+
         <div class="metric-grid">
           <div>
-            <span class="metric" id="month-count">0</span>
-            <small>meditações este mês</small>
-          </div>
-          <div>
-            <span class="metric" id="total-count">0</span>
-            <small>meditações lidas</small>
+            <span class="metric" id="clean-days-metric">0</span>
+            <small>dias limpos</small>
           </div>
           <div>
             <span class="metric" id="best-streak">0</span>
-            <small>melhor sequência</small>
+            <small>sequência de leituras</small>
+          </div>
+          <div>
+            <span class="metric" id="month-count">0</span>
+            <small>leituras este mês</small>
           </div>
         </div>
-        <div class="reward-list">
-          <div><strong>Só por hoje</strong><span>Primeira meditação lida e marcada.</span></div>
-          <div><strong>Sete dias</strong><span>Uma semana de leitura diária.</span></div>
-          <div><strong>Trinta dias</strong><span>Um mês de compromisso com a caminhada.</span></div>
-          <div><strong>Próxima etapa</strong><span>Adicionar data limpo/sóbrio, dias limpos e registo de pedido de ajuda.</span></div>
+
+        <div class="checkin-card">
+          <span class="mini-label">Como estás hoje?</span>
+          <div class="checkin-actions" aria-label="Check-in diário">
+            <button type="button" data-checkin="firme">Firme</button>
+            <button type="button" data-checkin="ansioso">Preciso de serenidade</button>
+            <button type="button" data-checkin="risco">Estou em risco</button>
+            <button type="button" data-checkin="consumo">Voltei a consumir</button>
+          </div>
+          <p id="checkin-guidance">Escolhe um estado para receber uma sugestão prática para hoje.</p>
         </div>
+
+        <div class="reward-list" id="reward-list">
+          <div data-reward="1"><strong>Só por hoje</strong><span>Marca a primeira meditação lida.</span></div>
+          <div data-reward="7"><strong>7 dias</strong><span>Uma semana de presença e cuidado.</span></div>
+          <div data-reward="30"><strong>30 dias</strong><span>Um mês de caminhada consciente.</span></div>
+          <div data-reward="90"><strong>90 dias</strong><span>Consistência, apoio e rotina saudável.</span></div>
+        </div>
+
+        <p class="care-note">Esta plataforma não substitui técnicos de saúde, sponsor, terapeuta ou reunião. Se estiveres em perigo, procura ajuda presencial ou contacto de emergência.</p>
       </section>
 
       <section class="platform-panel view-section" data-section="overcoming" hidden>
@@ -132,14 +159,15 @@
           <div class="expo-hero-copy">
             <span>Exposição fotográfica</span>
             <h2>Só Por Hoje</h2>
-            <p>Uma caminhada de recuperação em 12 obras.</p>
+            <p>Uma jornada de recuperação em 12 obras.</p>
           </div>
         </div>
         <header class="view-header expo-intro">
-          <span>Superação</span>
-          <h2>SPH: Uma caminhada de recuperação</h2>
+          <span>Recuperação</span>
+          <h2>SPH: Uma jornada de recuperação</h2>
           <p>Fotografias de Sandro Fonseca sobre presença, fé, coragem, serenidade e recomeço. Histórias e testemunhos podem entrar numa fase posterior.</p>
         </header>
+        <a class="expo-page-link" href="/expo">Ver exposição completa</a>
         <section class="media-block">
           <h3>Podcast · Só Por Hoje Cabo Verde</h3>
           <iframe
@@ -155,6 +183,19 @@
           <a href="https://www.facebook.com/230886890116895" target="_blank" rel="noreferrer">Facebook</a>
           <a href="https://www.instagram.com/soporhojecaboverde/" target="_blank" rel="noreferrer">Instagram</a>
         </div>
+        <section class="anonymous-room" aria-labelledby="anonymous-title">
+          <header>
+            <span id="anonymous-name">Guerreiro000</span>
+            <h3 id="anonymous-title">Sala anónima</h3>
+            <p>Partilhas guardadas só neste navegador nesta fase. Boa para prototipar a experiência antes de ligar a uma base de dados real.</p>
+          </header>
+          <form id="anonymous-form">
+            <label for="anonymous-message">Partilha anónima</label>
+            <textarea id="anonymous-message" rows="3" maxlength="280" placeholder="Escreve uma partilha curta, sem nomes nem dados pessoais."></textarea>
+            <button type="submit">Partilhar</button>
+          </form>
+          <div class="anonymous-feed" id="anonymous-feed" aria-live="polite"></div>
+        </section>
         <div class="expo-grid" aria-label="12 obras da exposição">
           <figure>
             <img src="expo/amar.jpg" alt="Obra Amar" loading="lazy" />
@@ -265,7 +306,7 @@
               <path d="M17 16v-2.4c0-2.1 1.5-3.5 1.5-5.6S17 4 15 4s-3.5 1.7-3.5 4 1.5 3.5 1.5 5.6V16a2 2 0 0 0 4 0Z" />
             </svg>
           </span>
-          Caminhada
+          Jornada
         </button>
         <button type="button" data-view="overcoming">
           <span class="nav-icon" aria-hidden="true">
@@ -274,7 +315,7 @@
               <path d="M19 15l.7 2.1L22 18l-2.3.9L19 21l-.7-2.1L16 18l2.3-.9L19 15Z" />
             </svg>
           </span>
-          Superação
+          Recuperação
         </button>
         <button type="button" data-view="help">
           <span class="nav-icon" aria-hidden="true">
@@ -299,6 +340,17 @@
           <p>Para que eu possa ser moderadamente feliz nesta vida, e sumamente feliz contigo na eternidade.</p>
           <p>Amém.</p>
           <img src="icon-512.png" alt="Só Por Hoje" />
+        </div>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="tool-modal" hidden>
+      <section class="tool-modal" role="dialog" aria-modal="true" aria-labelledby="tool-modal-title">
+        <button class="modal-close" id="tool-close" type="button" aria-label="Fechar ferramenta">×</button>
+        <div class="tool-modal-content">
+          <span id="tool-modal-label">Ferramenta do dia</span>
+          <h2 id="tool-modal-title">Atividade do dia</h2>
+          <p id="tool-modal-text"></p>
         </div>
       </section>
     </div>

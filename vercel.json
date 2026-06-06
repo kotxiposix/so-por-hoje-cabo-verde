@@ -8,6 +8,10 @@
   ],
   "routes": [
     {
+      "src": "/expo/?",
+      "dest": "/public/expo/index.html"
+    },
+    {
       "src": "/",
       "dest": "/public/index.html"
     },

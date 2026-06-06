@@ -321,7 +321,8 @@ button {
   backdrop-filter: blur(10px);
 }
 
-.prayer-modal {
+.prayer-modal,
+.tool-modal {
   position: relative;
   width: min(100%, 560px);
   max-height: min(86vh, 760px);
@@ -335,6 +336,13 @@ button {
   box-shadow: 0 22px 70px rgba(2, 18, 31, 0.45);
 }
 
+.tool-modal {
+  color: var(--ink);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(236, 249, 251, 0.95)),
+    url("expo/soporhoje.jpg") center / cover;
+}
+
 .prayer-modal::before {
   content: "";
   position: absolute;
@@ -344,11 +352,15 @@ button {
   backdrop-filter: blur(7px);
 }
 
-.prayer-content {
+.prayer-content,
+.tool-modal-content {
   position: relative;
   z-index: 1;
   padding: 44px 34px 34px;
   text-align: left;
+}
+
+.prayer-content {
   text-shadow: 0 3px 8px rgba(0, 0, 0, 0.34);
 }
 
@@ -375,6 +387,34 @@ button {
   border: 5px solid rgba(255, 255, 255, 0.86);
   border-radius: 50%;
   object-fit: cover;
+}
+
+.tool-modal-content {
+  padding: 42px 34px 36px;
+}
+
+.tool-modal-content span {
+  display: block;
+  color: var(--aqua-dark);
+  font-size: 13px;
+  font-weight: 950;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+}
+
+.tool-modal-content h2 {
+  margin: 10px 0 16px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px;
+  line-height: 1.12;
+}
+
+.tool-modal-content p {
+  margin: 0;
+  color: #263458;
+  font-size: 22px;
+  font-weight: 780;
+  line-height: 1.45;
 }
 
 .modal-close {
@@ -480,6 +520,96 @@ button {
   text-align: center;
 }
 
+.sobriety-card,
+.checkin-card,
+.anonymous-room {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sobriety-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 18px;
+  align-items: end;
+  margin-bottom: 16px;
+  padding: 18px;
+}
+
+.mini-label {
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+
+.sobriety-card strong {
+  display: block;
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.sobriety-card p,
+.checkin-card p,
+.care-note {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.76);
+  line-height: 1.45;
+}
+
+.date-field {
+  display: grid;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.date-field input,
+.anonymous-room textarea {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 12px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.92);
+  font: inherit;
+}
+
+.date-field input {
+  min-height: 46px;
+  padding: 0 12px;
+}
+
+.checkin-card {
+  margin-top: 16px;
+  padding: 18px;
+}
+
+.checkin-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.checkin-actions button,
+.anonymous-room button {
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.12);
+  font-weight: 900;
+}
+
+.checkin-actions button.active {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.9);
+}
+
 .metric-grid > div,
 .reward-list > div,
 .feature-list > div {
@@ -518,6 +648,30 @@ button {
   padding: 16px;
 }
 
+.reward-list > div {
+  position: relative;
+  padding-left: 48px;
+}
+
+.reward-list > div::before {
+  content: "○";
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  color: rgba(255, 255, 255, 0.66);
+  font-weight: 950;
+}
+
+.reward-list > div.unlocked {
+  border-color: rgba(255, 255, 255, 0.58);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.reward-list > div.unlocked::before {
+  content: "✓";
+  color: var(--white);
+}
+
 .reward-list strong,
 .feature-list strong {
   font-size: 18px;
@@ -531,6 +685,20 @@ button {
 
 .media-block {
   margin: 24px 0 16px;
+}
+
+.expo-page-link {
+  display: inline-grid;
+  place-items: center;
+  min-height: 50px;
+  margin: 0 0 6px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.9);
+  font-weight: 950;
+  text-decoration: none;
 }
 
 .media-block h3 {
@@ -623,6 +791,80 @@ button {
 
 .community-source a {
   color: var(--white);
+}
+
+.care-note {
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+.anonymous-room {
+  margin: 24px 0;
+  padding: 20px;
+}
+
+.anonymous-room header {
+  margin-bottom: 16px;
+}
+
+.anonymous-room header span {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.anonymous-room h3 {
+  margin: 12px 0 6px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 26px;
+}
+
+.anonymous-room p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.45;
+}
+
+.anonymous-room form {
+  display: grid;
+  gap: 10px;
+}
+
+.anonymous-room label {
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.anonymous-room textarea {
+  min-height: 96px;
+  padding: 12px;
+  resize: vertical;
+}
+
+.anonymous-feed {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.anonymous-feed article,
+.empty-feed {
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.anonymous-feed strong {
+  display: block;
+  margin-bottom: 6px;
 }
 
 .expo-hero {
@@ -835,7 +1077,24 @@ button {
     font-size: 17px;
   }
 
+  .tool-modal-content {
+    padding: 38px 24px 28px;
+  }
+
+  .tool-modal-content h2 {
+    font-size: 27px;
+  }
+
+  .tool-modal-content p {
+    font-size: 19px;
+  }
+
   .quick-tools {
+    grid-template-columns: 1fr;
+  }
+
+  .sobriety-card,
+  .checkin-actions {
     grid-template-columns: 1fr;
   }
 

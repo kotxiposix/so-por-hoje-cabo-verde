@@ -27,11 +27,26 @@ const els = {
   reminder: document.querySelector("#reminder-button"),
   toolLabel: document.querySelector("#tool-label"),
   toolText: document.querySelector("#tool-text"),
+  toolModal: document.querySelector("#tool-modal"),
+  toolClose: document.querySelector("#tool-close"),
+  toolModalLabel: document.querySelector("#tool-modal-label"),
+  toolModalTitle: document.querySelector("#tool-modal-title"),
+  toolModalText: document.querySelector("#tool-modal-text"),
   progressPanel: document.querySelector("#progress-panel"),
+  sobrietyDate: document.querySelector("#sobriety-date"),
+  cleanDays: document.querySelector("#clean-days"),
+  cleanDaysCopy: document.querySelector("#clean-days-copy"),
+  cleanDaysMetric: document.querySelector("#clean-days-metric"),
   monthCount: document.querySelector("#month-count"),
-  totalCount: document.querySelector("#total-count"),
   bestStreak: document.querySelector("#best-streak"),
+  checkinGuidance: document.querySelector("#checkin-guidance"),
+  anonymousName: document.querySelector("#anonymous-name"),
+  anonymousForm: document.querySelector("#anonymous-form"),
+  anonymousMessage: document.querySelector("#anonymous-message"),
+  anonymousFeed: document.querySelector("#anonymous-feed"),
 };
+
+let lastToolButton = null;
 
 const tools = {
   repair: {
@@ -58,14 +73,30 @@ const tools = {
 
 function loadProgress() {
   try {
-    return JSON.parse(localStorage.getItem("sph-progress")) || { completed: [] };
+    const progress = JSON.parse(localStorage.getItem("sph-progress")) || {};
+    return normalizeProgress(progress);
   } catch {
-    return { completed: [] };
+    return normalizeProgress({});
   }
 }
 
 function saveProgress() {
   localStorage.setItem("sph-progress", JSON.stringify(state.progress));
+}
+
+function normalizeProgress(progress) {
+  return {
+    completed: Array.isArray(progress.completed) ? progress.completed : [],
+    sobrietyDate: progress.sobrietyDate || "",
+    checkins: progress.checkins && typeof progress.checkins === "object" ? progress.checkins : {},
+    anonymousName: progress.anonymousName || makeAnonymousName(),
+    anonymousShares: Array.isArray(progress.anonymousShares) ? progress.anonymousShares : [],
+    notifications: progress.notifications || "off",
+  };
+}
+
+function makeAnonymousName() {
+  return `Guerreiro${Math.floor(100 + Math.random() * 900)}`;
 }
 
 function showMode(mode) {
@@ -143,6 +174,7 @@ function renderMeditation() {
   els.reflection.textContent = daily.reflection;
   showMode("content");
   renderProgress();
+  renderAnonymousRoom();
 }
 
 function formatDateLine(isoDate, weekday) {
@@ -183,6 +215,7 @@ function renderProgress() {
   const currentStreak = getCurrentStreak(completed, today);
   const monthPrefix = today?.slice(0, 7);
   const monthTotal = [...completed].filter((day) => day.startsWith(monthPrefix)).length;
+  const cleanDays = getCleanDays(today);
 
   els.streakCount.textContent = `${currentStreak} ${currentStreak === 1 ? "leitura seguida" : "leituras seguidas"}`;
   els.statusCard.hidden = !doneToday || state.view !== "meditation";
@@ -191,9 +224,56 @@ function renderProgress() {
     doneToday ? "Meditação lida hoje" : "Marcar meditação como lida",
   );
   els.completeLabel.textContent = "✓";
+  els.sobrietyDate.value = state.progress.sobrietyDate;
+  els.cleanDaysMetric.textContent = cleanDays;
   els.monthCount.textContent = monthTotal;
-  els.totalCount.textContent = completed.size;
   els.bestStreak.textContent = getBestStreak(completed);
+  renderCleanDays(cleanDays);
+  renderCheckinGuidance();
+  renderRewards(cleanDays, currentStreak);
+}
+
+function renderCleanDays(cleanDays) {
+  if (!state.progress.sobrietyDate) {
+    els.cleanDays.textContent = "Ainda não definida";
+    els.cleanDaysCopy.textContent = "Define a tua data para contar os dias limpos.";
+    return;
+  }
+
+  els.cleanDays.textContent = `${cleanDays} ${cleanDays === 1 ? "dia limpo" : "dias limpos"}`;
+  els.cleanDaysCopy.textContent = cleanDays === 0
+    ? "Hoje também conta. Um passo de cada vez."
+    : "Continua a caminhar com apoio, presença e humildade.";
+}
+
+function getCleanDays(todayIso) {
+  if (!state.progress.sobrietyDate || !todayIso) return 0;
+  const start = new Date(`${state.progress.sobrietyDate}T00:00:00`);
+  const today = new Date(`${todayIso}T00:00:00`);
+  return Math.max(0, diffDays(start, today));
+}
+
+function renderRewards(cleanDays, readingStreak) {
+  document.querySelectorAll("[data-reward]").forEach((item) => {
+    const target = Number(item.dataset.reward);
+    item.classList.toggle("unlocked", cleanDays >= target || readingStreak >= target);
+  });
+}
+
+function renderCheckinGuidance() {
+  const today = state.daily?.date;
+  const checkin = today ? state.progress.checkins[today] : "";
+  const guidance = {
+    firme: "Boa. Mantém o básico: meditação, água, descanso, reunião ou uma chamada honesta.",
+    ansioso: "Faz uma pausa curta, abre a Oração da Serenidade e fala com alguém antes de ficares sozinho com a ansiedade.",
+    risco: "Escolhe proteção agora: sai do local de risco, liga para alguém de confiança e procura uma reunião ou ajuda próxima.",
+    consumo: "Sem culpa paralisante. Hoje é dia de pedir ajuda, falar a verdade e recomeçar com proteção.",
+  };
+  els.checkinGuidance.textContent = guidance[checkin] || "Escolhe um estado para receber uma sugestão prática para hoje.";
+
+  document.querySelectorAll("[data-checkin]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.checkin === checkin);
+  });
 }
 
 function getCurrentStreak(completed, todayIso) {
@@ -245,6 +325,26 @@ function completeToday() {
   flashStatus("Meditação lida!", "Um dia de cada vez.");
 }
 
+function setSobrietyDate(value) {
+  state.progress.sobrietyDate = value;
+  saveProgress();
+  renderProgress();
+}
+
+function setCheckin(type) {
+  if (!state.daily) return;
+  state.progress.checkins[state.daily.date] = type;
+  saveProgress();
+  renderProgress();
+
+  if (type === "ansioso") {
+    openPrayer();
+  }
+  if (type === "risco" || type === "consumo") {
+    showView("help");
+  }
+}
+
 async function shareMeditation() {
   if (!state.daily) return;
   const text = composeGroupMessage(state.daily);
@@ -268,6 +368,65 @@ function flashStatus(title, copy) {
   }, 2400);
 }
 
+function renderAnonymousRoom() {
+  els.anonymousName.textContent = state.progress.anonymousName;
+  const shares = state.progress.anonymousShares.slice(-4).reverse();
+  els.anonymousFeed.innerHTML = shares.length
+    ? shares.map((share) => `
+        <article>
+          <strong>${escapeHtml(share.name)}</strong>
+          <p>${escapeHtml(share.message)}</p>
+        </article>
+      `).join("")
+    : "<p class=\"empty-feed\">Ainda não há partilhas nesta sessão.</p>";
+}
+
+function addAnonymousShare(message) {
+  const cleanMessage = message.trim();
+  if (!cleanMessage) return;
+
+  state.progress.anonymousShares.push({
+    name: state.progress.anonymousName,
+    message: cleanMessage,
+    date: new Date().toISOString(),
+  });
+  state.progress.anonymousShares = state.progress.anonymousShares.slice(-20);
+  saveProgress();
+  renderAnonymousRoom();
+}
+
+function escapeHtml(value) {
+  return value.replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#039;",
+  }[char]));
+}
+
+async function activateNotifications() {
+  if (!("Notification" in window)) {
+    flashStatus("Notificações indisponíveis", "Este navegador não suporta notificações locais.");
+    return;
+  }
+
+  const permission = await Notification.requestPermission();
+  state.progress.notifications = permission === "granted" ? "on" : "off";
+  saveProgress();
+
+  if (permission === "granted") {
+    new Notification("Só Por Hoje", {
+      body: "Notificações ativadas. A versão app poderá lembrar a meditação diária automaticamente.",
+      icon: "icon-512.png",
+    });
+    flashStatus("Notificação ativada", "No navegador, o lembrete real precisa de versão PWA/app.");
+    return;
+  }
+
+  flashStatus("Notificação não ativada", "Podes tentar novamente nas permissões do navegador.");
+}
+
 function openPrayer() {
   els.prayerModal.hidden = false;
   document.body.classList.add("modal-open");
@@ -280,15 +439,31 @@ function closePrayer() {
   els.prayer.focus();
 }
 
-function showTool(type) {
+function openTool(type, sourceButton) {
   const theme = detectTheme();
   const labels = {
-    activity: "◎ Atividade do dia",
-    phrase: "✦ Frase do dia",
-    challenge: "⌖ Desafio mental",
+    activity: { label: "◎ Ferramenta prática", title: "Atividade do dia" },
+    phrase: { label: "✦ Inspiração curta", title: "Frase do dia" },
+    challenge: { label: "⌖ Exercício de presença", title: "Desafio mental" },
   };
-  els.toolLabel.textContent = labels[type];
+  const selected = labels[type];
+  lastToolButton = sourceButton;
+  els.toolLabel.textContent = `${selected.label}`;
   els.toolText.textContent = tools[theme][type];
+  els.toolModalLabel.textContent = selected.label;
+  els.toolModalTitle.textContent = selected.title;
+  els.toolModalText.textContent = tools[theme][type];
+  els.toolModal.hidden = false;
+  document.body.classList.add("modal-open");
+  els.toolClose.focus();
+}
+
+function closeTool() {
+  els.toolModal.hidden = true;
+  document.body.classList.remove("modal-open");
+  if (lastToolButton) {
+    lastToolButton.focus();
+  }
 }
 
 function detectTheme() {
@@ -325,15 +500,29 @@ els.prayerModal.addEventListener("click", (event) => {
     closePrayer();
   }
 });
+els.toolClose.addEventListener("click", closeTool);
+els.toolModal.addEventListener("click", (event) => {
+  if (event.target === els.toolModal) {
+    closeTool();
+  }
+});
 els.share.addEventListener("click", () => shareMeditation().catch(() => {
   flashStatus("Partilha indisponível", "Tente copiar o texto manualmente.");
 }));
-els.reminder.addEventListener("click", () => {
-  flashStatus("Lembrete diário", "Próximo passo: ligar notificações do navegador ou app móvel.");
+els.reminder.addEventListener("click", () => activateNotifications());
+els.sobrietyDate.addEventListener("change", (event) => setSobrietyDate(event.target.value));
+els.anonymousForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  addAnonymousShare(els.anonymousMessage.value);
+  els.anonymousMessage.value = "";
 });
 
 document.querySelectorAll(".tool-tile").forEach((button) => {
-  button.addEventListener("click", () => showTool(button.dataset.tool));
+  button.addEventListener("click", () => openTool(button.dataset.tool, button));
+});
+
+document.querySelectorAll("[data-checkin]").forEach((button) => {
+  button.addEventListener("click", () => setCheckin(button.dataset.checkin));
 });
 
 document.querySelectorAll(".bottom-nav button").forEach((button) => {
@@ -343,6 +532,9 @@ document.querySelectorAll(".bottom-nav button").forEach((button) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !els.prayerModal.hidden) {
     closePrayer();
+  }
+  if (event.key === "Escape" && !els.toolModal.hidden) {
+    closeTool();
   }
 });
 
