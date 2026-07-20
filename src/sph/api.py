@@ -3,9 +3,12 @@ from __future__ import annotations
 from datetime import date
 
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 
+from sph.ai_support import DailySupportRequest, build_daily_support, support_to_dict
 from sph.channels.console import ConsoleChannel
 from sph.config import settings
+from sph.models import DailyMeditation
 from sph.repository import MeditationRepository
 from sph.send_log import JsonlSendLog
 from sph.sender import DailySender
@@ -17,6 +20,14 @@ service = DailyMeditationService(repository, settings.timezone)
 send_log = JsonlSendLog(settings.send_log_path)
 sender = DailySender(service, send_log, settings.timezone)
 app = FastAPI(title="So Por Hoje Cabo Verde", version="0.1.0")
+
+
+class AiDailySupportPayload(BaseModel):
+    daily: dict[str, str] | None = None
+    user_state: str = ""
+    clean_days: int = 0
+    reading_streak: int = 0
+    language: str = "pt-CV"
 
 
 @app.get("/api/v1/health")
@@ -36,6 +47,24 @@ def today() -> dict[str, str]:
 def today_preview() -> dict[str, str]:
     daily = service.today()
     return {"message": service.format_message(daily)}
+
+
+@app.post("/api/v1/ai/daily-support")
+def ai_daily_support(payload: AiDailySupportPayload) -> dict[str, str]:
+    try:
+        daily = DailyMeditation(**payload.daily) if payload.daily else service.today()
+    except TypeError as exc:
+        raise HTTPException(status_code=400, detail="Dados da meditação inválidos") from exc
+    support = build_daily_support(
+        DailySupportRequest(
+            daily=daily,
+            user_state=payload.user_state,
+            clean_days=payload.clean_days,
+            reading_streak=payload.reading_streak,
+            language=payload.language,
+        )
+    )
+    return support_to_dict(support)
 
 
 @app.get("/api/v1/day/{month_day}")

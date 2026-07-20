@@ -247,7 +247,7 @@ button {
 
 .action-row {
   display: grid;
-  grid-template-columns: 70px minmax(0, 1.3fr) minmax(0, 1fr) 70px;
+  grid-template-columns: 70px minmax(0, 1.3fr) minmax(0, 1fr) 70px 70px;
   gap: 14px;
   margin-top: 22px;
   padding: 0;
@@ -294,7 +294,8 @@ button {
 }
 
 .notify-action,
-.share-action {
+.share-action,
+.story-action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -306,7 +307,8 @@ button {
   font-size: 15px;
 }
 
-.share-action {
+.share-action,
+.story-action {
   font-size: 24px;
 }
 
@@ -784,6 +786,53 @@ button {
   line-height: 1.45;
 }
 
+.info-list p + p {
+  margin-top: 8px;
+}
+
+.schedule-list {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.schedule-list li {
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.help-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.help-actions a {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 13px;
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 999px;
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 13px;
+  font-weight: 950;
+  text-decoration: none;
+}
+
 .community-source {
   border-top-color: var(--line);
   color: rgba(255, 255, 255, 0.74);
@@ -1043,12 +1092,12 @@ button {
   }
 
   .action-row {
-    grid-template-columns: 58px 1fr 58px;
+    grid-template-columns: 58px 1fr 58px 58px;
     gap: 10px;
   }
 
   .prayer-action {
-    grid-column: 2 / 4;
+    grid-column: 2 / 5;
     font-size: 15px;
   }
 
@@ -1057,11 +1106,13 @@ button {
   }
 
   .notify-action,
-  .share-action {
+  .share-action,
+  .story-action {
     font-size: 12px;
   }
 
-  .share-action {
+  .share-action,
+  .story-action {
     font-size: 22px;
   }
 

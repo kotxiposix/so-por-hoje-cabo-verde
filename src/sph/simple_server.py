@@ -8,7 +8,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
+from sph.ai_support import DailySupportRequest, build_daily_support, support_to_dict
 from sph.config import settings
+from sph.models import DailyMeditation
 from sph.repository import MeditationRepository
 from sph.service import DailyMeditationService
 
@@ -24,6 +26,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         self.handle_request(write_body=True)
+
+    def do_POST(self) -> None:
+        self.handle_post()
 
     def handle_request(self, write_body: bool) -> None:
         path = urlparse(self.path).path
@@ -45,6 +50,38 @@ class Handler(BaseHTTPRequestHandler):
             self.respond({"detail": str(exc)}, HTTPStatus.BAD_REQUEST, write_body=write_body)
         except LookupError as exc:
             self.respond({"detail": str(exc)}, HTTPStatus.NOT_FOUND, write_body=write_body)
+
+    def handle_post(self) -> None:
+        path = urlparse(self.path).path
+        try:
+            if path == "/api/v1/ai/daily-support":
+                payload = self.read_json_body()
+                daily_payload = payload.get("daily") or service.today().__dict__
+                daily = DailyMeditation(**daily_payload)
+                support = build_daily_support(
+                    DailySupportRequest(
+                        daily=daily,
+                        user_state=str(payload.get("user_state") or ""),
+                        clean_days=int(payload.get("clean_days") or 0),
+                        reading_streak=int(payload.get("reading_streak") or 0),
+                        language=str(payload.get("language") or "pt-CV"),
+                    )
+                )
+                self.respond(support_to_dict(support))
+            else:
+                self.respond({"detail": "Not found"}, HTTPStatus.NOT_FOUND)
+        except (TypeError, ValueError) as exc:
+            self.respond({"detail": str(exc)}, HTTPStatus.BAD_REQUEST)
+
+    def read_json_body(self) -> dict[str, object]:
+        length = int(self.headers.get("Content-Length") or 0)
+        if length <= 0:
+            return {}
+        body = self.rfile.read(length)
+        payload = json.loads(body.decode("utf-8"))
+        if not isinstance(payload, dict):
+            raise ValueError("Pedido JSON invalido")
+        return payload
 
     def log_message(self, format: str, *args: object) -> None:
         return

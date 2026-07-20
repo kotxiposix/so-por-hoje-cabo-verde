@@ -61,19 +61,23 @@ class DailyMeditationService:
         target = date.fromisoformat(daily.date)
         weekday = daily.weekday.replace("-feira", "")
         full_date = f"{weekday}, {target.day:02d} de {MONTHS_PT[target.month]} de {target.year}"
-        return "\n\n".join(
+        header = "\n\n".join(
             [
                 "BOM DIA GUERREIROS",
                 "MEDITAÇÃO DO DIA",
                 full_date,
-                daily.title,
-                daily.body,
-                "SÓ POR HOJE:",
-                daily.reflection,
-                "Fonte oficial: Narcóticos Anónimos Portugal",
-                "© NA World Services, Inc. Reprinted by permission.",
-                "https://na-pt.erlog.pt/sph.php",
             ]
+        )
+        body = daily.body.replace("\n\n", "\n\n\n", 1)
+        return (
+            f"{header}\n\n\n"
+            f"{daily.title}\n\n\n"
+            f"{body}\n\n\n"
+            "SÓ POR HOJE:\n\n"
+            f"{daily.reflection}\n\n\n"
+            "soporhoje.cv\n\n\n"
+            "Fonte oficial: Narcóticos Anónimos Portugal\n"
+            "© NA World Services, Inc. Reprinted by permission."
         )
 
     def _daily(self, target: date, meditation: Meditation) -> DailyMeditation:
