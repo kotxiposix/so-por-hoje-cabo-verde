@@ -9,6 +9,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] PWA instalavel, base diaria offline e fallbacks separados para app, privacidade e exposicao.
 - [x] Apoio diário local preserva dia e estado offline; atualizações da PWA exigem ação explícita.
 - [x] Arquivo anual permite reler meditacoes por data sem alterar leitura, check-in ou sequencia do dia atual.
+- [x] Players de video e podcast usam incorporacao YouTube com privacidade reforcada, sem referencia da pagina e com CSP restrita.
 - [x] Exportacao local versionada e importacao da Jornada validada, limitada a 1 MB e confirmada antes da substituicao.
 - [x] Sincronizacao preparada para recusar versoes futuras, pausar quando outra copia remota for mais recente e excluir dados exclusivos do dispositivo.
 - [x] Testes automaticos no GitHub Actions para `dev`, `production` e pull requests.

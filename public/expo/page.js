@@ -57,7 +57,5 @@ function selectMedia(button, iframeSelector, dataKey) {
   group.querySelectorAll(".media-card").forEach((item) => item.classList.remove("active"));
   button.classList.add("active");
 
-  iframe.src = value.startsWith("videoseries")
-    ? `https://www.youtube.com/embed/${value}`
-    : `https://www.youtube.com/embed/${value}`;
+  iframe.src = `https://www.youtube-nocookie.com/embed/${value}`;
 }

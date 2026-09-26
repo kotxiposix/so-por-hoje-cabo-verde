@@ -35,7 +35,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://*.supabase.co; frame-src https://www.youtube.com https://youtube.com; worker-src 'self'; manifest-src 'self'; form-action 'self' mailto:"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://*.supabase.co; frame-src https://www.youtube-nocookie.com; worker-src 'self'; manifest-src 'self'; form-action 'self' mailto:"
         },
         {
           "key": "Permissions-Policy",

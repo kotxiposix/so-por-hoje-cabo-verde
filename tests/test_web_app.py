@@ -129,7 +129,8 @@ class WebAppStructureTests(unittest.TestCase):
         security = rules["/(.*)"]
         self.assertIn("frame-ancestors 'none'", security["Content-Security-Policy"])
         self.assertIn("https://*.supabase.co", security["Content-Security-Policy"])
-        self.assertIn("https://www.youtube.com", security["Content-Security-Policy"])
+        self.assertIn("frame-src https://www.youtube-nocookie.com", security["Content-Security-Policy"])
+        self.assertNotIn("frame-src https://www.youtube.com", security["Content-Security-Policy"])
         self.assertEqual(security["X-Content-Type-Options"], "nosniff")
         self.assertEqual(security["X-Frame-Options"], "DENY")
 
@@ -186,6 +187,8 @@ class WebAppStructureTests(unittest.TestCase):
             self.index_text,
             r'title="Playlist do podcast Só Por Hoje Cabo Verde"\s+loading="lazy"',
         )
+        self.assertNotIn("youtube.com/embed", self.index_text)
+        self.assertIn("youtube-nocookie.com/embed", self.index_text)
 
         expo = (PUBLIC / "expo" / "index.html").read_text(encoding="utf-8")
         self.assertIn('class="hero-image" src="/expo/hero-banner.jpg"', expo)
@@ -194,6 +197,12 @@ class WebAppStructureTests(unittest.TestCase):
             'src="/expo/sandro-profile.png" alt="Retrato de Sandro Fonseca" loading="lazy" decoding="async"',
             expo,
         )
+        self.assertNotIn("youtube.com/embed", expo)
+        self.assertIn("youtube-nocookie.com/embed", expo)
+
+        expo_script = (PUBLIC / "expo" / "page.js").read_text(encoding="utf-8")
+        self.assertIn("youtube-nocookie.com/embed", expo_script)
+        self.assertNotIn("youtube.com/embed", expo_script)
 
     def test_privacy_page_matches_local_backup_behavior(self) -> None:
         privacy = (PUBLIC / "privacidade" / "index.html").read_text(encoding="utf-8")
@@ -201,6 +210,7 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("cópia JSON versionada", privacy)
         self.assertIn("aceita até 1 MB", privacy)
         self.assertIn("pede confirmação antes de substituir os dados locais", privacy)
+        self.assertIn("modo de privacidade reforçada do YouTube", privacy)
 
 
 if __name__ == "__main__":
