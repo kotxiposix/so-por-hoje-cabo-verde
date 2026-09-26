@@ -360,6 +360,7 @@ button {
 
 .prayer-modal,
 .tool-modal,
+.archive-modal,
 .sos-modal,
 .more-modal {
   position: relative;
@@ -629,6 +630,149 @@ button {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(236, 249, 251, 0.95)),
     url("expo/soporhoje.jpg") center / cover;
+}
+
+.archive-modal {
+  width: min(100%, 720px);
+  color: var(--ink);
+  background: #f4fafb;
+}
+
+.archive-content {
+  padding: 42px 28px 32px;
+}
+
+.archive-content > .mini-label {
+  color: var(--aqua-dark);
+}
+
+.archive-content > h2 {
+  margin: 8px 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px;
+  line-height: 1.12;
+}
+
+.archive-intro {
+  margin: 0;
+  color: #4f6072;
+  line-height: 1.5;
+}
+
+.archive-controls {
+  display: grid;
+  grid-template-columns: 46px minmax(170px, 1fr) 46px auto;
+  gap: 10px;
+  align-items: end;
+  margin-top: 22px;
+}
+
+.archive-controls > button {
+  min-width: 46px;
+  min-height: 46px;
+  border: 1px solid rgba(7, 52, 87, 0.18);
+  border-radius: 10px;
+  color: var(--ink);
+  background: #fff;
+  font: inherit;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.archive-controls > button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.archive-controls .archive-today {
+  padding: 0 16px;
+  color: var(--white);
+  background: var(--aqua-dark);
+  font-size: 14px;
+}
+
+.archive-controls label {
+  display: grid;
+  gap: 5px;
+  color: #4f6072;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.archive-controls input {
+  width: 100%;
+  min-height: 46px;
+  padding: 9px 11px;
+  border: 1px solid rgba(7, 52, 87, 0.2);
+  border-radius: 10px;
+  color: var(--ink);
+  background: #fff;
+  font: inherit;
+}
+
+.archive-feedback {
+  min-height: 20px;
+  margin: 12px 0 0;
+  color: #4f6072;
+  font-size: 14px;
+}
+
+.archive-reading {
+  margin-top: 18px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(7, 52, 87, 0.14);
+}
+
+.archive-reading > time,
+.archive-reading > div > span {
+  display: block;
+  color: var(--aqua-dark);
+  font-size: 13px;
+  font-weight: 950;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.archive-reading h3 {
+  margin: 10px 0 16px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 27px;
+  line-height: 1.18;
+}
+
+.archive-reading > p,
+.archive-reading > div p {
+  white-space: pre-line;
+  line-height: 1.62;
+}
+
+.archive-reading > div {
+  margin-top: 22px;
+  padding: 18px;
+  border-radius: 12px;
+  background: #eef7f4;
+}
+
+.meditation-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.calendar-action {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid rgba(7, 52, 87, 0.16);
+  border-radius: 9px;
+  color: var(--ink);
+  background: #f4fafb;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
 }
 
 .prayer-modal::before {
@@ -2090,6 +2234,28 @@ button {
 
   .meditation-card {
     padding: 28px 22px;
+  }
+
+  .meditation-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .calendar-action {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .archive-content {
+    padding: 42px 20px 26px;
+  }
+
+  .archive-controls {
+    grid-template-columns: 46px minmax(0, 1fr) 46px;
+  }
+
+  .archive-controls .archive-today {
+    grid-column: 1 / -1;
   }
 
   .action-row {

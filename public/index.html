@@ -92,7 +92,13 @@
         </div>
 
         <div class="meditation-content" id="meditation-content" hidden>
-          <span class="section-label">Meditação do Dia</span>
+          <div class="meditation-heading">
+            <span class="section-label">Meditação do Dia</span>
+            <button class="calendar-action" id="browse-meditations" type="button">
+              <span aria-hidden="true">▣</span>
+              Consultar outra data
+            </button>
+          </div>
           <h2 id="meditation-title"></h2>
           <p class="body-text" id="meditation-body"></p>
           <div class="reflection-box">
@@ -650,6 +656,36 @@
           <span id="tool-modal-label">Ferramenta do dia</span>
           <h2 id="tool-modal-title">Atividade do dia</h2>
           <p id="tool-modal-text"></p>
+        </div>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="archive-modal" hidden>
+      <section class="archive-modal" role="dialog" aria-modal="true" aria-labelledby="archive-title">
+        <button class="modal-close" id="archive-close" type="button" aria-label="Fechar consulta de meditações">×</button>
+        <div class="archive-content">
+          <span class="mini-label">Arquivo anual</span>
+          <h2 id="archive-title">Consultar meditação</h2>
+          <p class="archive-intro">Escolhe uma data para reler. Esta consulta não altera a leitura nem o check-in de hoje.</p>
+          <div class="archive-controls">
+            <button id="archive-previous" type="button" aria-label="Meditação do dia anterior">‹</button>
+            <label for="archive-date">
+              <span>Data</span>
+              <input id="archive-date" type="date" />
+            </label>
+            <button id="archive-next" type="button" aria-label="Meditação do dia seguinte">›</button>
+            <button class="archive-today" id="archive-today" type="button">Hoje</button>
+          </div>
+          <p class="archive-feedback" id="archive-feedback" role="status" aria-live="polite"></p>
+          <article class="archive-reading" id="archive-reading" hidden>
+            <time id="archive-date-label"></time>
+            <h3 id="archive-meditation-title"></h3>
+            <p id="archive-meditation-body"></p>
+            <div>
+              <span>Só por hoje</span>
+              <p id="archive-meditation-reflection"></p>
+            </div>
+          </article>
         </div>
       </section>
     </div>

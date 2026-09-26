@@ -42,6 +42,19 @@ const els = {
   toolModalLabel: document.querySelector("#tool-modal-label"),
   toolModalTitle: document.querySelector("#tool-modal-title"),
   toolModalText: document.querySelector("#tool-modal-text"),
+  browseMeditations: document.querySelector("#browse-meditations"),
+  archiveModal: document.querySelector("#archive-modal"),
+  archiveClose: document.querySelector("#archive-close"),
+  archivePrevious: document.querySelector("#archive-previous"),
+  archiveNext: document.querySelector("#archive-next"),
+  archiveToday: document.querySelector("#archive-today"),
+  archiveDate: document.querySelector("#archive-date"),
+  archiveFeedback: document.querySelector("#archive-feedback"),
+  archiveReading: document.querySelector("#archive-reading"),
+  archiveDateLabel: document.querySelector("#archive-date-label"),
+  archiveTitle: document.querySelector("#archive-meditation-title"),
+  archiveBody: document.querySelector("#archive-meditation-body"),
+  archiveReflection: document.querySelector("#archive-meditation-reflection"),
   progressPanel: document.querySelector("#progress-panel"),
   sobrietyDate: document.querySelector("#sobriety-date"),
   cleanDays: document.querySelector("#clean-days"),
@@ -112,6 +125,8 @@ let disabledBackgroundFocus = [];
 let pendingServiceWorker = null;
 let appUpdateRequested = false;
 let localSupportCatalog = null;
+let meditationCatalog = null;
+let archiveRequestId = 0;
 const trackedServiceWorkers = new WeakSet();
 
 const accountState = {
@@ -698,25 +713,91 @@ async function loadToday() {
 }
 
 async function loadTodayFromStaticData() {
-  const response = await fetch("data/meditations.json");
-  if (!response.ok) {
-    throw new Error("A base local de meditações não respondeu.");
-  }
-  const records = await response.json();
   const today = getCapeVerdeToday();
-  const monthDay = `${String(today.month).padStart(2, "0")}-${String(today.day).padStart(2, "0")}`;
-  const meditation = records.find((record) => record.month_day === monthDay);
+  return loadMeditationForDate(today.iso);
+}
+
+async function loadMeditationCatalog() {
+  if (meditationCatalog) return meditationCatalog;
+  const response = await fetch("data/meditations.json");
+  if (!response.ok) throw new Error("A base local de meditações não respondeu.");
+  const records = await response.json();
+  meditationCatalog = new Map(records.map((record) => [record.month_day, record]));
+  return meditationCatalog;
+}
+
+async function loadMeditationForDate(isoDate) {
+  if (!isIsoDate(isoDate)) throw new Error("Escolhe uma data válida.");
+  const records = await loadMeditationCatalog();
+  const monthDay = isoDate.slice(5);
+  const meditation = records.get(monthDay);
   if (!meditation) {
     throw new Error(`Meditação não encontrada para ${monthDay}.`);
   }
+  const date = new Date(`${isoDate}T12:00:00Z`);
+  const weekdayText = new Intl.DateTimeFormat("pt-PT", {
+    weekday: "long",
+    timeZone: "Atlantic/Cape_Verde",
+  }).format(date);
   return {
-    date: today.iso,
-    weekday: today.weekday,
+    date: isoDate,
+    weekday: weekdayText.charAt(0).toUpperCase() + weekdayText.slice(1),
     month_day: meditation.month_day,
     title: meditation.title,
     body: meditation.body,
     reflection: meditation.reflection,
   };
+}
+
+async function renderArchiveMeditation(isoDate) {
+  const requestId = ++archiveRequestId;
+  const today = getCapeVerdeToday().iso;
+  if (!isIsoDate(isoDate) || isoDate > today) {
+    els.archiveReading.hidden = true;
+    els.archiveFeedback.textContent = "Escolhe uma data válida até hoje.";
+    return;
+  }
+
+  els.archiveFeedback.textContent = "A carregar meditação...";
+  els.archiveReading.hidden = true;
+  try {
+    const daily = await loadMeditationForDate(isoDate);
+    if (requestId !== archiveRequestId) return;
+    els.archiveDate.value = isoDate;
+    els.archiveDateLabel.dateTime = isoDate;
+    els.archiveDateLabel.textContent = formatDateLine(daily.date, daily.weekday);
+    els.archiveTitle.textContent = daily.title;
+    els.archiveBody.textContent = daily.body;
+    els.archiveReflection.textContent = daily.reflection;
+    els.archivePrevious.disabled = false;
+    els.archiveNext.disabled = isoDate >= today;
+    els.archiveFeedback.textContent = "";
+    els.archiveReading.hidden = false;
+  } catch (error) {
+    if (requestId !== archiveRequestId) return;
+    els.archiveFeedback.textContent = error.message || "Não foi possível abrir esta meditação.";
+  }
+}
+
+function openArchive() {
+  const today = getCapeVerdeToday().iso;
+  els.archiveDate.max = today;
+  els.archiveDate.value = state.daily?.date || today;
+  renderArchiveMeditation(els.archiveDate.value);
+  openModal(els.archiveModal, closeArchive, els.browseMeditations, els.archiveDate);
+}
+
+function closeArchive() {
+  archiveRequestId += 1;
+  closeModal(els.archiveModal);
+}
+
+function moveArchiveDate(offset) {
+  const selected = els.archiveDate.value || getCapeVerdeToday().iso;
+  const date = new Date(`${selected}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + offset);
+  const nextDate = date.toISOString().slice(0, 10);
+  if (nextDate <= getCapeVerdeToday().iso) renderArchiveMeditation(nextDate);
 }
 
 function getCapeVerdeToday() {
@@ -1851,6 +1932,15 @@ els.toolModal.addEventListener("click", (event) => {
     closeTool();
   }
 });
+els.browseMeditations.addEventListener("click", openArchive);
+els.archiveClose.addEventListener("click", closeArchive);
+els.archiveModal.addEventListener("click", (event) => {
+  if (event.target === els.archiveModal) closeArchive();
+});
+els.archiveDate.addEventListener("change", (event) => renderArchiveMeditation(event.target.value));
+els.archivePrevious.addEventListener("click", () => moveArchiveDate(-1));
+els.archiveNext.addEventListener("click", () => moveArchiveDate(1));
+els.archiveToday.addEventListener("click", () => renderArchiveMeditation(getCapeVerdeToday().iso));
 els.share.addEventListener("click", () => shareMeditation().catch(() => {
   flashStatus("Partilha indisponível", "Tente copiar o texto manualmente.");
 }));

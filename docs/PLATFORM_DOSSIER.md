@@ -107,13 +107,13 @@ Entregar a meditacao do dia com clareza, respeito ao texto oficial e acoes simpl
 - Existe fallback local.
 - O conteudo mostra fonte oficial e aviso de permissao.
 - A leitura pode ser marcada como concluida.
+- O arquivo anual permite consultar qualquer meditacao por data, inclusive offline, sem alterar o estado do dia atual.
 
 ### Sugestoes
 
 - Manter o texto da meditacao intacto.
 - Separar claramente conteudo oficial de reflexoes, atividades e desafios criados pela plataforma.
 - Criar estado offline para quando a internet falhar.
-- Permitir consultar meditacoes por data no futuro.
 - Adicionar audio da meditacao quando houver permissao e producao adequada.
 
 ### Decisoes a validar

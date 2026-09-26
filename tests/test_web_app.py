@@ -67,6 +67,9 @@ class WebAppStructureTests(unittest.TestCase):
             "verified-meeting-list",
             "verified-help-list",
             "help-directory-source",
+            "browse-meditations",
+            "archive-modal",
+            "archive-date",
         }
         self.assertFalse(critical.difference(counts))
 
@@ -144,7 +147,7 @@ class WebAppStructureTests(unittest.TestCase):
         app = self.parser.attributes_by_id["app-content"]
         self.assertEqual(app["class"], "app-shell")
 
-        for modal_id in ("prayer-modal", "tool-modal", "sos-modal", "more-modal"):
+        for modal_id in ("prayer-modal", "tool-modal", "archive-modal", "sos-modal", "more-modal"):
             self.assertIn(f'id="{modal_id}" hidden', self.index_text)
         self.assertEqual(len(self.parser.checkin_buttons), 4)
         self.assertTrue(all(button.get("aria-pressed") == "false" for button in self.parser.checkin_buttons))
@@ -158,6 +161,8 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("disabledBackgroundFocus", script)
         self.assertIn("function trapModalFocus", script)
         self.assertIn('event.key === "Escape" && activeModalClose', script)
+        self.assertIn("function renderArchiveMeditation", script)
+        self.assertIn("function loadMeditationForDate", script)
         self.assertIn("prefers-reduced-motion: reduce", script)
         self.assertIn(":focus-visible", styles)
         self.assertIn("@media (prefers-reduced-motion: reduce)", styles)
