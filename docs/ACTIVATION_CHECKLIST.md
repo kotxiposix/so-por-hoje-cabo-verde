@@ -59,6 +59,7 @@ Nao ativar antes de definir entidade responsavel, catalogo, stock, precos, pagam
 - [ ] Executar a suite automatica e o roteiro manual em telemovel e desktop.
 - [ ] Verificar `soporhoje.cv`, `/expo`, `/privacidade` e os endpoints publicos.
 - [ ] Confirmar que endpoints internos recusam pedidos sem credenciais.
+- [ ] Confirmar no deploy os cabecalhos CSP, HSTS, `no-store` da API e revalidacao de `sw.js`.
 - [ ] Preparar responsavel e contacto para incidentes antes de anunciar conta ou push.
 
 ## Dados que a equipa precisa fornecer

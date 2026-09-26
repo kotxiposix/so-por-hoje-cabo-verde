@@ -91,6 +91,19 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn({"src": "/expo/?", "dest": "/public/expo/index.html"}, routes)
         self.assertIn({"src": "/privacidade/?", "dest": "/public/privacidade/index.html"}, routes)
 
+    def test_vercel_security_and_cache_headers_are_present(self) -> None:
+        config = json.loads((ROOT / "vercel.json").read_text(encoding="utf-8"))
+        rules = {rule["source"]: {item["key"]: item["value"] for item in rule["headers"]} for rule in config["headers"]}
+
+        self.assertEqual(rules["/sw.js"]["Cache-Control"], "public, max-age=0, must-revalidate")
+        self.assertEqual(rules["/api/(.*)"]["Cache-Control"], "private, no-store")
+        security = rules["/(.*)"]
+        self.assertIn("frame-ancestors 'none'", security["Content-Security-Policy"])
+        self.assertIn("https://*.supabase.co", security["Content-Security-Policy"])
+        self.assertIn("https://www.youtube.com", security["Content-Security-Policy"])
+        self.assertEqual(security["X-Content-Type-Options"], "nosniff")
+        self.assertEqual(security["X-Frame-Options"], "DENY")
+
     def test_server_secrets_are_not_shipped_in_public_files(self) -> None:
         public_text = "\n".join(
             path.read_text(encoding="utf-8", errors="ignore")
