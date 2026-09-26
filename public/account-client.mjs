@@ -1,8 +1,9 @@
 export class SupabaseAccountClient {
-  constructor({ url, publishableKey, fetchImpl = fetch }) {
+  constructor({ url, publishableKey, fetchImpl = fetch, platformFetchImpl = fetch }) {
     this.url = String(url || "").replace(/\/$/, "");
     this.publishableKey = String(publishableKey || "");
     this.fetchImpl = fetchImpl;
+    this.platformFetchImpl = platformFetchImpl;
     if (!this.url || !this.publishableKey) {
       throw new Error("Configuração Supabase incompleta.");
     }
@@ -120,6 +121,27 @@ export class SupabaseAccountClient {
       body: { active: false, updated_at: new Date().toISOString() },
     });
     return activeSession;
+  }
+
+  async deleteAccount(session) {
+    const activeSession = await this.ensureSession(session);
+    const response = await this.platformFetchImpl("/api/v1/account", {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${activeSession.access_token}`,
+        Accept: "application/json",
+      },
+    });
+    if (!response.ok) {
+      let message = "Não foi possível apagar a conta.";
+      try {
+        const payload = await response.json();
+        message = payload.detail || message;
+      } catch {
+        // Keep the generic message when the server response is not JSON.
+      }
+      throw new Error(message);
+    }
   }
 
   async signOut(session) {

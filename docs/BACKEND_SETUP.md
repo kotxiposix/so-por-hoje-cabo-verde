@@ -25,6 +25,8 @@ PUSH_DELIVERY_READY=false      # mudar para true so depois do teste integral
 
 A URL e a chave publica podem ser usadas pelo cliente depois de as regras RLS estarem ativas. A `SERVICE_ROLE_KEY` ignora RLS e fica exclusivamente no ambiente seguro da Vercel.
 
+O endpoint `DELETE /api/v1/account` valida o token de acesso no Supabase antes de eliminar a conta resolvida pelo servidor. Nunca aceita um `user_id` indicado pelo browser. As tabelas pessoais usam `ON DELETE CASCADE` para eliminar Jornada, preferencias e subscricoes associadas.
+
 ## 2. Modelo minimo
 
 - `journey_state`: um documento JSON por conta; apenas o proprio utilizador pode ler e atualizar.

@@ -56,6 +56,7 @@ class WebAppStructureTests(unittest.TestCase):
             "story-button",
             "export-data",
             "delete-local-data",
+            "delete-account",
             "account-email-form",
         }
         self.assertFalse(critical.difference(counts))

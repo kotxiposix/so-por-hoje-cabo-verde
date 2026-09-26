@@ -561,7 +561,7 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 | Notificacoes push | Cliente, emissor protegido, fusos horarios, cancelamento e service worker preparados atras de feature flag | Configurar VAPID e Supabase Cron; testar em dois dispositivos antes de ativar a flag |
 | PWA | Instalacao, atalhos e fallbacks offline separados para app, privacidade e exposicao | Verificar instalacao e atualizacao do service worker em producao |
 | Loja e doacao | Nao iniciado | Definir operacao, pagamentos, entregas e transparencia |
-| Privacidade e seguranca | Politica preliminar, exportacao e eliminacao local/remota da Jornada implementadas; modelo RLS preparado | Revisao juridica, eliminacao completa da conta e conformidade |
+| Privacidade e seguranca | Politica preliminar, exportacao e eliminacao local, remota e da conta implementadas; modelo RLS preparado | Revisao juridica e validacao de conformidade |
 
 ### Ordem de desenvolvimento
 

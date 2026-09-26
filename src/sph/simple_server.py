@@ -8,6 +8,13 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
+from sph.account_deletion import (
+    AccountAuthenticationError,
+    AccountDeletionConfig,
+    AccountServiceError,
+    SupabaseAccountDeletion,
+    bearer_token,
+)
 from sph.ai_support import DailySupportRequest, build_daily_support, support_to_dict
 from sph.config import settings
 from sph.models import DailyMeditation
@@ -31,6 +38,20 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         self.handle_post()
+
+    def do_DELETE(self) -> None:
+        path = urlparse(self.path).path
+        if path != "/api/v1/account":
+            self.respond({"detail": "Not found"}, HTTPStatus.NOT_FOUND)
+            return
+        try:
+            token = bearer_token(self.headers.get("Authorization"))
+            SupabaseAccountDeletion(AccountDeletionConfig.from_environment()).delete_for_access_token(token)
+            self.respond({"deleted": True})
+        except AccountAuthenticationError as exc:
+            self.respond({"detail": str(exc)}, HTTPStatus.UNAUTHORIZED)
+        except AccountServiceError as exc:
+            self.respond({"detail": str(exc)}, HTTPStatus.SERVICE_UNAVAILABLE)
 
     def handle_request(self, write_body: bool) -> None:
         path = urlparse(self.path).path

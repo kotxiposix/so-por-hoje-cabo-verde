@@ -5,6 +5,13 @@ from datetime import date
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
 
+from sph.account_deletion import (
+    AccountAuthenticationError,
+    AccountDeletionConfig,
+    AccountServiceError,
+    SupabaseAccountDeletion,
+    bearer_token,
+)
 from sph.ai_support import DailySupportRequest, build_daily_support, support_to_dict
 from sph.channels.console import ConsoleChannel
 from sph.config import settings
@@ -83,6 +90,18 @@ def deliver_push_notifications(authorization: str | None = Header(default=None))
         return deliver_due_notifications(config)
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.delete("/api/v1/account")
+def delete_account(authorization: str | None = Header(default=None)) -> dict[str, bool]:
+    try:
+        token = bearer_token(authorization)
+        SupabaseAccountDeletion(AccountDeletionConfig.from_environment()).delete_for_access_token(token)
+    except AccountAuthenticationError as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
+    except AccountServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return {"deleted": True}
 
 
 @app.get("/api/v1/day/{month_day}")

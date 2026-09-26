@@ -198,3 +198,27 @@ test("push subscription deactivation targets one encoded endpoint", async () => 
   assert.equal(request.body.active, false);
   assert.equal(request.options.headers.Authorization, "Bearer access");
 });
+
+test("account deletion uses the platform endpoint with the active access token", async () => {
+  let request;
+  const client = new SupabaseAccountClient({
+    url: "https://project.supabase.co",
+    publishableKey: "public-key",
+    platformFetchImpl: async (url, options) => {
+      request = { url, options };
+      return jsonResponse({ deleted: true });
+    },
+  });
+  const session = normalizeSession({
+    access_token: "access",
+    refresh_token: "refresh",
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    user: { id: "untrusted-client-id", email: "person@example.com" },
+  });
+
+  await client.deleteAccount(session);
+
+  assert.equal(request.url, "/api/v1/account");
+  assert.equal(request.options.method, "DELETE");
+  assert.equal(request.options.headers.Authorization, "Bearer access");
+});

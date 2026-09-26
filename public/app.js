@@ -89,6 +89,7 @@ const els = {
   syncLocalData: document.querySelector("#sync-local-data"),
   syncAccountData: document.querySelector("#sync-account-data"),
   deleteAccountData: document.querySelector("#delete-account-data"),
+  deleteAccount: document.querySelector("#delete-account"),
   accountSignout: document.querySelector("#account-signout"),
   deleteLocalData: document.querySelector("#delete-local-data"),
   sosButton: document.querySelector("#sos-button"),
@@ -416,6 +417,33 @@ async function deleteAccountJourney() {
   localStorage.removeItem("sph-account-sync");
   renderAccount();
   els.accountStatus.textContent = "Cópia sincronizada apagada. Os dados deste dispositivo foram mantidos.";
+}
+
+async function deleteCurrentAccount() {
+  if (!accountState.client || !accountState.session) return;
+  const confirmed = window.confirm(
+    "Eliminar definitivamente a conta, todos os dados sincronizados e os dados Só Por Hoje deste dispositivo? Esta ação não pode ser desfeita.",
+  );
+  if (!confirmed) {
+    els.accountStatus.textContent = "A conta foi mantida.";
+    return;
+  }
+  els.accountStatus.textContent = "A eliminar a conta...";
+  try {
+    await removeRemotePushRegistration();
+  } catch {
+    // Account deletion cascades to the remote subscription records.
+  }
+  try {
+    await accountState.client.deleteAccount(accountState.session);
+  } catch (error) {
+    els.accountStatus.textContent = error.message || "Não foi possível eliminar a conta.";
+    return;
+  }
+  Object.keys(localStorage)
+    .filter((key) => key.startsWith("sph-"))
+    .forEach((key) => localStorage.removeItem(key));
+  window.location.reload();
 }
 
 async function deleteDeviceData() {
@@ -1549,6 +1577,7 @@ els.deleteAccountData.addEventListener("click", () => {
     els.accountStatus.textContent = error.message || "Não foi possível apagar a cópia da conta.";
   });
 });
+els.deleteAccount.addEventListener("click", () => deleteCurrentAccount());
 els.accountSignout.addEventListener("click", () => signOutAccount());
 els.deleteLocalData.addEventListener("click", () => deleteDeviceData());
 els.sosButton.addEventListener("click", openSos);
