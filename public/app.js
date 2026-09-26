@@ -87,7 +87,9 @@ const els = {
   accountStatus: document.querySelector("#account-status"),
   syncLocalData: document.querySelector("#sync-local-data"),
   syncAccountData: document.querySelector("#sync-account-data"),
+  deleteAccountData: document.querySelector("#delete-account-data"),
   accountSignout: document.querySelector("#account-signout"),
+  deleteLocalData: document.querySelector("#delete-local-data"),
   sosButton: document.querySelector("#sos-button"),
   sosModal: document.querySelector("#sos-modal"),
   sosClose: document.querySelector("#sos-close"),
@@ -388,6 +390,40 @@ async function signOutAccount() {
   localStorage.removeItem("sph-account-sync");
   renderAccount();
   els.accountStatus.textContent = "Sessão terminada. Os dados locais foram mantidos.";
+}
+
+async function deleteAccountJourney() {
+  if (!accountState.client || !accountState.session) return;
+  const confirmed = window.confirm("Apagar definitivamente a cópia sincronizada da Jornada? Os dados deste dispositivo serão mantidos.");
+  if (!confirmed) {
+    els.accountStatus.textContent = "A cópia da conta foi mantida.";
+    return;
+  }
+  els.accountStatus.textContent = "A apagar a cópia da conta...";
+  persistAccountSession(await accountState.client.deleteJourney(accountState.session));
+  accountState.syncEnabled = false;
+  localStorage.removeItem("sph-account-sync");
+  renderAccount();
+  els.accountStatus.textContent = "Cópia sincronizada apagada. Os dados deste dispositivo foram mantidos.";
+}
+
+async function deleteDeviceData() {
+  const confirmed = window.confirm("Apagar todos os dados Só Por Hoje guardados neste dispositivo? Esta ação não pode ser desfeita.");
+  if (!confirmed) {
+    els.accountStatus.textContent = "Os dados deste dispositivo foram mantidos.";
+    return;
+  }
+  if (accountState.client && accountState.session) {
+    try {
+      await accountState.client.signOut(accountState.session);
+    } catch {
+      // Local deletion must still be possible while offline.
+    }
+  }
+  Object.keys(localStorage)
+    .filter((key) => key.startsWith("sph-"))
+    .forEach((key) => localStorage.removeItem(key));
+  window.location.reload();
 }
 
 function makeAnonymousName() {
@@ -1385,7 +1421,13 @@ els.syncAccountData.addEventListener("click", () => {
     els.accountStatus.textContent = error.message || "Não foi possível obter os dados da conta.";
   });
 });
+els.deleteAccountData.addEventListener("click", () => {
+  deleteAccountJourney().catch((error) => {
+    els.accountStatus.textContent = error.message || "Não foi possível apagar a cópia da conta.";
+  });
+});
 els.accountSignout.addEventListener("click", () => signOutAccount());
+els.deleteLocalData.addEventListener("click", () => deleteDeviceData());
 els.sosButton.addEventListener("click", openSos);
 els.sosClose.addEventListener("click", closeSos);
 els.sosModal.addEventListener("click", (event) => {

@@ -92,3 +92,27 @@ test("non-JSON failures preserve a useful message", async () => {
 
   await assert.rejects(client.sendOtp("person@example.com"), /Serviço indisponível/);
 });
+
+test("journey deletion is limited to the signed-in user", async () => {
+  let request;
+  const client = new SupabaseAccountClient({
+    url: "https://project.supabase.co",
+    publishableKey: "public-key",
+    fetchImpl: async (url, options) => {
+      request = { url, options };
+      return new Response(null, { status: 204 });
+    },
+  });
+  const session = normalizeSession({
+    access_token: "access",
+    refresh_token: "refresh",
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    user: { id: "user-id", email: "person@example.com" },
+  });
+
+  await client.deleteJourney(session);
+
+  assert.equal(request.url, "https://project.supabase.co/rest/v1/journey_state?user_id=eq.user-id");
+  assert.equal(request.options.method, "DELETE");
+  assert.equal(request.options.headers.Authorization, "Bearer access");
+});

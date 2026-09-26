@@ -98,6 +98,12 @@ create policy "Users update their journey"
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
 
+drop policy if exists "Users delete their journey" on public.journey_state;
+create policy "Users delete their journey"
+  on public.journey_state for delete
+  to authenticated
+  using ((select auth.uid()) = user_id);
+
 drop policy if exists "Public reads moderated posts" on public.anonymous_posts;
 create policy "Public reads moderated posts"
   on public.anonymous_posts for select

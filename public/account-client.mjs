@@ -61,6 +61,16 @@ export class SupabaseAccountClient {
     return activeSession;
   }
 
+  async deleteJourney(session) {
+    const activeSession = await this.ensureSession(session);
+    await this.request(`/rest/v1/journey_state?user_id=eq.${encodeURIComponent(activeSession.user.id)}`, {
+      method: "DELETE",
+      session: activeSession,
+      headers: { Prefer: "return=minimal" },
+    });
+    return activeSession;
+  }
+
   async signOut(session) {
     if (session?.access_token) {
       await this.request("/auth/v1/logout", { method: "POST", session });

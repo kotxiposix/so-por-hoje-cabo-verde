@@ -559,7 +559,7 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 | Notificacoes push | Lembrete de sessao e preferencia local funcionais; esquema push preparado | Ligar VAPID, cron e entrega no backend |
 | PWA | Instalacao e offline parcial implementados | Verificar em producao e ampliar cache quando necessario |
 | Loja e doacao | Nao iniciado | Definir operacao, pagamentos, entregas e transparencia |
-| Privacidade e seguranca | Politica preliminar publicada e modelo RLS preparado | Revisao juridica, permissoes e conformidade |
+| Privacidade e seguranca | Politica preliminar, exportacao e eliminacao local/remota da Jornada implementadas; modelo RLS preparado | Revisao juridica, eliminacao completa da conta e conformidade |
 
 ### Ordem de desenvolvimento
 

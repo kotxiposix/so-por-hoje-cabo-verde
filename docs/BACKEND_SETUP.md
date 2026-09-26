@@ -43,6 +43,8 @@ Ao criar conta, a interface deve:
 
 O cliente web deste repositorio ja implementa o acesso por codigo de email e a escolha explicita entre a copia local e a copia da conta. O endpoint publico `/api/v1/config` so anuncia esta funcionalidade quando URL e chave publica estiverem presentes; nunca devolve a `SERVICE_ROLE_KEY`.
 
+A pessoa pode apagar a propria linha de `journey_state` atraves da interface; a politica RLS limita o `DELETE` ao respetivo `auth.uid()`. Esta acao nao elimina a conta Supabase. A eliminacao completa da conta continua a exigir um fluxo de servidor autenticado e auditado.
+
 Nao sincronizar texto da Sala Anonima local. Uma partilha comunitaria exige uma acao separada e explica que passara por moderacao.
 
 ## 4. Sala Anonima
