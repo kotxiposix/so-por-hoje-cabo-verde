@@ -112,6 +112,7 @@ let disabledBackgroundFocus = [];
 let pendingServiceWorker = null;
 let appUpdateRequested = false;
 let localSupportCatalog = null;
+const trackedServiceWorkers = new WeakSet();
 
 const accountState = {
   client: null,
@@ -493,17 +494,6 @@ async function verifyAccountCode(token) {
   renderAccount();
 }
 
-function getSyncableProgress() {
-  const {
-    anonymousName,
-    anonymousShares,
-    notifications,
-    lastReminderAt,
-    ...syncable
-  } = state.progress;
-  return syncable;
-}
-
 function enableJourneySync() {
   accountState.syncEnabled = true;
   localStorage.setItem("sph-account-sync", "on");
@@ -520,11 +510,15 @@ function pauseJourneySync(message) {
 async function uploadLocalJourney({ silent = false } = {}) {
   if (!accountState.client || !accountState.session) return;
   if (!silent) els.accountStatus.textContent = "A guardar a Jornada na conta...";
+  const {
+    hasRemoteJourneyConflict,
+    selectSyncableProgress,
+    validateRemoteJourneyRecord,
+  } = await import("./journey-sync.mjs");
   const remoteResult = await accountState.client.getJourney(accountState.session);
   persistAccountSession(remoteResult.session);
   let expectedUpdatedAt = null;
   if (remoteResult.record) {
-    const { hasRemoteJourneyConflict, validateRemoteJourneyRecord } = await import("./journey-sync.mjs");
     const remote = validateRemoteJourneyRecord(remoteResult.record);
     expectedUpdatedAt = remote.updatedAt;
     if (silent && hasRemoteJourneyConflict(state.progress.updatedAt, remote.updatedAt)) {
@@ -532,7 +526,7 @@ async function uploadLocalJourney({ silent = false } = {}) {
       return;
     }
   }
-  const result = await accountState.client.saveJourney(accountState.session, getSyncableProgress(), {
+  const result = await accountState.client.saveJourney(accountState.session, selectSyncableProgress(state.progress), {
     expectedUpdatedAt,
     force: !silent,
   });
@@ -828,7 +822,9 @@ function saveSupportPlan() {
   });
   saveProgress();
   renderSupportPlan();
-  els.supportPlanStatus.textContent = "Plano guardado apenas neste dispositivo.";
+  els.supportPlanStatus.textContent = accountState.syncEnabled
+    ? "Plano guardado e preparado para sincronizar."
+    : "Plano guardado neste dispositivo.";
 }
 
 function renderGratitude() {
@@ -940,7 +936,7 @@ function scheduleSessionReminder() {
       if (state.progress.lastReminderAt !== today) {
         await showAppNotification("Só Por Hoje", "A meditação de hoje está pronta. Um dia de cada vez.");
         state.progress.lastReminderAt = today;
-        saveProgress();
+        saveProgress({ touch: false, sync: false });
       }
     } finally {
       scheduleSessionReminder();
@@ -1123,18 +1119,25 @@ function offerAppUpdate(worker) {
   els.pwaStatus.textContent = "Existe uma nova versão pronta para atualizar.";
 }
 
+function trackInstallingServiceWorker(worker) {
+  if (!worker || trackedServiceWorkers.has(worker)) return;
+  trackedServiceWorkers.add(worker);
+  const checkState = () => {
+    if (worker.state === "installed" && navigator.serviceWorker.controller) {
+      offerAppUpdate(worker);
+    }
+  };
+  checkState();
+  worker.addEventListener("statechange", checkState);
+}
+
 function watchServiceWorkerRegistration(registration) {
   if (registration.waiting && navigator.serviceWorker.controller) {
     offerAppUpdate(registration.waiting);
   }
+  trackInstallingServiceWorker(registration.installing);
   registration.addEventListener("updatefound", () => {
-    const worker = registration.installing;
-    if (!worker) return;
-    worker.addEventListener("statechange", () => {
-      if (worker.state === "installed" && navigator.serviceWorker.controller) {
-        offerAppUpdate(worker);
-      }
-    });
+    trackInstallingServiceWorker(registration.installing);
   });
 }
 
@@ -1513,7 +1516,7 @@ function addAnonymousShare(message) {
     date: new Date().toISOString(),
   });
   state.progress.anonymousShares = state.progress.anonymousShares.slice(-20);
-  saveProgress();
+  saveProgress({ touch: false, sync: false });
   renderAnonymousRoom();
 }
 
@@ -1535,7 +1538,7 @@ async function activateNotifications() {
 
   const permission = await Notification.requestPermission();
   state.progress.notifications = permission === "granted" ? "on" : "off";
-  saveProgress();
+  saveProgress({ touch: false, sync: false });
 
   if (permission === "granted") {
     let pushActive = false;
@@ -1616,7 +1619,7 @@ async function removeRemotePushRegistration() {
 
 async function disableNotifications() {
   state.progress.notifications = "off";
-  saveProgress();
+  saveProgress({ touch: false, sync: false });
   let remoteUpdatePending = false;
   try {
     await removeRemotePushRegistration();

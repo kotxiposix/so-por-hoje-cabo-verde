@@ -1,5 +1,17 @@
 export const JOURNEY_SCHEMA_VERSION = 2;
 
+export function selectSyncableProgress(progress) {
+  const source = progress && typeof progress === "object" && !Array.isArray(progress) ? progress : {};
+  const {
+    anonymousName,
+    anonymousShares,
+    notifications,
+    lastReminderAt,
+    ...syncable
+  } = source;
+  return syncable;
+}
+
 export function validateRemoteJourneyRecord(record) {
   if (!record || typeof record !== "object" || Array.isArray(record)) {
     throw new Error("A cópia da conta tem um formato inválido.");
