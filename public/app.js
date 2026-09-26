@@ -4,6 +4,14 @@ const state = {
   view: "meditation",
 };
 
+const viewHashes = {
+  meditation: "meditacao",
+  journey: "jornada",
+  wellness: "viver-saudavel",
+  help: "ajuda",
+  about: "sobre",
+};
+
 const els = {
   currentDate: document.querySelector("#current-date"),
   streakCount: document.querySelector("#streak-count"),
@@ -711,21 +719,44 @@ function detectTheme() {
   return "default";
 }
 
-function showView(view) {
+function getViewFromHash() {
+  const hash = window.location.hash.replace(/^#/, "");
+  return Object.keys(viewHashes).find((view) => viewHashes[view] === hash) || "meditation";
+}
+
+function showView(view, options = {}) {
+  if (!viewHashes[view]) return;
+
+  const { updateHistory = false, scroll = true } = options;
   state.view = view;
   document.querySelectorAll(".bottom-nav button").forEach((button) => {
-    button.classList.toggle("active", button.dataset.view === view);
+    const isActive = button.dataset.view === view;
+    button.classList.toggle("active", isActive);
+    if (isActive) {
+      button.setAttribute("aria-current", "page");
+    } else {
+      button.removeAttribute("aria-current");
+    }
   });
   document.querySelectorAll(".view-section").forEach((section) => {
     section.hidden = section.dataset.section !== view;
   });
+
+  if (updateHistory) {
+    const nextHash = `#${viewHashes[view]}`;
+    if (window.location.hash !== nextHash) {
+      window.history.pushState({ view }, "", nextHash);
+    }
+  }
 
   if (view === "meditation") {
     els.toolLabel.textContent = "✦ Pensamento de recuperação";
     els.toolText.textContent = "O maior ato de coragem é continuar, mesmo quando tudo parece difícil.";
   }
   renderProgress();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (scroll) {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 }
 
 els.retry.addEventListener("click", loadToday);
@@ -766,8 +797,10 @@ document.querySelectorAll("[data-checkin]").forEach((button) => {
 });
 
 document.querySelectorAll(".bottom-nav button").forEach((button) => {
-  button.addEventListener("click", () => showView(button.dataset.view));
+  button.addEventListener("click", () => showView(button.dataset.view, { updateHistory: true }));
 });
+
+window.addEventListener("popstate", () => showView(getViewFromHash()));
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !els.prayerModal.hidden) {
@@ -778,4 +811,5 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+showView(getViewFromHash(), { scroll: false });
 loadToday();

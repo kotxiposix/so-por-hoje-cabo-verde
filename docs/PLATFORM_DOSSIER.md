@@ -535,3 +535,62 @@ Fase 4:
 - A equipa consegue atualizar informacoes essenciais.
 - A plataforma cresce sem duplicar conteudos.
 
+## 22. Arquitetura funcional aprovada
+
+O mapa funcional apresentado pela equipa passa a orientar a evolucao da plataforma. A navegacao principal fica organizada em cinco eixos:
+
+1. **Meditacao**: meditacao do dia, reflexao, atividade, frase, desafio, gratidao, ferramentas e historico de leitura.
+2. **Jornada**: dias limpos, check-in diario, historico, marcos, estatisticas e definicoes pessoais.
+3. **Viver Saudavel**: podcast, historias, informacao pratica, arte, exposicao, conteudos educativos e recursos uteis.
+4. **Ajuda**: pedido imediato de apoio, reunioes, servicos, recursos de emergencia e futura sala anonima moderada.
+5. **Sobre**: projeto, historia, exposicao, equipa, parceiros, privacidade, contactos e perguntas frequentes.
+
+### Estado por bloco
+
+| Bloco | Estado atual | Proximo passo |
+| --- | --- | --- |
+| Meditacao | Funcional | Acrescentar gratidao e historico visual |
+| Jornada | Funcional no dispositivo | Melhorar historico e definicoes |
+| Viver Saudavel | Base funcional com podcast e exposicao | Estruturar categorias e novos conteudos |
+| Ajuda | Contactos e respostas iniciais | Validar dados e criar fluxo SOS |
+| Sala anonima | Prototipo apenas local | Nao publicar como sala real sem backend e moderacao |
+| Sobre | Primeira versao funcional | Completar historia, equipa, parceiros e FAQ |
+| Conta/login | Nao iniciado | Definir identidade minima e recuperacao de acesso |
+| Notificacoes push | Nao iniciado | Implementar depois da PWA e consentimento |
+| PWA | Nao iniciado | Manifesto, service worker, offline e instalacao |
+| Loja e doacao | Nao iniciado | Definir operacao, pagamentos, entregas e transparencia |
+| Privacidade e seguranca | Parcial | Politica, permissoes, encriptacao e conformidade |
+
+### Ordem de desenvolvimento
+
+**Fase A - Estrutura e conteudo seguro**
+
+- Consolidar as cinco secoes principais.
+- Fechar Meditacao, Jornada, Viver Saudavel, Ajuda e Sobre.
+- Validar contactos e informacao de apoio.
+- Publicar politica de privacidade e limites da plataforma.
+
+**Fase B - Aplicacao instalavel**
+
+- Transformar a interface em PWA.
+- Criar funcionamento offline parcial.
+- Implementar notificacoes com consentimento e preferencias de horario.
+
+**Fase C - Conta e sincronizacao**
+
+- Conta opcional com codigo de acesso por email.
+- Importar os dados locais quando a pessoa criar conta.
+- Sincronizar apenas os dados necessarios entre dispositivos.
+
+**Fase D - Comunidade e sustentabilidade**
+
+- Sala anonima real com denuncia, moderacao e resposta a crise.
+- Loja e doacao com regras financeiras e operacionais definidas.
+- Parcerias, voluntariado e transparencia sobre o uso do apoio.
+
+### Decisoes de seguranca
+
+- A Sala Anonima atual permanece local e deve dizer claramente que nao e uma conversa com outras pessoas.
+- O botao SOS deve encaminhar para ajuda humana e nunca simular atendimento clinico.
+- Login, sincronizacao e notificacoes so avancam depois de politica de privacidade e modelo de dados minimos.
+- Loja e doacao nao entram como botoes inativos; entram apenas quando os fluxos reais estiverem definidos.

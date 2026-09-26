@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Só Por Hoje · Guerreiros de Luz</title>
+    <title>Só Por Hoje Cabo Verde</title>
     <link rel="icon" type="image/png" href="favicon-32.png" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
     <link rel="stylesheet" href="styles.css" />
@@ -11,15 +11,65 @@
   <body>
     <main class="app-shell">
       <header class="brand">
-        <img class="brand-logo" src="icon-512.png" alt="Só Por Hoje · Guerreiros de Luz" />
+        <img class="brand-logo" src="icon-512.png" alt="Só Por Hoje Cabo Verde" />
         <h1>Só Por Hoje</h1>
-        <p>Guerreiros de Luz</p>
+        <p>Cabo Verde</p>
       </header>
 
       <section class="date-strip" aria-label="Resumo do dia">
         <span id="current-date">A carregar data...</span>
         <span class="streak-pill"><span aria-hidden="true">◆</span><strong id="streak-count">0 leituras seguidas</strong></span>
       </section>
+
+      <nav class="bottom-nav" aria-label="Navegação principal">
+        <button class="active" type="button" data-view="meditation" aria-current="page">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 7v14" />
+              <path d="M3 18a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H3Z" />
+              <path d="M21 18a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1h-5a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h6Z" />
+            </svg>
+          </span>
+          Meditação
+        </button>
+        <button type="button" data-view="journey">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M7 20v-2.4c0-2.1-1.5-3.5-1.5-5.6S7 8 9 8s3.5 1.7 3.5 4-1.5 3.5-1.5 5.6V20a2 2 0 0 1-4 0Z" />
+              <path d="M17 16v-2.4c0-2.1 1.5-3.5 1.5-5.6S17 4 15 4s-3.5 1.7-3.5 4 1.5 3.5 1.5 5.6V16a2 2 0 0 0 4 0Z" />
+            </svg>
+          </span>
+          Jornada
+        </button>
+        <button type="button" data-view="wellness">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
+            </svg>
+          </span>
+          Viver Saudável
+        </button>
+        <button type="button" data-view="help">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="9" />
+              <circle cx="12" cy="12" r="3" />
+              <path d="m5.6 5.6 4.3 4.3M14.1 14.1l4.3 4.3M18.4 5.6l-4.3 4.3M9.9 14.1l-4.3 4.3" />
+            </svg>
+          </span>
+          Ajuda
+        </button>
+        <button type="button" data-view="about">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 11v5" />
+              <path d="M12 8h.01" />
+            </svg>
+          </span>
+          Sobre
+        </button>
+      </nav>
 
       <article class="meditation-card view-section" id="meditation-card" data-section="meditation" aria-live="polite">
         <div class="loading-state" id="loading-state">
@@ -156,7 +206,7 @@
         <p class="care-note">Esta plataforma não substitui técnicos de saúde, sponsor, terapeuta ou reunião. Se estiveres em perigo, procura ajuda presencial ou contacto de emergência.</p>
       </section>
 
-      <section class="platform-panel view-section" data-section="overcoming" hidden>
+      <section class="platform-panel view-section" data-section="wellness" hidden>
         <div class="expo-hero">
           <img src="expo/hero.jpg" alt="Capa da exposição Só Por Hoje" fetchpriority="high" />
           <div class="expo-hero-copy">
@@ -166,9 +216,9 @@
           </div>
         </div>
         <header class="view-header expo-intro">
-          <span>Recuperação</span>
-          <h2>SPH: Uma jornada de recuperação</h2>
-          <p>Fotografias de Sandro Fonseca sobre presença, fé, coragem, serenidade e recomeço. Histórias e testemunhos podem entrar numa fase posterior.</p>
+          <span>Viver Saudável</span>
+          <h2>Conteúdos para cuidar da vida</h2>
+          <p>Conversas, arte e experiências que ligam recuperação, bem-estar, expressão e comunidade.</p>
         </header>
         <a class="expo-page-link" href="/expo">Ver exposição completa</a>
         <section class="media-block">
@@ -186,19 +236,6 @@
           <a href="https://www.facebook.com/230886890116895" target="_blank" rel="noreferrer">Facebook</a>
           <a href="https://www.instagram.com/soporhojecaboverde/" target="_blank" rel="noreferrer">Instagram</a>
         </div>
-        <section class="anonymous-room" aria-labelledby="anonymous-title">
-          <header>
-            <span id="anonymous-name">Guerreiro000</span>
-            <h3 id="anonymous-title">Sala anónima</h3>
-            <p>Partilhas guardadas só neste navegador nesta fase. Boa para prototipar a experiência antes de ligar a uma base de dados real.</p>
-          </header>
-          <form id="anonymous-form">
-            <label for="anonymous-message">Partilha anónima</label>
-            <textarea id="anonymous-message" rows="3" maxlength="280" placeholder="Escreve uma partilha curta, sem nomes nem dados pessoais."></textarea>
-            <button type="submit">Partilhar</button>
-          </form>
-          <div class="anonymous-feed" id="anonymous-feed" aria-live="polite"></div>
-        </section>
         <div class="expo-grid" aria-label="12 obras da exposição">
           <figure>
             <img src="expo/amar.jpg" alt="Obra Amar" loading="lazy" />
@@ -254,9 +291,31 @@
       <section class="platform-panel view-section" data-section="help" hidden>
         <header class="view-header">
           <span>Ajuda</span>
-          <h2>Reuniões, centros e contactos</h2>
-          <p>Informação inicial para encontrar apoio próximo. Esta lista deve ser validada antes de publicação definitiva.</p>
+          <h2>Encontra apoio agora</h2>
+          <p>Se precisares de ajuda, não fiques sozinho. Contacta uma pessoa segura, um serviço de saúde ou uma resposta próxima.</p>
         </header>
+
+        <section class="support-now" aria-labelledby="support-now-title">
+          <div>
+            <span>Preciso de apoio</span>
+            <h3 id="support-now-title">Um pedido de ajuda pode ser o próximo passo seguro.</h3>
+          </div>
+          <a href="tel:8002527">Ligar SOS Álcool · 800 25 27</a>
+        </section>
+
+        <section class="anonymous-room" aria-labelledby="anonymous-title">
+          <header>
+            <span id="anonymous-name">Guerreiro000</span>
+            <h3 id="anonymous-title">Sala anónima</h3>
+            <p>Nesta fase, as partilhas ficam guardadas apenas neste dispositivo. Não são enviadas nem vistas por outras pessoas.</p>
+          </header>
+          <form id="anonymous-form">
+            <label for="anonymous-message">Escreve o que precisas de partilhar</label>
+            <textarea id="anonymous-message" rows="3" maxlength="280" placeholder="Evita nomes, contactos e outros dados pessoais."></textarea>
+            <button type="submit">Guardar partilha</button>
+          </form>
+          <div class="anonymous-feed" id="anonymous-feed" aria-live="polite"></div>
+        </section>
 
         <section class="community-block">
           <h3>Reuniões NA/AA conhecidas <span>a validar</span></h3>
@@ -321,45 +380,39 @@
         </div>
       </section>
 
-      <nav class="bottom-nav" aria-label="Navegação">
-        <button class="active" type="button" data-view="meditation">
-          <span class="nav-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M12 7v14" />
-              <path d="M3 18a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H3Z" />
-              <path d="M21 18a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1h-5a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h6Z" />
-            </svg>
-          </span>
-          Meditação
-        </button>
-        <button type="button" data-view="journey">
-          <span class="nav-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M7 20v-2.4c0-2.1-1.5-3.5-1.5-5.6S7 8 9 8s3.5 1.7 3.5 4-1.5 3.5-1.5 5.6V20a2 2 0 0 1-4 0Z" />
-              <path d="M17 16v-2.4c0-2.1 1.5-3.5 1.5-5.6S17 4 15 4s-3.5 1.7-3.5 4 1.5 3.5 1.5 5.6V16a2 2 0 0 0 4 0Z" />
-            </svg>
-          </span>
-          Jornada
-        </button>
-        <button type="button" data-view="overcoming">
-          <span class="nav-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M12 3l1.7 5.1L19 10l-5.3 1.9L12 17l-1.7-5.1L5 10l5.3-1.9L12 3Z" />
-              <path d="M19 15l.7 2.1L22 18l-2.3.9L19 21l-.7-2.1L16 18l2.3-.9L19 15Z" />
-            </svg>
-          </span>
-          Recuperação
-        </button>
-        <button type="button" data-view="help">
-          <span class="nav-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M12 5v14" />
-              <path d="M5 12h14" />
-            </svg>
-          </span>
-          Ajuda
-        </button>
-      </nav>
+      <section class="platform-panel view-section about-panel" data-section="about" hidden>
+        <header class="view-header">
+          <span>Sobre</span>
+          <h2>Um dia de cada vez. Uma vida com mais sentido.</h2>
+          <p>Só Por Hoje Cabo Verde é uma plataforma independente que aproxima meditação, desenvolvimento pessoal, arte, informação útil e comunidade.</p>
+        </header>
+
+        <div class="about-grid">
+          <article>
+            <span>Missão</span>
+            <h3>Apoiar escolhas conscientes</h3>
+            <p>Ajudar pessoas a viverem um dia de cada vez, com mais consciência, apoio e esperança.</p>
+          </article>
+          <article>
+            <span>Visão</span>
+            <h3>De Cabo Verde para o mundo</h3>
+            <p>Ser uma referência que une recuperação, desenvolvimento pessoal, arte e comunidade.</p>
+          </article>
+        </div>
+
+        <div class="about-links" aria-label="Informações do projeto">
+          <a href="/expo">Conhecer a exposição</a>
+          <a href="mailto:sandrofonseca@lentilhas.com">Contactar o projeto</a>
+          <a href="https://www.instagram.com/soporhojecaboverde/" target="_blank" rel="noreferrer">Instagram</a>
+          <a href="https://youtube.com/@soporhojecaboverde?sub_confirmation=1" target="_blank" rel="noreferrer">YouTube</a>
+        </div>
+
+        <div class="principles-list">
+          <article><strong>Privacidade</strong><p>A Jornada e a Sala Anónima ficam apenas neste dispositivo enquanto não existir uma conta segura.</p></article>
+          <article><strong>Conteýo</strong><p>A meditação oficial é distinguida das atividades complementares criadas pela plataforma.</p></article>
+          <article><strong>Apoio</strong><p>A plataforma não substitui profissionais de saúde, sponsor, reuniões ou serviços de emergência.</p></article>
+        </div>
+      </section>
     </main>
 
     <div class="modal-backdrop" id="prayer-modal" hidden>
