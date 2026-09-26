@@ -165,6 +165,24 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertRegex(styles, r"\.resource-heading\s*\{[^}]*flex-wrap:\s*wrap")
         self.assertRegex(styles, r"\.resource-heading strong\s*\{[^}]*overflow-wrap:\s*anywhere")
 
+    def test_media_outside_the_initial_view_is_deferred(self) -> None:
+        self.assertIn(
+            'src="expo/hero.jpg" alt="Capa da exposição Só Por Hoje" loading="lazy" decoding="async"',
+            self.index_text,
+        )
+        self.assertRegex(
+            self.index_text,
+            r'title="Playlist do podcast Só Por Hoje Cabo Verde"\s+loading="lazy"',
+        )
+
+        expo = (PUBLIC / "expo" / "index.html").read_text(encoding="utf-8")
+        self.assertIn('class="hero-image" src="/expo/hero-banner.jpg"', expo)
+        self.assertIn('fetchpriority="high" decoding="async"', expo)
+        self.assertIn(
+            'src="/expo/sandro-profile.png" alt="Retrato de Sandro Fonseca" loading="lazy" decoding="async"',
+            expo,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
