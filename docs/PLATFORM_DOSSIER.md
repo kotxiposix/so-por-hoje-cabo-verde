@@ -549,15 +549,15 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 
 | Bloco | Estado atual | Proximo passo |
 | --- | --- | --- |
-| Meditacao | Funcional | Acrescentar gratidao e historico visual |
-| Jornada | Funcional no dispositivo | Melhorar historico e definicoes |
-| Viver Saudavel | Base funcional com podcast e exposicao | Estruturar categorias e novos conteudos |
+| Meditacao | Funcional, com gratidao diaria | Rever conteudo complementar com equipa clinica/comunitaria |
+| Jornada | Funcional no dispositivo, com historico, exportacao e preferencias | Ligar sincronizacao opcional |
+| Viver Saudavel | Podcast, documentario, exposicao e recursos praticos | Adicionar historias e novos conteudos aprovados |
 | Ajuda | Contactos e respostas iniciais | Validar dados e criar fluxo SOS |
 | Sala anonima | Prototipo apenas local | Nao publicar como sala real sem backend e moderacao |
-| Sobre | Primeira versao funcional | Completar historia, equipa, parceiros e FAQ |
+| Sobre | Missao, visao, privacidade, contactos e FAQ | Completar historia, equipa e parceiros |
 | Conta/login | Nao iniciado | Definir identidade minima e recuperacao de acesso |
-| Notificacoes push | Nao iniciado | Implementar depois da PWA e consentimento |
-| PWA | Nao iniciado | Manifesto, service worker, offline e instalacao |
+| Notificacoes push | Permissao e preferencia local | Ligar agendamento/push no backend |
+| PWA | Instalacao e offline parcial implementados | Verificar em producao e ampliar cache quando necessario |
 | Loja e doacao | Nao iniciado | Definir operacao, pagamentos, entregas e transparencia |
 | Privacidade e seguranca | Parcial | Politica, permissoes, encriptacao e conformidade |
 

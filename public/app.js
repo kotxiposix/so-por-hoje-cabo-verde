@@ -53,10 +53,28 @@ const els = {
   anonymousForm: document.querySelector("#anonymous-form"),
   anonymousMessage: document.querySelector("#anonymous-message"),
   anonymousFeed: document.querySelector("#anonymous-feed"),
+  gratitudeForm: document.querySelector("#gratitude-form"),
+  gratitudeInput: document.querySelector("#gratitude-input"),
+  gratitudeStatus: document.querySelector("#gratitude-status"),
+  historyList: document.querySelector("#history-list"),
+  exportData: document.querySelector("#export-data"),
+  reminderTime: document.querySelector("#reminder-time"),
+  showCleanDays: document.querySelector("#show-clean-days"),
+  installApp: document.querySelector("#install-app"),
+  pwaStatus: document.querySelector("#pwa-status"),
+  moreButton: document.querySelector("#more-button"),
+  moreModal: document.querySelector("#more-modal"),
+  moreClose: document.querySelector("#more-close"),
+  exportDataSecondary: document.querySelector("#export-data-secondary"),
+  importData: document.querySelector("#import-data"),
+  importStatus: document.querySelector("#import-status"),
+  installAppSecondary: document.querySelector("#install-app-secondary"),
+  notificationsSecondary: document.querySelector("#notifications-secondary"),
 };
 
 let lastToolButton = null;
 let currentSupport = null;
+let installPrompt = null;
 
 const tools = {
   repair: {
@@ -102,6 +120,9 @@ function normalizeProgress(progress) {
     anonymousName: progress.anonymousName || makeAnonymousName(),
     anonymousShares: Array.isArray(progress.anonymousShares) ? progress.anonymousShares : [],
     notifications: progress.notifications || "off",
+    gratitudes: progress.gratitudes && typeof progress.gratitudes === "object" ? progress.gratitudes : {},
+    reminderTime: progress.reminderTime || "07:00",
+    showCleanDays: progress.showCleanDays !== false,
   };
 }
 
@@ -237,6 +258,166 @@ function renderProgress() {
   renderCleanDays(cleanDays);
   renderCheckinGuidance();
   renderRewards(cleanDays, currentStreak);
+  renderGratitude();
+  renderJourneyHistory();
+  renderJourneySettings();
+}
+
+function renderGratitude() {
+  const today = state.daily?.date;
+  if (!today || !els.gratitudeInput) return;
+  const value = state.progress.gratitudes[today] || "";
+  els.gratitudeInput.value = value;
+  els.gratitudeStatus.textContent = value ? "Gratidão guardada para hoje." : "";
+}
+
+function saveGratitude(value) {
+  const today = state.daily?.date;
+  if (!today) return;
+  const gratitude = value.trim();
+  if (gratitude) {
+    state.progress.gratitudes[today] = gratitude;
+    els.gratitudeStatus.textContent = "Gratidão guardada para hoje.";
+  } else {
+    delete state.progress.gratitudes[today];
+    els.gratitudeStatus.textContent = "A gratidão de hoje foi removida.";
+  }
+  saveProgress();
+  renderJourneyHistory();
+}
+
+function renderJourneyHistory() {
+  if (!els.historyList) return;
+  const days = new Set([
+    ...state.progress.completed,
+    ...Object.keys(state.progress.checkins),
+    ...Object.keys(state.progress.gratitudes),
+  ]);
+  const recent = [...days].sort().reverse().slice(0, 10);
+  const labels = {
+    firme: "Firme",
+    ansioso: "Serenidade",
+    risco: "Em risco",
+    consumo: "Recomeço",
+  };
+
+  els.historyList.innerHTML = recent.length
+    ? recent.map((day) => {
+        const parts = [];
+        if (state.progress.completed.includes(day)) parts.push("Meditação lida");
+        if (state.progress.checkins[day]) parts.push(labels[state.progress.checkins[day]] || "Check-in");
+        if (state.progress.gratitudes[day]) parts.push("Gratidão");
+        const gratitude = state.progress.gratitudes[day];
+        return `<article class="history-item">
+          <time datetime="${day}">${formatShortDate(day)}</time>
+          <strong>${escapeHtml(parts.join(" · "))}</strong>
+          <small>${gratitude ? escapeHtml(gratitude) : ""}</small>
+        </article>`;
+      }).join("")
+    : '<p class="history-empty">O teu histórico começa quando fizeres o primeiro check-in, leitura ou gratidão.</p>';
+}
+
+function formatShortDate(isoDate) {
+  return new Date(`${isoDate}T00:00:00`).toLocaleDateString("pt-PT", {
+    day: "2-digit",
+    month: "short",
+  });
+}
+
+function renderJourneySettings() {
+  if (!els.reminderTime || !els.showCleanDays) return;
+  els.reminderTime.value = state.progress.reminderTime;
+  els.showCleanDays.checked = state.progress.showCleanDays;
+  const metric = els.cleanDaysMetric.closest("div");
+  if (metric) metric.hidden = !state.progress.showCleanDays;
+}
+
+function exportJourneyData() {
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    version: 1,
+    progress: state.progress,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `so-por-hoje-jornada-${getCapeVerdeToday().iso}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function isStandalone() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
+async function installApp() {
+  if (!installPrompt) {
+    const message = isStandalone()
+      ? "A aplicação já está instalada."
+      : "Usa a opção Instalar ou Adicionar ao ecrã principal no menu do navegador.";
+    els.pwaStatus.textContent = message;
+    els.importStatus.textContent = message;
+    return;
+  }
+  installPrompt.prompt();
+  const result = await installPrompt.userChoice;
+  els.pwaStatus.textContent = result.outcome === "accepted"
+    ? "Instalação iniciada."
+    : "A instalação foi cancelada.";
+  installPrompt = null;
+  els.installApp.hidden = true;
+}
+
+function openMore() {
+  els.moreModal.hidden = false;
+  document.body.classList.add("modal-open");
+  els.moreClose.focus();
+}
+
+function closeMore() {
+  els.moreModal.hidden = true;
+  document.body.classList.remove("modal-open");
+  els.moreButton.focus();
+}
+
+async function importJourneyData(file) {
+  if (!file) return;
+  try {
+    const payload = JSON.parse(await file.text());
+    if (!payload.progress || typeof payload.progress !== "object") {
+      throw new Error("Formato inválido");
+    }
+    const confirmed = window.confirm("Substituir os dados locais da Jornada pelos dados desta cópia?");
+    if (!confirmed) {
+      els.importStatus.textContent = "Importação cancelada.";
+      return;
+    }
+    state.progress = normalizeProgress(payload.progress);
+    saveProgress();
+    renderProgress();
+    renderAnonymousRoom();
+    els.importStatus.textContent = "Dados importados com sucesso.";
+  } catch {
+    els.importStatus.textContent = "Não foi possível importar esta cópia.";
+  } finally {
+    els.importData.value = "";
+  }
+}
+
+function setupPwa() {
+  if ("serviceWorker" in navigator && window.location.protocol !== "file:") {
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      els.pwaStatus.textContent = "O modo offline não ficou disponível neste navegador.";
+    });
+  }
+
+  if (isStandalone()) {
+    els.installApp.hidden = true;
+    els.pwaStatus.textContent = "Aplicação instalada. O conteúdo essencial funciona parcialmente offline.";
+  }
 }
 
 function renderCleanDays(cleanDays) {
@@ -782,6 +963,30 @@ els.story.addEventListener("click", () => shareStoryImage().catch(() => {
 }));
 els.reminder.addEventListener("click", () => activateNotifications());
 els.sobrietyDate.addEventListener("change", (event) => setSobrietyDate(event.target.value));
+els.gratitudeForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  saveGratitude(els.gratitudeInput.value);
+});
+els.exportData.addEventListener("click", exportJourneyData);
+els.reminderTime.addEventListener("change", (event) => {
+  state.progress.reminderTime = event.target.value || "07:00";
+  saveProgress();
+});
+els.showCleanDays.addEventListener("change", (event) => {
+  state.progress.showCleanDays = event.target.checked;
+  saveProgress();
+  renderJourneySettings();
+});
+els.installApp.addEventListener("click", () => installApp());
+els.moreButton.addEventListener("click", openMore);
+els.moreClose.addEventListener("click", closeMore);
+els.moreModal.addEventListener("click", (event) => {
+  if (event.target === els.moreModal) closeMore();
+});
+els.exportDataSecondary.addEventListener("click", exportJourneyData);
+els.importData.addEventListener("change", (event) => importJourneyData(event.target.files[0]));
+els.installAppSecondary.addEventListener("click", () => installApp());
+els.notificationsSecondary.addEventListener("click", () => activateNotifications());
 els.anonymousForm.addEventListener("submit", (event) => {
   event.preventDefault();
   addAnonymousShare(els.anonymousMessage.value);
@@ -801,6 +1006,17 @@ document.querySelectorAll(".bottom-nav button").forEach((button) => {
 });
 
 window.addEventListener("popstate", () => showView(getViewFromHash()));
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  installPrompt = event;
+  els.installApp.hidden = false;
+  els.pwaStatus.textContent = "Pronta para instalar neste dispositivo.";
+});
+window.addEventListener("appinstalled", () => {
+  installPrompt = null;
+  els.installApp.hidden = true;
+  els.pwaStatus.textContent = "Aplicação instalada com sucesso.";
+});
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !els.prayerModal.hidden) {
@@ -809,7 +1025,11 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !els.toolModal.hidden) {
     closeTool();
   }
+  if (event.key === "Escape" && !els.moreModal.hidden) {
+    closeMore();
+  }
 });
 
 showView(getViewFromHash(), { scroll: false });
+setupPwa();
 loadToday();

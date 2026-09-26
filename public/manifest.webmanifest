@@ -1,0 +1,25 @@
+{
+  "name": "Só Por Hoje Cabo Verde",
+  "short_name": "Só Por Hoje",
+  "description": "Meditação, jornada pessoal, apoio e conteúdos para viver um dia de cada vez.",
+  "lang": "pt-CV",
+  "start_url": "/#meditacao",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#073457",
+  "theme_color": "#073457",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

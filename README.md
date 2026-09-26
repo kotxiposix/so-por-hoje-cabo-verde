@@ -39,6 +39,23 @@ production -> branch de producao ligada a Vercel
 
 Na Vercel, configure a Production Branch como `production`.
 
+## PWA e dados locais
+
+A interface principal inclui manifesto e service worker. Quando servida por `localhost` ou HTTPS, pode ser instalada e mantem o essencial disponivel parcialmente offline:
+
+- interface principal;
+- base das meditacoes;
+- catalogo de apoio complementar;
+- icones e estilos essenciais.
+
+Jornada, gratidoes, check-ins e Sala Anonima usam `localStorage`. A pessoa pode exportar uma copia JSON e voltar a importa-la no mesmo ou noutro dispositivo. Isto ainda nao e sincronizacao de conta.
+
+Abrir `public/index.html` diretamente com `file://` serve apenas para inspecao visual. API, PWA, cache offline e alguns recursos do navegador exigem o servidor local:
+
+```bash
+PYTHONPATH=src python3 -m sph.simple_server --port 8000
+```
+
 Com FastAPI:
 
 ```bash

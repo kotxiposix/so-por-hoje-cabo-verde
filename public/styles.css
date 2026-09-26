@@ -38,12 +38,41 @@ button {
 .app-shell {
   width: min(100%, 760px);
   margin: 0 auto;
-  padding: 36px 22px 30px;
+  padding: 36px 22px 128px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .brand {
+  position: relative;
   text-align: center;
   padding-top: 4px;
+}
+
+.more-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 16px;
+  letter-spacing: 2px;
 }
 
 .brand-logo {
@@ -315,7 +344,7 @@ button {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 20;
+  z-index: 40;
   display: grid;
   place-items: center;
   padding: 22px;
@@ -324,7 +353,8 @@ button {
 }
 
 .prayer-modal,
-.tool-modal {
+.tool-modal,
+.more-modal {
   position: relative;
   width: min(100%, 560px);
   max-height: min(86vh, 760px);
@@ -336,6 +366,105 @@ button {
     linear-gradient(180deg, rgba(7, 52, 87, 0.26), rgba(7, 52, 87, 0.42)),
     url("expo/serenidade.jpg") center / cover;
   box-shadow: 0 22px 70px rgba(2, 18, 31, 0.45);
+}
+
+.more-modal {
+  color: var(--ink);
+  background: #f4fafb;
+}
+
+.more-content {
+  display: grid;
+  gap: 14px;
+  padding: 42px 24px 28px;
+}
+
+.more-content > h2 {
+  margin: -4px 0 4px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px;
+}
+
+.more-content > .mini-label {
+  color: var(--aqua-dark);
+}
+
+.more-content > section {
+  padding: 18px;
+  border: 1px solid rgba(7, 52, 87, 0.14);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.more-content h3 {
+  margin: 0 0 6px;
+  font-size: 19px;
+}
+
+.more-content p {
+  margin: 0;
+  color: #4f6072;
+  line-height: 1.45;
+}
+
+.more-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.more-actions button,
+.file-action,
+.secondary-services a {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 9px;
+  color: var(--white);
+  background: var(--ink);
+  font-size: 14px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.more-feedback {
+  min-height: 20px;
+  margin-top: 8px !important;
+  font-size: 13px;
+}
+
+.secondary-services {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.secondary-services article {
+  padding: 18px;
+  border: 1px solid rgba(7, 52, 87, 0.14);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.secondary-services article > span {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--aqua-dark);
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.secondary-services a {
+  margin-top: 12px;
 }
 
 .tool-modal {
@@ -685,6 +814,141 @@ button {
   line-height: 1.45;
 }
 
+.gratitude-card,
+.journey-history,
+.journey-settings {
+  margin-top: 18px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.gratitude-card h2,
+.journey-history h3,
+.journey-settings h3 {
+  margin: 0 0 6px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 23px;
+}
+
+.gratitude-card > div > p,
+.journey-settings > p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.76);
+  line-height: 1.45;
+}
+
+.gratitude-card form {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.gratitude-card textarea {
+  width: 100%;
+  min-height: 88px;
+  padding: 12px;
+  resize: vertical;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 12px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.94);
+  font: inherit;
+}
+
+.gratitude-card button,
+.section-heading-row button {
+  min-height: 44px;
+  padding: 0 15px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.92);
+  font-weight: 900;
+}
+
+.saved-note {
+  min-height: 22px;
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 14px;
+}
+
+.section-heading-row,
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.history-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.history-item {
+  display: grid;
+  grid-template-columns: 88px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 54px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.history-item time,
+.history-item small,
+.setting-row small {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.history-item strong,
+.setting-row strong {
+  display: block;
+}
+
+.history-empty {
+  margin: 14px 0 0;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.journey-settings {
+  display: grid;
+  gap: 12px;
+}
+
+.setting-row {
+  min-height: 58px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.setting-row small {
+  display: block;
+  margin-top: 3px;
+}
+
+.setting-row input[type="time"] {
+  min-height: 42px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 9px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.92);
+  font: inherit;
+}
+
+.setting-row input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--accent);
+}
+
 .media-block {
   margin: 24px 0 16px;
 }
@@ -1008,16 +1272,19 @@ button {
 
 .bottom-nav {
   display: grid;
-  position: sticky;
+  position: fixed;
   z-index: 20;
-  top: 10px;
+  right: 50%;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  width: min(calc(100% - 28px), 716px);
   grid-template-columns: repeat(5, 1fr);
   gap: 8px;
-  margin: 16px 0 24px;
+  margin: 0;
   padding: 10px;
   border-radius: 20px;
   background: rgba(7, 52, 87, 0.88);
   box-shadow: 0 14px 34px rgba(5, 34, 54, 0.2);
+  transform: translateX(50%);
 }
 
 .bottom-nav button {
@@ -1145,7 +1412,8 @@ button {
   margin: 18px 0;
 }
 
-.about-links a {
+.about-links a,
+.about-links button {
   display: grid;
   min-height: 48px;
   place-items: center;
@@ -1159,9 +1427,84 @@ button {
   text-decoration: none;
 }
 
+.about-links button {
+  width: 100%;
+}
+
+.pwa-status {
+  margin: -4px 0 18px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
 .principles-list {
   display: grid;
   gap: 10px;
+}
+
+.wellness-resources,
+.about-details,
+.faq-list {
+  margin-top: 24px;
+}
+
+.wellness-resources h3,
+.about-details h3,
+.faq-list > h3 {
+  margin: 0 0 12px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+}
+
+.resource-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.resource-grid article,
+.about-details,
+.faq-list details {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.resource-grid article > span {
+  font-size: 25px;
+}
+
+.resource-grid h4 {
+  margin: 10px 0 6px;
+  font-size: 17px;
+}
+
+.resource-grid p,
+.about-details p,
+.faq-list p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.5;
+}
+
+.about-details p + p {
+  margin-top: 10px;
+}
+
+.faq-list {
+  display: grid;
+  gap: 10px;
+}
+
+.faq-list summary {
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.faq-list details p {
+  margin-top: 10px;
 }
 
 [hidden] {
@@ -1170,7 +1513,7 @@ button {
 
 @media (max-width: 620px) {
   .app-shell {
-    padding: 22px 14px 22px;
+    padding: 22px 14px 112px;
   }
 
   .brand h1 {
@@ -1269,7 +1612,8 @@ button {
 
   .bottom-nav {
     gap: 4px;
-    top: 6px;
+    bottom: max(6px, env(safe-area-inset-bottom));
+    width: calc(100% - 16px);
     padding: 7px;
   }
 
@@ -1287,8 +1631,24 @@ button {
 
   .support-now,
   .about-grid,
-  .about-links {
+  .about-links,
+  .resource-grid,
+  .secondary-services {
     grid-template-columns: 1fr;
+  }
+
+  .section-heading-row,
+  .setting-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .history-item {
+    grid-template-columns: 78px 1fr;
+  }
+
+  .history-item small {
+    grid-column: 2;
   }
 
   .expo-hero {

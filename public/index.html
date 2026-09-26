@@ -3,14 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#073457" />
+    <meta name="description" content="Meditação, jornada pessoal, apoio e conteúdos para viver um dia de cada vez." />
     <title>Só Por Hoje Cabo Verde</title>
     <link rel="icon" type="image/png" href="favicon-32.png" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <main class="app-shell">
       <header class="brand">
+        <button class="more-button" id="more-button" type="button" aria-label="Abrir menu Mais">
+          <span aria-hidden="true">•••</span>
+        </button>
         <img class="brand-logo" src="icon-512.png" alt="Só Por Hoje Cabo Verde" />
         <h1>Só Por Hoje</h1>
         <p>Cabo Verde</p>
@@ -151,6 +157,20 @@
         <p id="tool-text">O maior ato de coragem é continuar, mesmo quando tudo parece difícil.</p>
       </section>
 
+      <section class="gratitude-card view-section" data-section="meditation" aria-labelledby="gratitude-title">
+        <div>
+          <span class="mini-label">Gratidão</span>
+          <h2 id="gratitude-title">Por que agradeces hoje?</h2>
+          <p>Uma frase é suficiente. Fica guardada apenas neste dispositivo.</p>
+        </div>
+        <form id="gratitude-form">
+          <label class="sr-only" for="gratitude-input">Gratidão de hoje</label>
+          <textarea id="gratitude-input" rows="3" maxlength="240" placeholder="Hoje agradeço por..."></textarea>
+          <button type="submit">Guardar gratidão</button>
+        </form>
+        <p class="saved-note" id="gratitude-status" role="status"></p>
+      </section>
+
       <section class="progress-panel view-section" id="progress-panel" data-section="journey" hidden>
         <header class="view-header">
           <span>Jornada</span>
@@ -203,6 +223,30 @@
           <div data-reward="90"><strong>90 dias</strong><span>Consistência, apoio e rotina saudável.</span></div>
         </div>
 
+        <section class="journey-history" aria-labelledby="journey-history-title">
+          <div class="section-heading-row">
+            <div>
+              <span class="mini-label">Histórico</span>
+              <h3 id="journey-history-title">Os últimos dias</h3>
+            </div>
+            <button id="export-data" type="button">Exportar dados</button>
+          </div>
+          <div class="history-list" id="history-list"></div>
+        </section>
+
+        <section class="journey-settings" aria-labelledby="journey-settings-title">
+          <span class="mini-label">Definições da jornada</span>
+          <h3 id="journey-settings-title">Preferências neste dispositivo</h3>
+          <label class="setting-row" for="reminder-time">
+            <span><strong>Hora do lembrete</strong><small>Usada quando as notificações PWA estiverem ativas.</small></span>
+            <input id="reminder-time" type="time" value="07:00" />
+          </label>
+          <label class="setting-row" for="show-clean-days">
+            <span><strong>Mostrar dias limpos</strong><small>Podes ocultar o contador sem apagar a data.</small></span>
+            <input id="show-clean-days" type="checkbox" checked />
+          </label>
+        </section>
+
         <p class="care-note">Esta plataforma não substitui técnicos de saúde, sponsor, terapeuta ou reunião. Se estiveres em perigo, procura ajuda presencial ou contacto de emergência.</p>
       </section>
 
@@ -236,6 +280,46 @@
           <a href="https://www.facebook.com/230886890116895" target="_blank" rel="noreferrer">Facebook</a>
           <a href="https://www.instagram.com/soporhojecaboverde/" target="_blank" rel="noreferrer">Instagram</a>
         </div>
+        <section class="wellness-resources" aria-labelledby="wellness-resources-title">
+          <div class="section-heading-row">
+            <div>
+              <span class="mini-label">Informação e prática</span>
+              <h3 id="wellness-resources-title">Recursos para hoje</h3>
+            </div>
+          </div>
+          <div class="resource-grid">
+            <article>
+              <span aria-hidden="true">○</span>
+              <h4>Pausa de presença</h4>
+              <p>Pára por um minuto, respira devagar e escolhe apenas a próxima ação segura.</p>
+            </article>
+            <article>
+              <span aria-hidden="true">↗</span>
+              <h4>Quebrar o isolamento</h4>
+              <p>Contacta uma pessoa de confiança antes que um pensamento difícil se transforme numa decisão.</p>
+            </article>
+            <article>
+              <span aria-hidden="true">◇</span>
+              <h4>Expressão e arte</h4>
+              <p>Escreve, fotografa ou desenha o que este dia significa sem precisares de explicar tudo.</p>
+            </article>
+            <article>
+              <span aria-hidden="true">◌</span>
+              <h4>Rotina básica</h4>
+              <p>Água, alimentação, descanso, movimento e contacto humano ajudam a proteger o dia.</p>
+            </article>
+          </div>
+        </section>
+        <section class="media-block">
+          <h3>Documentário · Investir na prevenção</h3>
+          <iframe
+            src="https://www.youtube.com/embed/Ba1wMazi4Tg"
+            title="A evidência é clara: investir na prevenção"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+          ></iframe>
+        </section>
         <div class="expo-grid" aria-label="12 obras da exposição">
           <figure>
             <img src="expo/amar.jpg" alt="Obra Amar" loading="lazy" />
@@ -401,17 +485,45 @@
         </div>
 
         <div class="about-links" aria-label="Informações do projeto">
+          <button id="install-app" type="button" hidden>Instalar aplicação</button>
           <a href="/expo">Conhecer a exposição</a>
           <a href="mailto:sandrofonseca@lentilhas.com">Contactar o projeto</a>
           <a href="https://www.instagram.com/soporhojecaboverde/" target="_blank" rel="noreferrer">Instagram</a>
           <a href="https://youtube.com/@soporhojecaboverde?sub_confirmation=1" target="_blank" rel="noreferrer">YouTube</a>
         </div>
+        <p class="pwa-status" id="pwa-status" role="status">A plataforma pode funcionar parcialmente offline depois da primeira visita.</p>
 
         <div class="principles-list">
           <article><strong>Privacidade</strong><p>A Jornada e a Sala Anónima ficam apenas neste dispositivo enquanto não existir uma conta segura.</p></article>
           <article><strong>Conteýo</strong><p>A meditação oficial é distinguida das atividades complementares criadas pela plataforma.</p></article>
           <article><strong>Apoio</strong><p>A plataforma não substitui profissionais de saúde, sponsor, reuniões ou serviços de emergência.</p></article>
         </div>
+
+        <section class="about-details" aria-labelledby="privacy-title">
+          <h3 id="privacy-title">Privacidade e segurança</h3>
+          <p>Nesta versão, data de sobriedade, leituras, check-ins, gratidões e partilhas ficam no armazenamento do navegador. Não são enviados para uma conta nem partilhados com a equipa.</p>
+          <p>Ao limpar os dados do navegador ou mudar de dispositivo, estes registos podem desaparecer. Usa a exportação da Jornada para guardar uma cópia pessoal.</p>
+        </section>
+
+        <section class="faq-list" aria-labelledby="faq-title">
+          <h3 id="faq-title">Perguntas frequentes</h3>
+          <details>
+            <summary>A plataforma pertence a Narcóticos Anónimos?</summary>
+            <p>Não. Só Por Hoje Cabo Verde é uma iniciativa independente. A meditação oficial identifica a fonte e é separada dos conteúdos complementares.</p>
+          </details>
+          <details>
+            <summary>Os meus dados são vistos por outras pessoas?</summary>
+            <p>Não nesta versão. Jornada, gratidões e Sala Anónima ficam apenas no dispositivo utilizado.</p>
+          </details>
+          <details>
+            <summary>Posso usar a plataforma numa emergência?</summary>
+            <p>A plataforma ajuda a encontrar contactos, mas não presta atendimento de emergência. Procura imediatamente um serviço de saúde ou uma pessoa segura.</p>
+          </details>
+          <details>
+            <summary>Como posso apoiar ou colaborar?</summary>
+            <p>Contacta a equipa para propor parcerias, conteúdos, voluntariado ou apoio à continuidade do projeto.</p>
+          </details>
+        </section>
       </section>
     </main>
 
@@ -437,6 +549,50 @@
           <span id="tool-modal-label">Ferramenta do dia</span>
           <h2 id="tool-modal-title">Atividade do dia</h2>
           <p id="tool-modal-text"></p>
+        </div>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="more-modal" hidden>
+      <section class="more-modal" role="dialog" aria-modal="true" aria-labelledby="more-title">
+        <button class="modal-close" id="more-close" type="button" aria-label="Fechar menu Mais">×</button>
+        <div class="more-content">
+          <span class="mini-label">Preferências e serviços</span>
+          <h2 id="more-title">Mais</h2>
+
+          <section>
+            <h3>Conta e dados</h3>
+            <p>Estás a usar o modo local e anónimo. Os teus registos ficam apenas neste dispositivo.</p>
+            <div class="more-actions">
+              <button id="export-data-secondary" type="button">Exportar dados</button>
+              <label class="file-action" for="import-data">Importar cópia</label>
+              <input id="import-data" type="file" accept="application/json,.json" hidden />
+            </div>
+            <p class="more-feedback" id="import-status" role="status"></p>
+          </section>
+
+          <section>
+            <h3>Aplicação e notificações</h3>
+            <p>Instala a plataforma e escolhe a hora preferida na Jornada. As notificações dependem da permissão do dispositivo.</p>
+            <div class="more-actions">
+              <button id="install-app-secondary" type="button">Instalar aplicação</button>
+              <button id="notifications-secondary" type="button">Gerir notificações</button>
+            </div>
+          </section>
+
+          <section class="secondary-services">
+            <article>
+              <span>Loja</span>
+              <h3>Produtos com propósito</h3>
+              <p>Calendário, pins, t-shirts e quadros entram quando catálogo, pagamentos e entregas estiverem definidos.</p>
+            </article>
+            <article>
+              <span>Apoiar</span>
+              <h3>Parcerias e voluntariado</h3>
+              <p>O apoio financeiro será ativado apenas com transparência sobre destino e utilização.</p>
+              <a href="mailto:sandrofonseca@lentilhas.com?subject=Apoiar%20S%C3%B3%20Por%20Hoje%20Cabo%20Verde">Falar com a equipa</a>
+            </article>
+          </section>
         </div>
       </section>
     </div>
