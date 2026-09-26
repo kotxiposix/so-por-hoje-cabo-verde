@@ -39,7 +39,7 @@ production -> branch de producao ligada a Vercel
 
 Na Vercel, configure a Production Branch como `production`. O workflow GitHub valida `dev`, `production` e pull requests; nao publica uma copia estatica no GitHub Pages, porque essa copia nao suportaria a API.
 
-As instrucoes para conta, sincronizacao e comunidade moderada estao em `docs/BACKEND_SETUP.md`. O esquema inicial esta em `supabase/schema.sql`.
+As instrucoes para conta, sincronizacao e comunidade moderada estao em `docs/BACKEND_SETUP.md`. A sequencia operacional esta em `docs/ACTIVATION_CHECKLIST.md` e o esquema inicial em `supabase/schema.sql`.
 
 ## PWA e dados locais
 
@@ -79,7 +79,11 @@ GET /api/v1/day/{month_day}
 GET /api/v1/meditations
 GET /api/v1/today/preview
 POST /api/v1/ai/daily-support
+DELETE /api/v1/account
+POST /api/v1/internal/push/deliver
 ```
+
+Os dois ultimos endpoints sao fluxos protegidos: a eliminacao exige a sessao da propria pessoa e a entrega push exige o segredo do agendador.
 
 ## Apoio diario com AI
 
