@@ -552,7 +552,7 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 | Meditacao | Funcional, com gratidao diaria | Rever conteudo complementar com equipa clinica/comunitaria |
 | Jornada | Funcional no dispositivo, com historico, plano pessoal, marcos, exportacao e preferencias | Ativar e validar sincronizacao opcional no Supabase |
 | Viver Saudavel | Podcast, documentario, historia do projeto, exposicao e recursos educativos | Adicionar novos testemunhos apenas com consentimento |
-| Ajuda | Fluxo SOS e contactos oficiais principais | Validar horarios e restantes respostas locais |
+| Ajuda | Fluxo SOS, contactos oficiais acionaveis e estado de verificacao por recurso | Confirmar horarios e restantes respostas diretamente com cada entidade |
 | Sala anonima | Prototipo apenas local | Nao publicar como sala real sem backend e moderacao |
 | Sobre | Missao, visao, historia, coordenacao, privacidade, contactos e FAQ | Identificar parceiros apenas depois de confirmacao |
 | Conta/login | Cliente Email OTP e escolha de sincronizacao implementados, ocultos sem configuracao | Criar projeto Supabase, SMTP e CAPTCHA; testar com duas contas |

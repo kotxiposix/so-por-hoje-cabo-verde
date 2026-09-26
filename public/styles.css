@@ -1264,6 +1264,37 @@ button {
   font-size: 17px;
 }
 
+.resource-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.resource-heading strong {
+  margin-bottom: 0;
+}
+
+.resource-status {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.resource-status.verified {
+  color: #073457;
+  background: #bfeef1;
+}
+
+.resource-status.pending {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+}
+
 .info-list p {
   margin: 0;
   color: rgba(255, 255, 255, 0.78);
@@ -1315,6 +1346,12 @@ button {
   font-size: 13px;
   font-weight: 950;
   text-decoration: none;
+}
+
+.help-actions .help-primary {
+  color: var(--ink);
+  border-color: #bfeef1;
+  background: #bfeef1;
 }
 
 .community-source {
