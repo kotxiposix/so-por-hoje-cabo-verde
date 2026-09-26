@@ -1,3 +1,5 @@
+import { JOURNEY_SCHEMA_VERSION } from "./journey-sync.mjs";
+
 export class SupabaseAccountClient {
   constructor({ url, publishableKey, fetchImpl = fetch, platformFetchImpl = fetch }) {
     this.url = String(url || "").replace(/\/$/, "");
@@ -46,20 +48,27 @@ export class SupabaseAccountClient {
     return { session: activeSession, record: Array.isArray(records) ? records[0] || null : null };
   }
 
-  async upsertJourney(session, payload, schemaVersion = 2) {
+  async saveJourney(session, payload, { expectedUpdatedAt = null, force = false } = {}) {
     const activeSession = await this.ensureSession(session);
-    await this.request("/rest/v1/journey_state?on_conflict=user_id", {
+    const result = await this.request("/rest/v1/rpc/save_journey_state", {
       method: "POST",
       session: activeSession,
-      headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
-      body: [{
-        user_id: activeSession.user.id,
-        payload,
-        schema_version: schemaVersion,
-        updated_at: new Date().toISOString(),
-      }],
+      body: {
+        p_payload: payload,
+        p_schema_version: JOURNEY_SCHEMA_VERSION,
+        p_expected_updated_at: expectedUpdatedAt,
+        p_force: Boolean(force),
+      },
     });
-    return activeSession;
+    const outcome = Array.isArray(result) ? result[0] : result;
+    if (!outcome || typeof outcome.saved !== "boolean") {
+      throw new Error("A sincronização devolveu uma resposta inválida.");
+    }
+    return {
+      session: activeSession,
+      saved: outcome.saved,
+      updatedAt: outcome.current_updated_at || null,
+    };
   }
 
   async deleteJourney(session) {

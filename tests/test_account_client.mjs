@@ -57,16 +57,14 @@ test("verifyOtp requests an email session", async () => {
   assert.equal(session.access_token, "access");
 });
 
-test("journey upsert is scoped to the signed-in user", async () => {
-  let body;
+test("journey save uses the authenticated atomic conflict endpoint", async () => {
+  let request;
   const client = new SupabaseAccountClient({
     url: "https://project.supabase.co",
     publishableKey: "public-key",
     fetchImpl: async (url, options) => {
-      assert.equal(url, "https://project.supabase.co/rest/v1/journey_state?on_conflict=user_id");
-      assert.equal(options.headers.Authorization, "Bearer access");
-      body = JSON.parse(options.body);
-      return new Response(null, { status: 204 });
+      request = { url, options, body: JSON.parse(options.body) };
+      return jsonResponse([{ saved: true, current_updated_at: "2026-09-26T10:00:00Z" }]);
     },
   });
   const session = normalizeSession({
@@ -76,11 +74,46 @@ test("journey upsert is scoped to the signed-in user", async () => {
     user: { id: "user-id", email: "person@example.com" },
   });
 
-  await client.upsertJourney(session, { completed: ["2026-09-26"] });
+  const result = await client.saveJourney(
+    session,
+    { completed: ["2026-09-26"] },
+    { expectedUpdatedAt: "2026-09-26T09:00:00Z" },
+  );
 
-  assert.equal(body[0].user_id, "user-id");
-  assert.equal(body[0].schema_version, 2);
-  assert.match(body[0].updated_at, /^\d{4}-\d{2}-\d{2}T/);
+  assert.equal(request.url, "https://project.supabase.co/rest/v1/rpc/save_journey_state");
+  assert.equal(request.options.headers.Authorization, "Bearer access");
+  assert.deepEqual(request.body, {
+    p_payload: { completed: ["2026-09-26"] },
+    p_schema_version: 2,
+    p_expected_updated_at: "2026-09-26T09:00:00Z",
+    p_force: false,
+  });
+  assert.equal(result.saved, true);
+  assert.equal(result.updatedAt, "2026-09-26T10:00:00Z");
+});
+
+test("journey save reports an atomic conflict without overwriting", async () => {
+  const client = new SupabaseAccountClient({
+    url: "https://project.supabase.co",
+    publishableKey: "public-key",
+    fetchImpl: async () => jsonResponse([{
+      saved: false,
+      current_updated_at: "2026-09-26T11:00:00Z",
+    }]),
+  });
+  const session = normalizeSession({
+    access_token: "access",
+    refresh_token: "refresh",
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    user: { id: "user-id", email: "person@example.com" },
+  });
+
+  const result = await client.saveJourney(session, {}, {
+    expectedUpdatedAt: "2026-09-26T09:00:00Z",
+  });
+
+  assert.equal(result.saved, false);
+  assert.equal(result.updatedAt, "2026-09-26T11:00:00Z");
 });
 
 test("non-JSON failures preserve a useful message", async () => {

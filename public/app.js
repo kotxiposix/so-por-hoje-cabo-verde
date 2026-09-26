@@ -510,11 +510,37 @@ function enableJourneySync() {
   renderAccount();
 }
 
+function pauseJourneySync(message) {
+  accountState.syncEnabled = false;
+  localStorage.removeItem("sph-account-sync");
+  renderAccount();
+  els.accountStatus.textContent = message;
+}
+
 async function uploadLocalJourney({ silent = false } = {}) {
   if (!accountState.client || !accountState.session) return;
   if (!silent) els.accountStatus.textContent = "A guardar a Jornada na conta...";
-  const session = await accountState.client.upsertJourney(accountState.session, getSyncableProgress());
-  persistAccountSession(session);
+  const remoteResult = await accountState.client.getJourney(accountState.session);
+  persistAccountSession(remoteResult.session);
+  let expectedUpdatedAt = null;
+  if (remoteResult.record) {
+    const { hasRemoteJourneyConflict, validateRemoteJourneyRecord } = await import("./journey-sync.mjs");
+    const remote = validateRemoteJourneyRecord(remoteResult.record);
+    expectedUpdatedAt = remote.updatedAt;
+    if (silent && hasRemoteJourneyConflict(state.progress.updatedAt, remote.updatedAt)) {
+      pauseJourneySync("Existem alterações mais recentes noutro dispositivo. Escolhe qual cópia da Jornada queres usar.");
+      return;
+    }
+  }
+  const result = await accountState.client.saveJourney(accountState.session, getSyncableProgress(), {
+    expectedUpdatedAt,
+    force: !silent,
+  });
+  persistAccountSession(result.session);
+  if (!result.saved) {
+    pauseJourneySync("A Jornada mudou noutro dispositivo durante a sincronização. Escolhe qual cópia queres usar.");
+    return;
+  }
   enableJourneySync();
   if (!silent) els.accountStatus.textContent = "Dados deste dispositivo guardados na conta.";
 }
@@ -524,10 +550,12 @@ async function useAccountJourney() {
   els.accountStatus.textContent = "A procurar dados da conta...";
   const result = await accountState.client.getJourney(accountState.session);
   persistAccountSession(result.session);
-  if (!result.record?.payload) {
+  if (!result.record) {
     els.accountStatus.textContent = "Ainda não existem dados guardados nesta conta.";
     return;
   }
+  const { validateRemoteJourneyRecord } = await import("./journey-sync.mjs");
+  const remote = validateRemoteJourneyRecord(result.record);
   const confirmed = window.confirm("Substituir a Jornada deste dispositivo pela cópia guardada na conta?");
   if (!confirmed) {
     els.accountStatus.textContent = "Nenhum dado foi alterado.";
@@ -540,7 +568,7 @@ async function useAccountJourney() {
     notifications: state.progress.notifications,
     lastReminderAt: state.progress.lastReminderAt,
   };
-  state.progress = normalizeProgress({ ...result.record.payload, ...deviceOnly });
+  state.progress = normalizeProgress({ ...remote.payload, ...deviceOnly });
   saveProgress({ touch: false, sync: false });
   enableJourneySync();
   renderProgress();

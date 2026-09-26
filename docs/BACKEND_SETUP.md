@@ -58,7 +58,7 @@ Ao criar conta, a interface deve:
 4. manter uma copia local para funcionamento offline;
 5. resolver conflitos pelo `updated_at`, oferecendo escolha quando ambos os lados mudaram.
 
-O cliente web deste repositorio ja implementa o acesso por codigo de email e a escolha explicita entre a copia local e a copia da conta. O endpoint publico `/api/v1/config` so anuncia esta funcionalidade quando URL e chave publica estiverem presentes; nunca devolve a `SERVICE_ROLE_KEY`.
+O cliente web deste repositorio ja implementa o acesso por codigo de email e a escolha explicita entre a copia local e a copia da conta. A sincronizacao automatica compara `updated_at`; se a conta tiver mudado noutro dispositivo, pausa sem sobrescrever e volta a pedir uma escolha. A funcao SQL `save_journey_state` repete essa verificacao atomicamente no momento da escrita, fechando a janela entre leitura e gravacao. Versoes remotas superiores à suportada sao recusadas ate a aplicacao ser atualizada. O endpoint publico `/api/v1/config` so anuncia esta funcionalidade quando URL e chave publica estiverem presentes; nunca devolve a `SERVICE_ROLE_KEY`.
 
 A pessoa pode apagar a propria linha de `journey_state` atraves da interface; a politica RLS limita o `DELETE` ao respetivo `auth.uid()`. Separadamente, pode eliminar a conta completa pelo endpoint autenticado do servidor. Esta eliminacao valida primeiro o token no Supabase e nunca confia num identificador indicado pelo browser.
 

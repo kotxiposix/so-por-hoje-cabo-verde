@@ -10,6 +10,72 @@ create table if not exists public.journey_state (
   updated_at timestamptz not null default now()
 );
 
+create or replace function public.save_journey_state(
+  p_payload jsonb,
+  p_schema_version integer,
+  p_expected_updated_at timestamptz default null,
+  p_force boolean default false
+)
+returns table(saved boolean, current_updated_at timestamptz)
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  current_user_id uuid := auth.uid();
+  stored_updated_at timestamptz;
+  next_updated_at timestamptz := clock_timestamp();
+begin
+  if current_user_id is null then
+    raise exception 'Authentication required';
+  end if;
+  if p_schema_version is null
+    or p_schema_version < 1
+    or p_payload is null
+    or jsonb_typeof(p_payload) <> 'object' then
+    raise exception 'Invalid journey payload';
+  end if;
+
+  select journey.updated_at
+    into stored_updated_at
+    from public.journey_state as journey
+    where journey.user_id = current_user_id
+    for update;
+
+  if found then
+    if not p_force and (p_expected_updated_at is null or stored_updated_at <> p_expected_updated_at) then
+      return query select false, stored_updated_at;
+      return;
+    end if;
+
+    update public.journey_state
+      set payload = p_payload,
+          schema_version = p_schema_version,
+          updated_at = next_updated_at
+      where user_id = current_user_id;
+    return query select true, next_updated_at;
+    return;
+  end if;
+
+  begin
+    insert into public.journey_state (user_id, payload, schema_version, updated_at)
+    values (current_user_id, p_payload, p_schema_version, next_updated_at);
+    return query select true, next_updated_at;
+  exception when unique_violation then
+    select journey.updated_at
+      into stored_updated_at
+      from public.journey_state as journey
+      where journey.user_id = current_user_id;
+    return query select false, stored_updated_at;
+  end;
+end;
+$$;
+
+revoke all on function public.save_journey_state(jsonb, integer, timestamptz, boolean)
+  from public, anon;
+grant execute on function public.save_journey_state(jsonb, integer, timestamptz, boolean)
+  to authenticated;
+
 create table if not exists public.anonymous_posts (
   id uuid primary key default gen_random_uuid(),
   author_id uuid not null references auth.users(id) on delete cascade,

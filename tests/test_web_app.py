@@ -98,6 +98,8 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("function activateAppUpdate", script)
         self.assertIn("parseJourneyBackup", script)
         self.assertIn("MAX_JOURNEY_BACKUP_BYTES", script)
+        self.assertIn("validateRemoteJourneyRecord", script)
+        self.assertIn("hasRemoteJourneyConflict", script)
 
         backup_parser = (PUBLIC / "journey-backup.mjs").read_text(encoding="utf-8")
         self.assertIn("JOURNEY_BACKUP_VERSION = 1", backup_parser)
