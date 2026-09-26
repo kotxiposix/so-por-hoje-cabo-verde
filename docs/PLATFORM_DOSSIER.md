@@ -550,7 +550,7 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 | Bloco | Estado atual | Proximo passo |
 | --- | --- | --- |
 | Meditacao | Funcional, com gratidao diaria | Rever conteudo complementar com equipa clinica/comunitaria |
-| Jornada | Funcional no dispositivo, com historico, exportacao e preferencias | Ligar sincronizacao opcional |
+| Jornada | Funcional no dispositivo, com historico, plano pessoal, marcos, exportacao e preferencias | Ligar sincronizacao opcional |
 | Viver Saudavel | Podcast, documentario, exposicao e recursos praticos | Adicionar historias e novos conteudos aprovados |
 | Ajuda | Fluxo SOS e contactos oficiais principais | Validar horarios e restantes respostas locais |
 | Sala anonima | Prototipo apenas local | Nao publicar como sala real sem backend e moderacao |

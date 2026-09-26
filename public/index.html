@@ -216,12 +216,30 @@
           <p id="checkin-guidance">Escolhe um estado para receber uma sugestão prática para hoje.</p>
         </div>
 
-        <div class="reward-list" id="reward-list">
-          <div data-reward="1"><strong>Só por hoje</strong><span>Marca a primeira meditação lida.</span></div>
-          <div data-reward="7"><strong>7 dias</strong><span>Uma semana de presença e cuidado.</span></div>
-          <div data-reward="30"><strong>30 dias</strong><span>Um mês de caminhada consciente.</span></div>
-          <div data-reward="90"><strong>90 dias</strong><span>Consistência, apoio e rotina saudável.</span></div>
+        <div class="reward-list" id="reward-list" aria-label="Marcos da jornada">
+          <div data-reward="1" data-reward-source="either"><strong>Só por hoje</strong><span>Marca a primeira meditação lida.</span></div>
+          <div data-reward="7" data-reward-source="either"><strong>7 dias de presença</strong><span>Uma semana a regressar à jornada.</span></div>
+          <div data-reward="30" data-reward-source="clean"><strong>30 dias limpos</strong><span>Um mês construído um dia de cada vez.</span></div>
+          <div data-reward="90" data-reward-source="clean"><strong>90 dias limpos</strong><span>Consistência, apoio e rotina saudável.</span></div>
+          <div data-reward="180" data-reward-source="clean"><strong>6 meses</strong><span>Reconhece o caminho e continua acompanhado.</span></div>
+          <div data-reward="365" data-reward-source="clean"><strong>1 ano</strong><span>Um marco para celebrar com a tua rede de apoio.</span></div>
         </div>
+
+        <section class="support-plan" aria-labelledby="support-plan-title">
+          <span class="mini-label">Plano pessoal</span>
+          <h3 id="support-plan-title">O que me mantém ligado à recuperação</h3>
+          <p>Usa nomes ou referências que reconheças. Evita guardar telefone, morada ou informação clínica.</p>
+          <form id="support-plan-form">
+            <label for="safe-person">Pessoa segura</label>
+            <input id="safe-person" type="text" maxlength="60" placeholder="Nome ou apelido" />
+            <label for="next-meeting">Próxima reunião ou atividade</label>
+            <input id="next-meeting" type="text" maxlength="100" placeholder="Ex.: terça, 18h" />
+            <label for="recovery-reason">A minha razão para continuar</label>
+            <textarea id="recovery-reason" rows="3" maxlength="240" placeholder="Uma frase pessoal"></textarea>
+            <button type="submit">Guardar plano</button>
+          </form>
+          <p class="saved-note" id="support-plan-status" role="status"></p>
+        </section>
 
         <section class="journey-history" aria-labelledby="journey-history-title">
           <div class="section-heading-row">

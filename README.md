@@ -50,7 +50,7 @@ A interface principal inclui manifesto e service worker. Quando servida por `loc
 - catalogo de apoio complementar;
 - icones e estilos essenciais.
 
-Jornada, gratidoes, check-ins e Sala Anonima usam `localStorage`. A pessoa pode exportar uma copia JSON e voltar a importa-la no mesmo ou noutro dispositivo. Isto ainda nao e sincronizacao de conta.
+Jornada, gratidoes, check-ins, plano pessoal e Sala Anonima usam `localStorage`. A pessoa pode exportar uma copia JSON e voltar a importa-la no mesmo ou noutro dispositivo. A importacao valida e limita os campos antes de os guardar. Isto ainda nao e sincronizacao de conta.
 
 Abrir `public/index.html` diretamente com `file://` serve apenas para inspecao visual. API, PWA, cache offline e alguns recursos do navegador exigem o servidor local:
 

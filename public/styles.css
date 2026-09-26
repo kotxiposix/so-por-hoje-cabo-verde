@@ -884,6 +884,68 @@ button {
   color: var(--white);
 }
 
+.support-plan {
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.support-plan h3 {
+  margin: 8px 0 7px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+}
+
+.support-plan > p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.76);
+  line-height: 1.45;
+}
+
+.support-plan form {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.support-plan label {
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.support-plan input,
+.support-plan textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 10px;
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.12);
+  font: inherit;
+}
+
+.support-plan input::placeholder,
+.support-plan textarea::placeholder {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.support-plan textarea {
+  resize: vertical;
+}
+
+.support-plan button {
+  min-height: 44px;
+  margin-top: 6px;
+  border-radius: 10px;
+  color: var(--ink);
+  background: var(--white);
+  font-weight: 950;
+}
+
 .reward-list strong,
 .feature-list strong {
   font-size: 18px;

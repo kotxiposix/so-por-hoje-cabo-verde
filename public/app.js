@@ -60,6 +60,11 @@ const els = {
   exportData: document.querySelector("#export-data"),
   reminderTime: document.querySelector("#reminder-time"),
   showCleanDays: document.querySelector("#show-clean-days"),
+  supportPlanForm: document.querySelector("#support-plan-form"),
+  safePerson: document.querySelector("#safe-person"),
+  nextMeeting: document.querySelector("#next-meeting"),
+  recoveryReason: document.querySelector("#recovery-reason"),
+  supportPlanStatus: document.querySelector("#support-plan-status"),
   installApp: document.querySelector("#install-app"),
   pwaStatus: document.querySelector("#pwa-status"),
   moreButton: document.querySelector("#more-button"),
@@ -119,15 +124,68 @@ function saveProgress() {
 
 function normalizeProgress(progress) {
   return {
-    completed: Array.isArray(progress.completed) ? progress.completed : [],
-    sobrietyDate: progress.sobrietyDate || "",
-    checkins: progress.checkins && typeof progress.checkins === "object" ? progress.checkins : {},
-    anonymousName: progress.anonymousName || makeAnonymousName(),
-    anonymousShares: Array.isArray(progress.anonymousShares) ? progress.anonymousShares : [],
-    notifications: progress.notifications || "off",
-    gratitudes: progress.gratitudes && typeof progress.gratitudes === "object" ? progress.gratitudes : {},
-    reminderTime: progress.reminderTime || "07:00",
+    completed: normalizeDateList(progress.completed),
+    sobrietyDate: isIsoDate(progress.sobrietyDate) ? progress.sobrietyDate : "",
+    checkins: normalizeCheckins(progress.checkins),
+    anonymousName: cleanStoredText(progress.anonymousName, 32) || makeAnonymousName(),
+    anonymousShares: normalizeAnonymousShares(progress.anonymousShares),
+    notifications: progress.notifications === "on" ? "on" : "off",
+    gratitudes: normalizeTextByDate(progress.gratitudes, 240),
+    reminderTime: /^([01]\d|2[0-3]):[0-5]\d$/.test(progress.reminderTime) ? progress.reminderTime : "07:00",
     showCleanDays: progress.showCleanDays !== false,
+    supportPlan: normalizeSupportPlan(progress.supportPlan),
+  };
+}
+
+function cleanStoredText(value, maxLength) {
+  return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
+}
+
+function isIsoDate(value) {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function normalizeDateList(value) {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.filter(isIsoDate))].sort().slice(-3660);
+}
+
+function normalizeCheckins(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const allowed = new Set(["firme", "ansioso", "risco", "consumo"]);
+  return Object.fromEntries(Object.entries(value)
+    .filter(([day, stateValue]) => isIsoDate(day) && allowed.has(stateValue))
+    .slice(-3660));
+}
+
+function normalizeTextByDate(value, maxLength) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.fromEntries(Object.entries(value)
+    .filter(([day, textValue]) => isIsoDate(day) && typeof textValue === "string")
+    .map(([day, textValue]) => [day, cleanStoredText(textValue, maxLength)])
+    .filter(([, textValue]) => textValue)
+    .slice(-3660));
+}
+
+function normalizeAnonymousShares(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((share) => share && typeof share === "object")
+    .map((share) => ({
+      name: cleanStoredText(share.name, 32) || "Anónimo",
+      message: cleanStoredText(share.message, 280),
+      date: typeof share.date === "string" ? share.date.slice(0, 32) : "",
+    }))
+    .filter((share) => share.message)
+    .slice(-20);
+}
+
+function normalizeSupportPlan(value) {
+  const plan = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  return {
+    safePerson: cleanStoredText(plan.safePerson, 60),
+    nextMeeting: cleanStoredText(plan.nextMeeting, 100),
+    recoveryReason: cleanStoredText(plan.recoveryReason, 240),
   };
 }
 
@@ -208,6 +266,7 @@ function renderMeditation() {
   els.title.textContent = daily.title;
   els.body.textContent = daily.body;
   els.reflection.textContent = daily.reflection;
+  els.sobrietyDate.max = daily.date;
   showMode("content");
   renderProgress();
   renderAnonymousRoom();
@@ -266,6 +325,25 @@ function renderProgress() {
   renderGratitude();
   renderJourneyHistory();
   renderJourneySettings();
+  renderSupportPlan();
+}
+
+function renderSupportPlan() {
+  if (!els.supportPlanForm) return;
+  els.safePerson.value = state.progress.supportPlan.safePerson;
+  els.nextMeeting.value = state.progress.supportPlan.nextMeeting;
+  els.recoveryReason.value = state.progress.supportPlan.recoveryReason;
+}
+
+function saveSupportPlan() {
+  state.progress.supportPlan = normalizeSupportPlan({
+    safePerson: els.safePerson.value,
+    nextMeeting: els.nextMeeting.value,
+    recoveryReason: els.recoveryReason.value,
+  });
+  saveProgress();
+  renderSupportPlan();
+  els.supportPlanStatus.textContent = "Plano guardado apenas neste dispositivo.";
 }
 
 function renderGratitude() {
@@ -453,7 +531,10 @@ function getTodayCheckin() {
 function renderRewards(cleanDays, readingStreak) {
   document.querySelectorAll("[data-reward]").forEach((item) => {
     const target = Number(item.dataset.reward);
-    item.classList.toggle("unlocked", cleanDays >= target || readingStreak >= target);
+    const unlocked = item.dataset.rewardSource === "clean"
+      ? cleanDays >= target
+      : cleanDays >= target || readingStreak >= target;
+    item.classList.toggle("unlocked", unlocked);
   });
 }
 
@@ -523,6 +604,11 @@ function completeToday() {
 }
 
 function setSobrietyDate(value) {
+  if (value && state.daily && value > state.daily.date) {
+    els.sobrietyDate.value = state.progress.sobrietyDate;
+    els.cleanDaysCopy.textContent = "A data de sobriedade não pode estar no futuro.";
+    return;
+  }
   state.progress.sobrietyDate = value;
   saveProgress();
   renderProgress();
@@ -999,6 +1085,10 @@ els.showCleanDays.addEventListener("change", (event) => {
   state.progress.showCleanDays = event.target.checked;
   saveProgress();
   renderJourneySettings();
+});
+els.supportPlanForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  saveSupportPlan();
 });
 els.installApp.addEventListener("click", () => installApp());
 els.moreButton.addEventListener("click", openMore);
