@@ -96,6 +96,12 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("function loadLocalDailySupport", script)
         self.assertIn("function watchServiceWorkerRegistration", script)
         self.assertIn("function activateAppUpdate", script)
+        self.assertIn("parseJourneyBackup", script)
+        self.assertIn("MAX_JOURNEY_BACKUP_BYTES", script)
+
+        backup_parser = (PUBLIC / "journey-backup.mjs").read_text(encoding="utf-8")
+        self.assertIn("JOURNEY_BACKUP_VERSION = 1", backup_parser)
+        self.assertIn("MAX_JOURNEY_BACKUP_BYTES = 1_000_000", backup_parser)
 
     def test_vercel_routes_dynamic_api_before_static_files(self) -> None:
         config = json.loads((ROOT / "vercel.json").read_text(encoding="utf-8"))

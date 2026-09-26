@@ -165,19 +165,20 @@ function saveProgress({ touch = true, sync = true } = {}) {
 }
 
 function normalizeProgress(progress) {
+  const source = progress && typeof progress === "object" && !Array.isArray(progress) ? progress : {};
   return {
-    completed: normalizeDateList(progress.completed),
-    sobrietyDate: isIsoDate(progress.sobrietyDate) ? progress.sobrietyDate : "",
-    checkins: normalizeCheckins(progress.checkins),
-    anonymousName: cleanStoredText(progress.anonymousName, 32) || makeAnonymousName(),
-    anonymousShares: normalizeAnonymousShares(progress.anonymousShares),
-    notifications: progress.notifications === "on" ? "on" : "off",
-    gratitudes: normalizeTextByDate(progress.gratitudes, 240),
-    reminderTime: /^([01]\d|2[0-3]):[0-5]\d$/.test(progress.reminderTime) ? progress.reminderTime : "07:00",
-    showCleanDays: progress.showCleanDays !== false,
-    supportPlan: normalizeSupportPlan(progress.supportPlan),
-    lastReminderAt: isIsoDate(progress.lastReminderAt) ? progress.lastReminderAt : "",
-    updatedAt: typeof progress.updatedAt === "string" ? progress.updatedAt.slice(0, 32) : "",
+    completed: normalizeDateList(source.completed),
+    sobrietyDate: isCurrentOrPastDate(source.sobrietyDate) ? source.sobrietyDate : "",
+    checkins: normalizeCheckins(source.checkins),
+    anonymousName: cleanStoredText(source.anonymousName, 32) || makeAnonymousName(),
+    anonymousShares: normalizeAnonymousShares(source.anonymousShares),
+    notifications: source.notifications === "on" ? "on" : "off",
+    gratitudes: normalizeTextByDate(source.gratitudes, 240),
+    reminderTime: /^([01]\d|2[0-3]):[0-5]\d$/.test(source.reminderTime) ? source.reminderTime : "07:00",
+    showCleanDays: source.showCleanDays !== false,
+    supportPlan: normalizeSupportPlan(source.supportPlan),
+    lastReminderAt: isCurrentOrPastDate(source.lastReminderAt) ? source.lastReminderAt : "",
+    updatedAt: typeof source.updatedAt === "string" ? source.updatedAt.slice(0, 32) : "",
   };
 }
 
@@ -186,26 +187,32 @@ function cleanStoredText(value, maxLength) {
 }
 
 function isIsoDate(value) {
-  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+function isCurrentOrPastDate(value) {
+  return isIsoDate(value) && value <= getCapeVerdeToday().iso;
 }
 
 function normalizeDateList(value) {
   if (!Array.isArray(value)) return [];
-  return [...new Set(value.filter(isIsoDate))].sort().slice(-3660);
+  return [...new Set(value.filter(isCurrentOrPastDate))].sort().slice(-3660);
 }
 
 function normalizeCheckins(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const allowed = new Set(["firme", "ansioso", "risco", "consumo"]);
   return Object.fromEntries(Object.entries(value)
-    .filter(([day, stateValue]) => isIsoDate(day) && allowed.has(stateValue))
+    .filter(([day, stateValue]) => isCurrentOrPastDate(day) && allowed.has(stateValue))
     .slice(-3660));
 }
 
 function normalizeTextByDate(value, maxLength) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   return Object.fromEntries(Object.entries(value)
-    .filter(([day, textValue]) => isIsoDate(day) && typeof textValue === "string")
+    .filter(([day, textValue]) => isCurrentOrPastDate(day) && typeof textValue === "string")
     .map(([day, textValue]) => [day, cleanStoredText(textValue, maxLength)])
     .filter(([, textValue]) => textValue)
     .slice(-3660));
@@ -1051,16 +1058,15 @@ function closeMore() {
 async function importJourneyData(file) {
   if (!file) return;
   try {
-    const payload = JSON.parse(await file.text());
-    if (!payload.progress || typeof payload.progress !== "object") {
-      throw new Error("Formato inválido");
-    }
+    const { MAX_JOURNEY_BACKUP_BYTES, parseJourneyBackup } = await import("./journey-backup.mjs");
+    if (file.size > MAX_JOURNEY_BACKUP_BYTES) throw new Error("Cópia demasiado grande");
+    const progress = parseJourneyBackup(await file.text());
     const confirmed = window.confirm("Substituir os dados locais da Jornada pelos dados desta cópia?");
     if (!confirmed) {
       els.importStatus.textContent = "Importação cancelada.";
       return;
     }
-    state.progress = normalizeProgress(payload.progress);
+    state.progress = normalizeProgress(progress);
     saveProgress();
     renderProgress();
     renderAnonymousRoom();

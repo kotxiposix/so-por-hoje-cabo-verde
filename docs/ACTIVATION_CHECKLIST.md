@@ -8,6 +8,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Meditacao, Jornada, Viver Saudavel, Ajuda e Sobre funcionais em modo local.
 - [x] PWA instalavel, base diaria offline e fallbacks separados para app, privacidade e exposicao.
 - [x] Apoio diário local preserva dia e estado offline; atualizações da PWA exigem ação explícita.
+- [x] Exportacao local versionada e importacao da Jornada validada, limitada a 1 MB e confirmada antes da substituicao.
 - [x] Testes automaticos no GitHub Actions para `dev`, `production` e pull requests.
 - [ ] Confirmar instalacao e atualizacao da PWA em Android Chrome e iPhone Safari.
 - [ ] Confirmar os contactos e horarios comunitarios diretamente com cada entidade.
@@ -22,7 +23,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [ ] Gerar e guardar `ADMIN_API_SECRET` para os endpoints tecnicos; nao o reutilizar noutros servicos.
 - [ ] Entrar com duas contas diferentes e confirmar que a RLS impede acesso cruzado.
 - [ ] Testar escolha entre copia local e copia da conta nos dois sentidos.
-- [ ] Testar exportacao, eliminacao da Jornada, eliminacao da conta e limpeza local.
+- [ ] Testar eliminacao da Jornada, eliminacao da conta e limpeza local com duas contas reais.
 
 ## 3. Notificacoes em segundo plano
 

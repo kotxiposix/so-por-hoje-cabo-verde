@@ -1,4 +1,4 @@
-const CACHE_NAME = "sph-shell-v18";
+const CACHE_NAME = "sph-shell-v19";
 const CORE_ASSETS = [
   "/",
   "/index.html",
@@ -6,6 +6,7 @@ const CORE_ASSETS = [
   "/app.js",
   "/account-client.mjs",
   "/offline-support.mjs",
+  "/journey-backup.mjs",
   "/manifest.webmanifest",
   "/favicon-32.png",
   "/apple-touch-icon.png",
