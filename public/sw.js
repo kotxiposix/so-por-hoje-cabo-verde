@@ -1,9 +1,10 @@
-const CACHE_NAME = "sph-shell-v6";
+const CACHE_NAME = "sph-shell-v8";
 const CORE_ASSETS = [
   "/",
   "/index.html",
   "/styles.css",
   "/app.js",
+  "/account-client.mjs",
   "/manifest.webmanifest",
   "/favicon-32.png",
   "/apple-touch-icon.png",
@@ -33,6 +34,11 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  if (url.pathname.startsWith("/api/")) {
+    event.respondWith(fetch(request));
+    return;
+  }
 
   if (request.mode === "navigate") {
     event.respondWith(

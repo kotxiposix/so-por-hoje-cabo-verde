@@ -9,6 +9,7 @@ from sph.ai_support import DailySupportRequest, build_daily_support, support_to_
 from sph.channels.console import ConsoleChannel
 from sph.config import settings
 from sph.models import DailyMeditation
+from sph.public_config import public_runtime_config
 from sph.repository import MeditationRepository
 from sph.send_log import JsonlSendLog
 from sph.sender import DailySender
@@ -33,6 +34,11 @@ class AiDailySupportPayload(BaseModel):
 @app.get("/api/v1/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "timezone": settings.timezone}
+
+
+@app.get("/api/v1/config")
+def runtime_config() -> dict[str, object]:
+    return public_runtime_config()
 
 
 @app.get("/api/v1/today")

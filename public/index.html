@@ -657,13 +657,42 @@
 
           <section>
             <h3>Conta e dados</h3>
-            <p>Estás a usar o modo local e anónimo. Os teus registos ficam apenas neste dispositivo.</p>
+            <p id="account-summary">Estás a usar o modo local e anónimo. Os teus registos ficam apenas neste dispositivo.</p>
+
+            <div class="account-auth" id="account-auth" hidden>
+              <form id="account-email-form">
+                <label for="account-email">Email</label>
+                <div class="inline-form">
+                  <input id="account-email" type="email" autocomplete="email" required placeholder="nome@exemplo.cv" />
+                  <button type="submit">Enviar código</button>
+                </div>
+              </form>
+              <form id="account-code-form" hidden>
+                <label for="account-code">Código recebido por email</label>
+                <div class="inline-form">
+                  <input id="account-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" required placeholder="000000" />
+                  <button type="submit">Entrar</button>
+                </div>
+              </form>
+            </div>
+
+            <div class="account-session" id="account-session" hidden>
+              <p>Ligado como <strong id="account-identity"></strong></p>
+              <p>Escolhe qual cópia usar. Leituras, check-ins, gratidões, dias limpos e plano pessoal podem ser sincronizados. A Sala Anónima e as notificações ficam neste dispositivo.</p>
+              <div class="more-actions">
+                <button id="sync-local-data" type="button">Usar dados deste dispositivo</button>
+                <button id="sync-account-data" type="button">Usar dados da conta</button>
+                <button class="quiet-action" id="account-signout" type="button">Terminar sessão</button>
+              </div>
+            </div>
+
             <div class="more-actions">
               <button id="export-data-secondary" type="button">Exportar dados</button>
               <label class="file-action" for="import-data">Importar cópia</label>
               <input id="import-data" type="file" accept="application/json,.json" hidden />
             </div>
-            <p class="policy-link"><a href="/privacidade">Ler política de privacidade</a></p>
+            <p class="policy-link"><a href="/privacidade/">Ler política de privacidade</a></p>
+            <p class="more-feedback" id="account-status" role="status"></p>
             <p class="more-feedback" id="import-status" role="status"></p>
           </section>
 

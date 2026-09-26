@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 from sph.ai_support import DailySupportRequest, build_daily_support, support_to_dict
 from sph.config import settings
 from sph.models import DailyMeditation
+from sph.public_config import public_runtime_config
 from sph.repository import MeditationRepository
 from sph.service import DailyMeditationService
 
@@ -35,6 +36,8 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if path == "/api/v1/health":
                 self.respond({"status": "ok", "timezone": settings.timezone}, write_body=write_body)
+            elif path == "/api/v1/config":
+                self.respond(public_runtime_config(), write_body=write_body)
             elif path == "/api/v1/today":
                 self.respond(service.today().__dict__, write_body=write_body)
             elif path == "/api/v1/today/preview":

@@ -550,12 +550,12 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 | Bloco | Estado atual | Proximo passo |
 | --- | --- | --- |
 | Meditacao | Funcional, com gratidao diaria | Rever conteudo complementar com equipa clinica/comunitaria |
-| Jornada | Funcional no dispositivo, com historico, plano pessoal, marcos, exportacao e preferencias | Ligar sincronizacao opcional |
+| Jornada | Funcional no dispositivo, com historico, plano pessoal, marcos, exportacao e preferencias | Ativar e validar sincronizacao opcional no Supabase |
 | Viver Saudavel | Podcast, documentario, historia do projeto, exposicao e recursos educativos | Adicionar novos testemunhos apenas com consentimento |
 | Ajuda | Fluxo SOS e contactos oficiais principais | Validar horarios e restantes respostas locais |
 | Sala anonima | Prototipo apenas local | Nao publicar como sala real sem backend e moderacao |
 | Sobre | Missao, visao, historia, coordenacao, privacidade, contactos e FAQ | Identificar parceiros apenas depois de confirmacao |
-| Conta/login | Esquema e regras RLS preparados | Criar projeto Supabase e ligar email OTP |
+| Conta/login | Cliente Email OTP e escolha de sincronizacao implementados, ocultos sem configuracao | Criar projeto Supabase, SMTP e CAPTCHA; testar com duas contas |
 | Notificacoes push | Lembrete de sessao e preferencia local funcionais; esquema push preparado | Ligar VAPID, cron e entrega no backend |
 | PWA | Instalacao e offline parcial implementados | Verificar em producao e ampliar cache quando necessario |
 | Loja e doacao | Nao iniciado | Definir operacao, pagamentos, entregas e transparencia |

@@ -76,6 +76,18 @@ const els = {
   importStatus: document.querySelector("#import-status"),
   installAppSecondary: document.querySelector("#install-app-secondary"),
   notificationsSecondary: document.querySelector("#notifications-secondary"),
+  accountSummary: document.querySelector("#account-summary"),
+  accountAuth: document.querySelector("#account-auth"),
+  accountEmailForm: document.querySelector("#account-email-form"),
+  accountEmail: document.querySelector("#account-email"),
+  accountCodeForm: document.querySelector("#account-code-form"),
+  accountCode: document.querySelector("#account-code"),
+  accountSession: document.querySelector("#account-session"),
+  accountIdentity: document.querySelector("#account-identity"),
+  accountStatus: document.querySelector("#account-status"),
+  syncLocalData: document.querySelector("#sync-local-data"),
+  syncAccountData: document.querySelector("#sync-account-data"),
+  accountSignout: document.querySelector("#account-signout"),
   sosButton: document.querySelector("#sos-button"),
   sosModal: document.querySelector("#sos-modal"),
   sosClose: document.querySelector("#sos-close"),
@@ -87,6 +99,15 @@ let lastToolButton = null;
 let currentSupport = null;
 let installPrompt = null;
 let reminderTimer = null;
+let journeySyncTimer = null;
+
+const accountState = {
+  client: null,
+  enabled: false,
+  pendingEmail: "",
+  session: loadAccountSession(),
+  syncEnabled: localStorage.getItem("sph-account-sync") === "on",
+};
 
 const tools = {
   repair: {
@@ -120,8 +141,10 @@ function loadProgress() {
   }
 }
 
-function saveProgress() {
+function saveProgress({ touch = true, sync = true } = {}) {
+  if (touch) state.progress.updatedAt = new Date().toISOString();
   localStorage.setItem("sph-progress", JSON.stringify(state.progress));
+  if (sync) queueJourneySync();
 }
 
 function normalizeProgress(progress) {
@@ -137,6 +160,7 @@ function normalizeProgress(progress) {
     showCleanDays: progress.showCleanDays !== false,
     supportPlan: normalizeSupportPlan(progress.supportPlan),
     lastReminderAt: isIsoDate(progress.lastReminderAt) ? progress.lastReminderAt : "",
+    updatedAt: typeof progress.updatedAt === "string" ? progress.updatedAt.slice(0, 32) : "",
   };
 }
 
@@ -190,6 +214,180 @@ function normalizeSupportPlan(value) {
     nextMeeting: cleanStoredText(plan.nextMeeting, 100),
     recoveryReason: cleanStoredText(plan.recoveryReason, 240),
   };
+}
+
+function loadAccountSession() {
+  try {
+    const session = JSON.parse(localStorage.getItem("sph-account-session"));
+    if (!session?.access_token || !session?.refresh_token || !session?.user?.id) return null;
+    return session;
+  } catch {
+    return null;
+  }
+}
+
+function persistAccountSession(session) {
+  accountState.session = session;
+  if (session) {
+    localStorage.setItem("sph-account-session", JSON.stringify(session));
+  } else {
+    localStorage.removeItem("sph-account-session");
+  }
+}
+
+async function setupAccount() {
+  try {
+    const response = await fetch("/api/v1/config", {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) throw new Error("Configuração indisponível");
+    const config = await response.json();
+    if (!config.features?.account || !config.supabase) {
+      renderAccount();
+      return;
+    }
+
+    const { SupabaseAccountClient } = await import("./account-client.mjs");
+    accountState.client = new SupabaseAccountClient(config.supabase);
+    accountState.enabled = true;
+    if (accountState.session) {
+      try {
+        persistAccountSession(await accountState.client.ensureSession(accountState.session));
+      } catch {
+        persistAccountSession(null);
+        accountState.syncEnabled = false;
+        localStorage.removeItem("sph-account-sync");
+      }
+    }
+    renderAccount();
+  } catch {
+    renderAccount();
+  }
+}
+
+function renderAccount() {
+  const signedIn = accountState.enabled && Boolean(accountState.session);
+  els.accountAuth.hidden = !accountState.enabled || signedIn;
+  els.accountSession.hidden = !signedIn;
+
+  if (!accountState.enabled) {
+    els.accountSummary.textContent = "A conta opcional ainda não está configurada neste ambiente. Continuas no modo local e anónimo.";
+    els.accountStatus.textContent = "A exportação manual continua disponível.";
+    return;
+  }
+  if (!signedIn) {
+    els.accountSummary.textContent = "Entra com um código por email para sincronizar a Jornada entre dispositivos.";
+    els.accountStatus.textContent = "Nada será sincronizado antes da tua escolha.";
+    return;
+  }
+
+  els.accountIdentity.textContent = accountState.session.user.email || "conta verificada";
+  els.accountSummary.textContent = accountState.syncEnabled
+    ? "A Jornada está ligada à tua conta. Alterações locais serão sincronizadas."
+    : "Sessão iniciada. Escolhe qual cópia da Jornada queres usar.";
+  els.accountStatus.textContent = accountState.syncEnabled ? "Sincronização ativa." : "Sincronização à espera da tua decisão.";
+}
+
+async function requestAccountCode(email) {
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!accountState.client || !normalizedEmail) return;
+  els.accountStatus.textContent = "A enviar código...";
+  await accountState.client.sendOtp(normalizedEmail);
+  accountState.pendingEmail = normalizedEmail;
+  els.accountCodeForm.hidden = false;
+  els.accountCode.focus();
+  els.accountStatus.textContent = "Código enviado. Verifica o email e introduz o código recebido.";
+}
+
+async function verifyAccountCode(token) {
+  if (!accountState.client || !accountState.pendingEmail) return;
+  els.accountStatus.textContent = "A verificar código...";
+  const session = await accountState.client.verifyOtp(accountState.pendingEmail, token.trim());
+  persistAccountSession(session);
+  accountState.pendingEmail = "";
+  els.accountCode.value = "";
+  renderAccount();
+}
+
+function getSyncableProgress() {
+  const {
+    anonymousName,
+    anonymousShares,
+    notifications,
+    lastReminderAt,
+    ...syncable
+  } = state.progress;
+  return syncable;
+}
+
+function enableJourneySync() {
+  accountState.syncEnabled = true;
+  localStorage.setItem("sph-account-sync", "on");
+  renderAccount();
+}
+
+async function uploadLocalJourney({ silent = false } = {}) {
+  if (!accountState.client || !accountState.session) return;
+  if (!silent) els.accountStatus.textContent = "A guardar a Jornada na conta...";
+  const session = await accountState.client.upsertJourney(accountState.session, getSyncableProgress());
+  persistAccountSession(session);
+  enableJourneySync();
+  if (!silent) els.accountStatus.textContent = "Dados deste dispositivo guardados na conta.";
+}
+
+async function useAccountJourney() {
+  if (!accountState.client || !accountState.session) return;
+  els.accountStatus.textContent = "A procurar dados da conta...";
+  const result = await accountState.client.getJourney(accountState.session);
+  persistAccountSession(result.session);
+  if (!result.record?.payload) {
+    els.accountStatus.textContent = "Ainda não existem dados guardados nesta conta.";
+    return;
+  }
+  const confirmed = window.confirm("Substituir a Jornada deste dispositivo pela cópia guardada na conta?");
+  if (!confirmed) {
+    els.accountStatus.textContent = "Nenhum dado foi alterado.";
+    return;
+  }
+
+  const deviceOnly = {
+    anonymousName: state.progress.anonymousName,
+    anonymousShares: state.progress.anonymousShares,
+    notifications: state.progress.notifications,
+    lastReminderAt: state.progress.lastReminderAt,
+  };
+  state.progress = normalizeProgress({ ...result.record.payload, ...deviceOnly });
+  saveProgress({ touch: false, sync: false });
+  enableJourneySync();
+  renderProgress();
+  renderAnonymousRoom();
+  els.accountStatus.textContent = "Cópia da conta aplicada neste dispositivo.";
+}
+
+function queueJourneySync() {
+  if (!accountState.syncEnabled || !accountState.client || !accountState.session) return;
+  if (journeySyncTimer) window.clearTimeout(journeySyncTimer);
+  journeySyncTimer = window.setTimeout(() => {
+    uploadLocalJourney({ silent: true }).catch(() => {
+      els.accountStatus.textContent = "A sincronização será tentada novamente quando houver ligação.";
+    });
+  }, 1200);
+}
+
+async function signOutAccount() {
+  if (accountState.client && accountState.session) {
+    try {
+      await accountState.client.signOut(accountState.session);
+    } catch {
+      // The local session is still cleared when the remote logout is unavailable.
+    }
+  }
+  persistAccountSession(null);
+  accountState.syncEnabled = false;
+  localStorage.removeItem("sph-account-sync");
+  renderAccount();
+  els.accountStatus.textContent = "Sessão terminada. Os dados locais foram mantidos.";
 }
 
 function makeAnonymousName() {
@@ -1165,6 +1363,29 @@ els.exportDataSecondary.addEventListener("click", exportJourneyData);
 els.importData.addEventListener("change", (event) => importJourneyData(event.target.files[0]));
 els.installAppSecondary.addEventListener("click", () => installApp());
 els.notificationsSecondary.addEventListener("click", () => activateNotifications());
+els.accountEmailForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  requestAccountCode(els.accountEmail.value).catch((error) => {
+    els.accountStatus.textContent = error.message || "Não foi possível enviar o código agora.";
+  });
+});
+els.accountCodeForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  verifyAccountCode(els.accountCode.value).catch((error) => {
+    els.accountStatus.textContent = error.message || "O código não pôde ser confirmado.";
+  });
+});
+els.syncLocalData.addEventListener("click", () => {
+  uploadLocalJourney().catch((error) => {
+    els.accountStatus.textContent = error.message || "Não foi possível guardar os dados na conta.";
+  });
+});
+els.syncAccountData.addEventListener("click", () => {
+  useAccountJourney().catch((error) => {
+    els.accountStatus.textContent = error.message || "Não foi possível obter os dados da conta.";
+  });
+});
+els.accountSignout.addEventListener("click", () => signOutAccount());
 els.sosButton.addEventListener("click", openSos);
 els.sosClose.addEventListener("click", closeSos);
 els.sosModal.addEventListener("click", (event) => {
@@ -1223,6 +1444,8 @@ document.addEventListener("keydown", (event) => {
 });
 
 showView(getViewFromHash(), { scroll: false });
+renderAccount();
+setupAccount();
 setupPwa();
 scheduleSessionReminder();
 loadToday();

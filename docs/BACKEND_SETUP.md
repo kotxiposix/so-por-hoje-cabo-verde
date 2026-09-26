@@ -41,6 +41,8 @@ Ao criar conta, a interface deve:
 4. manter uma copia local para funcionamento offline;
 5. resolver conflitos pelo `updated_at`, oferecendo escolha quando ambos os lados mudaram.
 
+O cliente web deste repositorio ja implementa o acesso por codigo de email e a escolha explicita entre a copia local e a copia da conta. O endpoint publico `/api/v1/config` so anuncia esta funcionalidade quando URL e chave publica estiverem presentes; nunca devolve a `SERVICE_ROLE_KEY`.
+
 Nao sincronizar texto da Sala Anonima local. Uma partilha comunitaria exige uma acao separada e explica que passara por moderacao.
 
 ## 4. Sala Anonima

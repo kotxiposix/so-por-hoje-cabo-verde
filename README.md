@@ -50,7 +50,9 @@ A interface principal inclui manifesto e service worker. Quando servida por `loc
 - catalogo de apoio complementar;
 - icones e estilos essenciais.
 
-Jornada, gratidoes, check-ins, plano pessoal e Sala Anonima usam `localStorage`. A pessoa pode exportar uma copia JSON e voltar a importa-la no mesmo ou noutro dispositivo. A importacao valida e limita os campos antes de os guardar. Isto ainda nao e sincronizacao de conta.
+Jornada, gratidoes, check-ins, plano pessoal e Sala Anonima usam `localStorage`. A pessoa pode exportar uma copia JSON e voltar a importa-la no mesmo ou noutro dispositivo. A importacao valida e limita os campos antes de os guardar.
+
+O cliente de conta opcional esta preparado para Supabase Email OTP. So fica visivel quando `SUPABASE_URL` e `SUPABASE_PUBLISHABLE_KEY` estiverem configurados. A sincronizacao exige uma escolha explicita entre a copia local e a copia da conta; a Sala Anonima local e as preferencias de notificacao nunca entram nessa sincronizacao.
 
 Abrir `public/index.html` diretamente com `file://` serve apenas para inspecao visual. API, PWA, cache offline e alguns recursos do navegador exigem o servidor local:
 
@@ -71,6 +73,7 @@ Endpoints principais:
 
 ```text
 GET /api/v1/health
+GET /api/v1/config
 GET /api/v1/today
 GET /api/v1/day/{month_day}
 GET /api/v1/meditations
