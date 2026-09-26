@@ -28,7 +28,7 @@ http://127.0.0.1:8000/
 
 ## Deploy Vercel
 
-O app esta preparado para deploy estatico na Vercel usando `public/`.
+O app usa `public/` para a interface estatica e `api/index.py` para disponibilizar a API FastAPI como funcao Python na Vercel.
 
 Fluxo recomendado:
 
@@ -38,6 +38,8 @@ production -> branch de producao ligada a Vercel
 ```
 
 Na Vercel, configure a Production Branch como `production`.
+
+As instrucoes para conta, sincronizacao e comunidade moderada estao em `docs/BACKEND_SETUP.md`. O esquema inicial esta em `supabase/schema.sql`.
 
 ## PWA e dados locais
 

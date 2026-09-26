@@ -555,7 +555,7 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 | Ajuda | Contactos e respostas iniciais | Validar dados e criar fluxo SOS |
 | Sala anonima | Prototipo apenas local | Nao publicar como sala real sem backend e moderacao |
 | Sobre | Missao, visao, privacidade, contactos e FAQ | Completar historia, equipa e parceiros |
-| Conta/login | Nao iniciado | Definir identidade minima e recuperacao de acesso |
+| Conta/login | Esquema e regras RLS preparados | Criar projeto Supabase e ligar email OTP |
 | Notificacoes push | Permissao e preferencia local | Ligar agendamento/push no backend |
 | PWA | Instalacao e offline parcial implementados | Verificar em producao e ampliar cache quando necessario |
 | Loja e doacao | Nao iniciado | Definir operacao, pagamentos, entregas e transparencia |
@@ -581,6 +581,7 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 - Conta opcional com codigo de acesso por email.
 - Importar os dados locais quando a pessoa criar conta.
 - Sincronizar apenas os dados necessarios entre dispositivos.
+- Esquema inicial e politicas RLS definidos em `supabase/schema.sql`.
 
 **Fase D - Comunidade e sustentabilidade**
 
