@@ -551,10 +551,10 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 | --- | --- | --- |
 | Meditacao | Funcional, com gratidao diaria | Rever conteudo complementar com equipa clinica/comunitaria |
 | Jornada | Funcional no dispositivo, com historico, plano pessoal, marcos, exportacao e preferencias | Ligar sincronizacao opcional |
-| Viver Saudavel | Podcast, documentario, exposicao e recursos praticos | Adicionar historias e novos conteudos aprovados |
+| Viver Saudavel | Podcast, documentario, historia do projeto, exposicao e recursos educativos | Adicionar novos testemunhos apenas com consentimento |
 | Ajuda | Fluxo SOS e contactos oficiais principais | Validar horarios e restantes respostas locais |
 | Sala anonima | Prototipo apenas local | Nao publicar como sala real sem backend e moderacao |
-| Sobre | Missao, visao, privacidade, contactos e FAQ | Completar historia, equipa e parceiros |
+| Sobre | Missao, visao, historia, coordenacao, privacidade, contactos e FAQ | Identificar parceiros apenas depois de confirmacao |
 | Conta/login | Esquema e regras RLS preparados | Criar projeto Supabase e ligar email OTP |
 | Notificacoes push | Permissao e preferencia local | Ligar agendamento/push no backend |
 | PWA | Instalacao e offline parcial implementados | Verificar em producao e ampliar cache quando necessario |
