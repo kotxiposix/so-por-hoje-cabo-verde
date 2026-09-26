@@ -779,12 +779,16 @@ async function renderArchiveMeditation(isoDate) {
   }
 }
 
-function openArchive() {
+function openArchiveForDate(isoDate, returnFocus) {
   const today = getCapeVerdeToday().iso;
   els.archiveDate.max = today;
-  els.archiveDate.value = state.daily?.date || today;
+  els.archiveDate.value = isIsoDate(isoDate) && isoDate <= today ? isoDate : today;
   renderArchiveMeditation(els.archiveDate.value);
-  openModal(els.archiveModal, closeArchive, els.browseMeditations, els.archiveDate);
+  openModal(els.archiveModal, closeArchive, returnFocus, els.archiveDate);
+}
+
+function openArchive() {
+  openArchiveForDate(state.daily?.date || getCapeVerdeToday().iso, els.browseMeditations);
 }
 
 function closeArchive() {
@@ -953,11 +957,12 @@ function renderJourneyHistory() {
         if (state.progress.checkins[day]) parts.push(labels[state.progress.checkins[day]] || "Check-in");
         if (state.progress.gratitudes[day]) parts.push("Gratidão");
         const gratitude = state.progress.gratitudes[day];
-        return `<article class="history-item">
+        return `<button class="history-item" type="button" data-history-date="${day}" aria-label="Abrir meditação de ${formatShortDate(day)}">
           <time datetime="${day}">${formatShortDate(day)}</time>
           <strong>${escapeHtml(parts.join(" · "))}</strong>
           <small>${gratitude ? escapeHtml(gratitude) : ""}</small>
-        </article>`;
+          <span class="history-open" aria-hidden="true">›</span>
+        </button>`;
       }).join("")
     : '<p class="history-empty">O teu histórico começa quando fizeres o primeiro check-in, leitura ou gratidão.</p>';
 }
@@ -1941,6 +1946,10 @@ els.archiveDate.addEventListener("change", (event) => renderArchiveMeditation(ev
 els.archivePrevious.addEventListener("click", () => moveArchiveDate(-1));
 els.archiveNext.addEventListener("click", () => moveArchiveDate(1));
 els.archiveToday.addEventListener("click", () => renderArchiveMeditation(getCapeVerdeToday().iso));
+els.historyList.addEventListener("click", (event) => {
+  const historyItem = event.target.closest("[data-history-date]");
+  if (historyItem) openArchiveForDate(historyItem.dataset.historyDate, historyItem);
+});
 els.share.addEventListener("click", () => shareMeditation().catch(() => {
   flashStatus("Partilha indisponível", "Tente copiar o texto manualmente.");
 }));

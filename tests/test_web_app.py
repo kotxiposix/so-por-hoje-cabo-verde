@@ -163,6 +163,8 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn('event.key === "Escape" && activeModalClose', script)
         self.assertIn("function renderArchiveMeditation", script)
         self.assertIn("function loadMeditationForDate", script)
+        self.assertIn("function openArchiveForDate", script)
+        self.assertIn('data-history-date="${day}"', script)
         self.assertIn("prefers-reduced-motion: reduce", script)
         self.assertIn(":focus-visible", styles)
         self.assertIn("@media (prefers-reduced-motion: reduce)", styles)

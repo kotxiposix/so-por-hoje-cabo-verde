@@ -133,6 +133,7 @@ Acompanhar recuperacao pessoal sem julgamento, com foco em dias limpos, consiste
 - Utilizador pode definir data de sobriedade.
 - Sistema calcula dias limpos.
 - Mostra sequencia de meditacoes lidas.
+- O historico pessoal permite reabrir a meditacao correspondente sem alterar o estado do dia atual.
 - Check-in permite estados como firme, preciso de serenidade, estou em risco e voltei a consumir.
 
 ### Sugestoes
