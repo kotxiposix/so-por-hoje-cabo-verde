@@ -439,6 +439,8 @@ Permitir que a equipa mantenha conteudos sem depender sempre de programador.
 - Preparado para Vercel.
 - Branch `dev` para desenvolvimento.
 - Branch `production` para deploy.
+- Validacao automatica de backend, estrutura web, PWA e cliente de conta em GitHub Actions.
+- Vercel como destino de publicacao; GitHub Pages desativado por nao executar a API.
 
 ### Evolucao sugerida
 

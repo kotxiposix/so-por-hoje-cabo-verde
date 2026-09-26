@@ -37,7 +37,7 @@ dev -> branch de desenvolvimento/preview
 production -> branch de producao ligada a Vercel
 ```
 
-Na Vercel, configure a Production Branch como `production`.
+Na Vercel, configure a Production Branch como `production`. O workflow GitHub valida `dev`, `production` e pull requests; nao publica uma copia estatica no GitHub Pages, porque essa copia nao suportaria a API.
 
 As instrucoes para conta, sincronizacao e comunidade moderada estao em `docs/BACKEND_SETUP.md`. O esquema inicial esta em `supabase/schema.sql`.
 
