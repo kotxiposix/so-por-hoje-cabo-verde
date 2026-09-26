@@ -183,6 +183,13 @@ class WebAppStructureTests(unittest.TestCase):
             expo,
         )
 
+    def test_privacy_page_matches_local_backup_behavior(self) -> None:
+        privacy = (PUBLIC / "privacidade" / "index.html").read_text(encoding="utf-8")
+
+        self.assertIn("cópia JSON versionada", privacy)
+        self.assertIn("aceita até 1 MB", privacy)
+        self.assertIn("pede confirmação antes de substituir os dados locais", privacy)
+
 
 if __name__ == "__main__":
     unittest.main()

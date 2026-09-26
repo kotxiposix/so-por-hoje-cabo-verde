@@ -52,7 +52,8 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [ ] Rever atividade, frase e desafio com pessoas com experiencia clinica e comunitaria.
 - [ ] Aprovar a politica de privacidade com apoio juridico adequado a Cabo Verde.
 - [ ] Definir retencao, auditoria e resposta a incidentes.
-- [ ] Confirmar que logs tecnicos nunca incluem meditacao privada, check-ins, gratidoes ou partilhas.
+- [x] Confirmar no codigo que nao sao escritos em logs check-ins, gratidoes, partilhas ou dados privados da Jornada.
+- [ ] Confirmar na Vercel e no Supabase que captura de pedidos e logs tecnicos nao guardam corpos privados.
 - [x] Garantir foco visível, ciclo de teclado nos modais, estados anunciados e movimento reduzido.
 - [ ] Fazer um teste manual com VoiceOver e TalkBack em dispositivos reais.
 
