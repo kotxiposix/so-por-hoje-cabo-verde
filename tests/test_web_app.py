@@ -157,6 +157,14 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn(":focus-visible", styles)
         self.assertIn("@media (prefers-reduced-motion: reduce)", styles)
 
+    def test_bottom_navigation_and_long_help_labels_are_responsive(self) -> None:
+        styles = (PUBLIC / "styles.css").read_text(encoding="utf-8")
+
+        self.assertRegex(styles, r"\.bottom-nav\s*\{[^}]*position:\s*fixed")
+        self.assertRegex(styles, r"\.bottom-nav\s*\{[^}]*grid-template-columns:\s*repeat\(5,\s*1fr\)")
+        self.assertRegex(styles, r"\.resource-heading\s*\{[^}]*flex-wrap:\s*wrap")
+        self.assertRegex(styles, r"\.resource-heading strong\s*\{[^}]*overflow-wrap:\s*anywhere")
+
 
 if __name__ == "__main__":
     unittest.main()

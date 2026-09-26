@@ -1272,6 +1272,7 @@ button {
 
 .resource-heading {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
@@ -1279,7 +1280,9 @@ button {
 }
 
 .resource-heading strong {
+  min-width: 0;
   margin-bottom: 0;
+  overflow-wrap: anywhere;
 }
 
 .resource-status {
