@@ -1,4 +1,4 @@
-const CACHE_NAME = "sph-shell-v10";
+const CACHE_NAME = "sph-shell-v11";
 const CORE_ASSETS = [
   "/",
   "/index.html",
@@ -81,4 +81,20 @@ self.addEventListener("notificationclick", (event) => {
       return clients.openWindow("/#meditacao");
     }),
   );
+});
+
+self.addEventListener("push", (event) => {
+  let payload = {};
+  try {
+    payload = event.data?.json() || {};
+  } catch {
+    payload = { body: event.data?.text() || "A meditação de hoje está pronta." };
+  }
+  event.waitUntil(self.registration.showNotification(payload.title || "Só Por Hoje", {
+    body: payload.body || "A meditação de hoje está pronta. Um dia de cada vez.",
+    icon: "/icon-512.png",
+    badge: "/favicon-32.png",
+    tag: "sph-daily-reminder",
+    data: { url: "/#meditacao" },
+  }));
 });

@@ -71,6 +71,57 @@ export class SupabaseAccountClient {
     return activeSession;
   }
 
+  async saveNotificationPreference(session, { enabled, localTime, timezone }) {
+    const activeSession = await this.ensureSession(session);
+    await this.request("/rest/v1/notification_preferences?on_conflict=user_id", {
+      method: "POST",
+      session: activeSession,
+      headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+      body: [{
+        user_id: activeSession.user.id,
+        enabled: Boolean(enabled),
+        local_time: localTime,
+        timezone,
+        updated_at: new Date().toISOString(),
+      }],
+    });
+    return activeSession;
+  }
+
+  async savePushSubscription(session, subscription) {
+    const activeSession = await this.ensureSession(session);
+    const serialized = typeof subscription.toJSON === "function" ? subscription.toJSON() : subscription;
+    if (!serialized?.endpoint || !serialized?.keys?.p256dh || !serialized?.keys?.auth) {
+      throw new Error("Subscrição push inválida.");
+    }
+    await this.request("/rest/v1/push_subscriptions?on_conflict=endpoint", {
+      method: "POST",
+      session: activeSession,
+      headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+      body: [{
+        user_id: activeSession.user.id,
+        endpoint: serialized.endpoint,
+        p256dh: serialized.keys.p256dh,
+        auth_secret: serialized.keys.auth,
+        user_agent: globalThis.navigator?.userAgent?.slice(0, 500) || "",
+        active: true,
+        updated_at: new Date().toISOString(),
+      }],
+    });
+    return activeSession;
+  }
+
+  async disablePushSubscription(session, endpoint) {
+    const activeSession = await this.ensureSession(session);
+    await this.request(`/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(endpoint)}`, {
+      method: "PATCH",
+      session: activeSession,
+      headers: { Prefer: "return=minimal" },
+      body: { active: false, updated_at: new Date().toISOString() },
+    });
+    return activeSession;
+  }
+
   async signOut(session) {
     if (session?.access_token) {
       await this.request("/auth/v1/logout", { method: "POST", session });

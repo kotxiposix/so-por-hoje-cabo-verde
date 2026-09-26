@@ -558,7 +558,7 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 | Sala anonima | Prototipo apenas local | Nao publicar como sala real sem backend e moderacao |
 | Sobre | Missao, visao, historia, coordenacao, privacidade, contactos e FAQ | Identificar parceiros apenas depois de confirmacao |
 | Conta/login | Cliente Email OTP e escolha de sincronizacao implementados, ocultos sem configuracao | Criar projeto Supabase, SMTP e CAPTCHA; testar com duas contas |
-| Notificacoes push | Lembrete de sessao e preferencia local funcionais; esquema push preparado | Ligar VAPID, cron e entrega no backend |
+| Notificacoes push | Lembrete local, subscricao, cancelamento, preferencias e service worker preparados atras de feature flag | Criar emissor Edge Function, VAPID e Supabase Cron; testar antes de ativar a flag |
 | PWA | Instalacao e offline parcial implementados | Verificar em producao e ampliar cache quando necessario |
 | Loja e doacao | Nao iniciado | Definir operacao, pagamentos, entregas e transparencia |
 | Privacidade e seguranca | Politica preliminar, exportacao e eliminacao local/remota da Jornada implementadas; modelo RLS preparado | Revisao juridica, eliminacao completa da conta e conformidade |

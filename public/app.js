@@ -76,6 +76,7 @@ const els = {
   importStatus: document.querySelector("#import-status"),
   installAppSecondary: document.querySelector("#install-app-secondary"),
   notificationsSecondary: document.querySelector("#notifications-secondary"),
+  disableNotifications: document.querySelector("#disable-notifications"),
   accountSummary: document.querySelector("#account-summary"),
   accountAuth: document.querySelector("#account-auth"),
   accountEmailForm: document.querySelector("#account-email-form"),
@@ -109,6 +110,9 @@ const accountState = {
   pendingEmail: "",
   session: loadAccountSession(),
   syncEnabled: localStorage.getItem("sph-account-sync") === "on",
+  pushEnabled: false,
+  vapidPublicKey: "",
+  pushRegistered: localStorage.getItem("sph-push-enabled") === "on",
 };
 
 const tools = {
@@ -253,6 +257,8 @@ async function setupAccount() {
     const { SupabaseAccountClient } = await import("./account-client.mjs");
     accountState.client = new SupabaseAccountClient(config.supabase);
     accountState.enabled = true;
+    accountState.pushEnabled = Boolean(config.features?.push && config.push?.vapidPublicKey);
+    accountState.vapidPublicKey = config.push?.vapidPublicKey || "";
     if (accountState.session) {
       try {
         persistAccountSession(await accountState.client.ensureSession(accountState.session));
@@ -380,6 +386,11 @@ function queueJourneySync() {
 async function signOutAccount() {
   if (accountState.client && accountState.session) {
     try {
+      await removeRemotePushRegistration();
+    } catch {
+      // Signing out must continue even when push cleanup is unavailable.
+    }
+    try {
       await accountState.client.signOut(accountState.session);
     } catch {
       // The local session is still cleared when the remote logout is unavailable.
@@ -414,6 +425,11 @@ async function deleteDeviceData() {
     return;
   }
   if (accountState.client && accountState.session) {
+    try {
+      await removeRemotePushRegistration();
+    } catch {
+      // Local deletion must still be possible while push cleanup is unavailable.
+    }
     try {
       await accountState.client.signOut(accountState.session);
     } catch {
@@ -654,6 +670,9 @@ function renderJourneySettings() {
 }
 
 function renderReminderStatus() {
+  if (els.disableNotifications) {
+    els.disableNotifications.hidden = state.progress.notifications !== "on";
+  }
   if (!("Notification" in window)) {
     els.reminderStatus.textContent = "Este navegador não disponibiliza notificações.";
     return;
@@ -662,7 +681,9 @@ function renderReminderStatus() {
     els.reminderStatus.textContent = "Notificações ainda não autorizadas neste dispositivo.";
     return;
   }
-  els.reminderStatus.textContent = `Lembrete local preparado para ${state.progress.reminderTime}, enquanto a aplicação estiver aberta.`;
+  els.reminderStatus.textContent = accountState.pushEnabled && accountState.pushRegistered
+    ? `Notificação diária preparada para ${state.progress.reminderTime}, mesmo com a aplicação fechada.`
+    : `Lembrete local preparado para ${state.progress.reminderTime}, enquanto a aplicação estiver aberta.`;
 }
 
 function scheduleSessionReminder() {
@@ -1171,17 +1192,115 @@ async function activateNotifications() {
   saveProgress();
 
   if (permission === "granted") {
+    let pushActive = false;
+    if (accountState.pushEnabled && accountState.session) {
+      try {
+        pushActive = await registerPushNotifications();
+      } catch {
+        accountState.pushRegistered = false;
+        localStorage.removeItem("sph-push-enabled");
+      }
+    }
     try {
       await showAppNotification("Só Por Hoje", "Notificações ativadas neste dispositivo.");
     } catch {
       // Permission is stored even when the browser suppresses the confirmation notification.
     }
     scheduleSessionReminder();
-    flashStatus("Notificação ativada", "O lembrete local funciona enquanto a aplicação estiver aberta.");
+    flashStatus(
+      "Notificação ativada",
+      pushActive
+        ? "O lembrete diário pode chegar mesmo com a aplicação fechada."
+        : "O lembrete local funciona enquanto a aplicação estiver aberta.",
+    );
     return;
   }
 
   flashStatus("Notificação não ativada", "Podes tentar novamente nas permissões do navegador.");
+}
+
+function urlBase64ToUint8Array(value) {
+  const padding = "=".repeat((4 - (value.length % 4)) % 4);
+  const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = window.atob(base64);
+  return Uint8Array.from([...raw].map((character) => character.charCodeAt(0)));
+}
+
+async function registerPushNotifications() {
+  if (!accountState.pushEnabled || !accountState.client || !accountState.session) return false;
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return false;
+  const registration = await navigator.serviceWorker.ready;
+  let subscription = await registration.pushManager.getSubscription();
+  if (!subscription) {
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(accountState.vapidPublicKey),
+    });
+  }
+  let session = await accountState.client.savePushSubscription(accountState.session, subscription);
+  session = await accountState.client.saveNotificationPreference(session, {
+    enabled: true,
+    localTime: state.progress.reminderTime,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Atlantic/Cape_Verde",
+  });
+  persistAccountSession(session);
+  accountState.pushRegistered = true;
+  localStorage.setItem("sph-push-enabled", "on");
+  renderReminderStatus();
+  return true;
+}
+
+async function removeRemotePushRegistration() {
+  if (!("serviceWorker" in navigator)) return;
+  const registration = await navigator.serviceWorker.getRegistration();
+  const subscription = await registration?.pushManager?.getSubscription();
+  let remoteError = null;
+  if (subscription && accountState.client && accountState.session) {
+    try {
+      persistAccountSession(await accountState.client.disablePushSubscription(accountState.session, subscription.endpoint));
+    } catch (error) {
+      remoteError = error;
+    }
+  }
+  if (subscription) await subscription.unsubscribe();
+  accountState.pushRegistered = false;
+  localStorage.removeItem("sph-push-enabled");
+  if (remoteError) throw remoteError;
+}
+
+async function disableNotifications() {
+  state.progress.notifications = "off";
+  saveProgress();
+  let remoteUpdatePending = false;
+  try {
+    await removeRemotePushRegistration();
+    if (accountState.pushEnabled && accountState.client && accountState.session) {
+      persistAccountSession(await accountState.client.saveNotificationPreference(accountState.session, {
+        enabled: false,
+        localTime: state.progress.reminderTime,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Atlantic/Cape_Verde",
+      }));
+    }
+  } catch {
+    remoteUpdatePending = true;
+  } finally {
+    scheduleSessionReminder();
+    flashStatus(
+      "Notificações desativadas",
+      remoteUpdatePending
+        ? "Foram desligadas neste dispositivo; o servidor será atualizado quando voltares a iniciar sessão."
+        : "O navegador pode manter a permissão, mas a plataforma deixou de enviar lembretes.",
+    );
+  }
+}
+
+async function updateRemoteReminderTime() {
+  if (!accountState.pushRegistered || !accountState.client || !accountState.session) return;
+  persistAccountSession(await accountState.client.saveNotificationPreference(accountState.session, {
+    enabled: true,
+    localTime: state.progress.reminderTime,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Atlantic/Cape_Verde",
+  }));
 }
 
 function openPrayer() {
@@ -1379,6 +1498,9 @@ els.reminderTime.addEventListener("change", (event) => {
   state.progress.reminderTime = event.target.value || "07:00";
   saveProgress();
   scheduleSessionReminder();
+  updateRemoteReminderTime().catch(() => {
+    els.reminderStatus.textContent = "A nova hora ficou guardada neste dispositivo e será sincronizada quando houver ligação.";
+  });
 });
 els.showCleanDays.addEventListener("change", (event) => {
   state.progress.showCleanDays = event.target.checked;
@@ -1399,6 +1521,7 @@ els.exportDataSecondary.addEventListener("click", exportJourneyData);
 els.importData.addEventListener("change", (event) => importJourneyData(event.target.files[0]));
 els.installAppSecondary.addEventListener("click", () => installApp());
 els.notificationsSecondary.addEventListener("click", () => activateNotifications());
+els.disableNotifications.addEventListener("click", () => disableNotifications());
 els.accountEmailForm.addEventListener("submit", (event) => {
   event.preventDefault();
   requestAccountCode(els.accountEmail.value).catch((error) => {

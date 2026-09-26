@@ -26,6 +26,26 @@ class PublicConfigTests(unittest.TestCase):
         self.assertEqual(config["supabase"]["publishableKey"], "sb_publishable_example")
         self.assertNotIn("must-not-leak", repr(config))
 
+    def test_push_requires_account_public_key_and_delivery_readiness(self) -> None:
+        base = {
+            "SUPABASE_URL": "https://project.supabase.co",
+            "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_example",
+            "VAPID_PUBLIC_KEY": "public-vapid-key",
+        }
+        self.assertFalse(public_runtime_config(base)["features"]["push"])
+
+        config = public_runtime_config(
+            {
+                **base,
+                "PUSH_DELIVERY_READY": "true",
+                "VAPID_PRIVATE_KEY": "must-stay-private",
+            }
+        )
+
+        self.assertTrue(config["features"]["push"])
+        self.assertEqual(config["push"]["vapidPublicKey"], "public-vapid-key")
+        self.assertNotIn("must-stay-private", repr(config))
+
 
 if __name__ == "__main__":
     unittest.main()

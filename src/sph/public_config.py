@@ -12,12 +12,15 @@ def public_runtime_config(environment: Mapping[str, str] | None = None) -> dict[
         or env.get("SUPABASE_ANON_KEY", "").strip()
     )
     account_enabled = bool(supabase_url and publishable_key)
+    vapid_public_key = env.get("VAPID_PUBLIC_KEY", "").strip()
+    delivery_ready = env.get("PUSH_DELIVERY_READY", "").strip().lower() in {"1", "true", "yes"}
+    push_enabled = bool(account_enabled and vapid_public_key and delivery_ready)
 
     payload: dict[str, object] = {
         "features": {
             "account": account_enabled,
             "community": False,
-            "push": False,
+            "push": push_enabled,
         }
     }
     if account_enabled:
@@ -25,4 +28,6 @@ def public_runtime_config(environment: Mapping[str, str] | None = None) -> dict[
             "url": supabase_url,
             "publishableKey": publishable_key,
         }
+    if push_enabled:
+        payload["push"] = {"vapidPublicKey": vapid_public_key}
     return payload

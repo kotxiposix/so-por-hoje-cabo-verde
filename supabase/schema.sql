@@ -57,8 +57,16 @@ create table if not exists public.notification_preferences (
   enabled boolean not null default false,
   local_time time not null default '07:00',
   timezone text not null default 'Atlantic/Cape_Verde',
+  last_sent_on date,
   updated_at timestamptz not null default now()
 );
+
+alter table public.notification_preferences
+  add column if not exists last_sent_on date;
+
+create index if not exists notification_preferences_due_idx
+  on public.notification_preferences (enabled, local_time)
+  where enabled = true;
 
 create table if not exists public.push_subscriptions (
   id uuid primary key default gen_random_uuid(),

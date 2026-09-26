@@ -16,6 +16,9 @@ Valores necessarios para a integracao:
 SUPABASE_URL=https://PROJECT_REF.supabase.co
 SUPABASE_PUBLISHABLE_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...  # apenas servidor, nunca no browser
+VAPID_PUBLIC_KEY=...           # pode ser enviada ao browser
+VAPID_PRIVATE_KEY=...          # apenas no emissor seguro
+PUSH_DELIVERY_READY=false      # mudar para true so depois do teste integral
 ```
 
 A URL e a chave publica podem ser usadas pelo cliente depois de as regras RLS estarem ativas. A `SERVICE_ROLE_KEY` ignora RLS e fica exclusivamente no ambiente seguro da Vercel.
@@ -84,3 +87,9 @@ Nunca colocar a chave OpenAI nem a service role do Supabase em `public/`, no Git
 - Registos tecnicos sem texto sensivel das partilhas.
 - Processo de exportacao e eliminacao de conta testado.
 - Chaves VAPID, cron e cancelamento de subscricao push testados antes de ativar lembretes em segundo plano.
+
+## 7. Entrega Web Push
+
+O cliente, o registo de subscricao, as preferencias e o service worker estao preparados. A API publica so anuncia push quando conta, `VAPID_PUBLIC_KEY` e `PUSH_DELIVERY_READY=true` estiverem presentes. A chave privada nunca e devolvida ao browser.
+
+No plano Hobby, o Vercel Cron so pode executar uma vez por dia e sem precisao ao minuto. Para respeitar a hora escolhida, usar Supabase Cron (`pg_cron`) para invocar uma Edge Function a cada minuto. Guardar a credencial de servico no Supabase Vault e manter o emissor protegido por uma chave secreta. A Edge Function deve selecionar preferencias vencidas, enviar com a chave VAPID privada, marcar o envio do dia e desativar endpoints que respondam `404` ou `410`.
