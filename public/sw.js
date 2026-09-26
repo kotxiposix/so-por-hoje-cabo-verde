@@ -1,4 +1,4 @@
-const CACHE_NAME = "sph-shell-v11";
+const CACHE_NAME = "sph-shell-v12";
 const CORE_ASSETS = [
   "/",
   "/index.html",
@@ -11,8 +11,20 @@ const CORE_ASSETS = [
   "/icon-512.png",
   "/data/meditations.json",
   "/data/daily_support.json",
-  "/privacidade/index.html"
+  "/privacidade/index.html",
+  "/expo/index.html",
+  "/expo/styles.css",
+  "/expo/page.js",
+  "/expo/hero-banner.jpg",
+  "/expo/sandro-logo-white.png",
+  "/expo/sandro-profile.png"
 ];
+
+function navigationFallback(pathname) {
+  if (pathname.startsWith("/expo")) return "/expo/index.html";
+  if (pathname.startsWith("/privacidade")) return "/privacidade/index.html";
+  return "/index.html";
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS)));
@@ -41,14 +53,17 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (request.mode === "navigate") {
+    const fallback = navigationFallback(url.pathname);
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put("/index.html", copy));
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(fallback, copy));
+          }
           return response;
         })
-        .catch(() => caches.match("/index.html")),
+        .catch(async () => (await caches.match(fallback)) || caches.match("/index.html")),
     );
     return;
   }
@@ -71,14 +86,18 @@ self.addEventListener("fetch", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+  const requestedUrl = new URL(event.notification.data?.url || "/#meditacao", self.location.origin);
+  const targetUrl = requestedUrl.origin === self.location.origin
+    ? `${requestedUrl.pathname}${requestedUrl.search}${requestedUrl.hash}`
+    : "/#meditacao";
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
       const existing = windows.find((client) => new URL(client.url).origin === self.location.origin);
       if (existing) {
-        existing.navigate("/#meditacao");
+        existing.navigate(targetUrl);
         return existing.focus();
       }
-      return clients.openWindow("/#meditacao");
+      return clients.openWindow(targetUrl);
     }),
   );
 });
@@ -95,6 +114,6 @@ self.addEventListener("push", (event) => {
     icon: "/icon-512.png",
     badge: "/favicon-32.png",
     tag: "sph-daily-reminder",
-    data: { url: "/#meditacao" },
+    data: { url: payload.url || "/#meditacao" },
   }));
 });

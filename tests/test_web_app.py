@@ -64,6 +64,10 @@ class WebAppStructureTests(unittest.TestCase):
         manifest = json.loads((PUBLIC / "manifest.webmanifest").read_text(encoding="utf-8"))
         self.assertEqual(manifest["start_url"], "/#meditacao")
         self.assertEqual(manifest["display"], "standalone")
+        self.assertEqual(
+            {shortcut["url"] for shortcut in manifest["shortcuts"]},
+            {"/#meditacao", "/#jornada", "/#ajuda"},
+        )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
@@ -74,6 +78,8 @@ class WebAppStructureTests(unittest.TestCase):
             self.assertTrue((PUBLIC / relative).is_file(), asset)
 
         self.assertIn('url.pathname.startsWith("/api/")', worker)
+        self.assertIn('pathname.startsWith("/expo")', worker)
+        self.assertIn('pathname.startsWith("/privacidade")', worker)
 
     def test_vercel_routes_dynamic_api_before_static_files(self) -> None:
         config = json.loads((ROOT / "vercel.json").read_text(encoding="utf-8"))

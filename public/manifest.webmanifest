@@ -1,8 +1,10 @@
 {
   "name": "Só Por Hoje Cabo Verde",
   "short_name": "Só Por Hoje",
+  "id": "/",
   "description": "Meditação, jornada pessoal, apoio e conteúdos para viver um dia de cada vez.",
   "lang": "pt-CV",
+  "dir": "ltr",
   "start_url": "/#meditacao",
   "scope": "/",
   "display": "standalone",
@@ -20,6 +22,26 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Meditação do dia",
+      "short_name": "Meditação",
+      "url": "/#meditacao",
+      "icons": [{ "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }]
+    },
+    {
+      "name": "A minha Jornada",
+      "short_name": "Jornada",
+      "url": "/#jornada",
+      "icons": [{ "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }]
+    },
+    {
+      "name": "Encontrar ajuda",
+      "short_name": "Ajuda",
+      "url": "/#ajuda",
+      "icons": [{ "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }]
     }
   ]
 }
