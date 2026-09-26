@@ -1,4 +1,4 @@
-const CACHE_NAME = "sph-shell-v5";
+const CACHE_NAME = "sph-shell-v6";
 const CORE_ASSETS = [
   "/",
   "/index.html",
@@ -59,6 +59,20 @@ self.addEventListener("fetch", (event) => {
         })
         .catch(() => cached);
       return cached || network;
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+      const existing = windows.find((client) => new URL(client.url).origin === self.location.origin);
+      if (existing) {
+        existing.navigate("/#meditacao");
+        return existing.focus();
+      }
+      return clients.openWindow("/#meditacao");
     }),
   );
 });

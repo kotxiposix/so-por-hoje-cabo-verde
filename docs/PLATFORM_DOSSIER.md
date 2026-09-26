@@ -556,7 +556,7 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 | Sala anonima | Prototipo apenas local | Nao publicar como sala real sem backend e moderacao |
 | Sobre | Missao, visao, historia, coordenacao, privacidade, contactos e FAQ | Identificar parceiros apenas depois de confirmacao |
 | Conta/login | Esquema e regras RLS preparados | Criar projeto Supabase e ligar email OTP |
-| Notificacoes push | Permissao e preferencia local | Ligar agendamento/push no backend |
+| Notificacoes push | Lembrete de sessao e preferencia local funcionais; esquema push preparado | Ligar VAPID, cron e entrega no backend |
 | PWA | Instalacao e offline parcial implementados | Verificar em producao e ampliar cache quando necessario |
 | Loja e doacao | Nao iniciado | Definir operacao, pagamentos, entregas e transparencia |
 | Privacidade e seguranca | Politica preliminar publicada e modelo RLS preparado | Revisao juridica, permissoes e conformidade |

@@ -26,6 +26,8 @@ A URL e a chave publica podem ser usadas pelo cliente depois de as regras RLS es
 - `anonymous_posts`: novas partilhas entram sempre como `pending`.
 - `anonymous_reports`: uma denuncia por utilizador e publicacao.
 - `help_resources`: o publico ve apenas recursos marcados como verificados.
+- `notification_preferences`: consentimento, hora local e fuso horario de cada conta.
+- `push_subscriptions`: subscricoes Web Push pertencentes ao proprio utilizador.
 
 O browser nao recebe permissoes para publicar diretamente, moderar, apagar mensagens de outras pessoas ou alterar recursos de ajuda. Essas operacoes pertencem a funcoes de servidor e a uma area administrativa protegida.
 
@@ -77,3 +79,4 @@ Nunca colocar a chave OpenAI nem a service role do Supabase em `public/`, no Git
 - Contactos de ajuda confirmados por fonte responsavel.
 - Registos tecnicos sem texto sensivel das partilhas.
 - Processo de exportacao e eliminacao de conta testado.
+- Chaves VAPID, cron e cancelamento de subscricao push testados antes de ativar lembretes em segundo plano.

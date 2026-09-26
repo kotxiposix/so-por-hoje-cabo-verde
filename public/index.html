@@ -256,9 +256,10 @@
           <span class="mini-label">Definições da jornada</span>
           <h3 id="journey-settings-title">Preferências neste dispositivo</h3>
           <label class="setting-row" for="reminder-time">
-            <span><strong>Hora do lembrete</strong><small>Usada quando as notificações PWA estiverem ativas.</small></span>
+            <span><strong>Hora do lembrete</strong><small>Usa a hora deste dispositivo. O lembrete local funciona enquanto a aplicação estiver aberta.</small></span>
             <input id="reminder-time" type="time" value="07:00" />
           </label>
+          <p class="setting-status" id="reminder-status" role="status"></p>
           <label class="setting-row" for="show-clean-days">
             <span><strong>Mostrar dias limpos</strong><small>Podes ocultar o contador sem apagar a data.</small></span>
             <input id="show-clean-days" type="checkbox" checked />
@@ -668,7 +669,7 @@
 
           <section>
             <h3>Aplicação e notificações</h3>
-            <p>Instala a plataforma e escolhe a hora preferida na Jornada. As notificações dependem da permissão do dispositivo.</p>
+            <p>Instala a plataforma e escolhe a hora preferida na Jornada. O lembrete local funciona com a aplicação aberta; notificações automáticas em segundo plano entram com o serviço push.</p>
             <div class="more-actions">
               <button id="install-app-secondary" type="button">Instalar aplicação</button>
               <button id="notifications-secondary" type="button">Gerir notificações</button>

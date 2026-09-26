@@ -1076,6 +1076,13 @@ button {
   margin-top: 3px;
 }
 
+.setting-status {
+  margin: -4px 0 12px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .setting-row input[type="time"] {
   min-height: 42px;
   padding: 0 9px;

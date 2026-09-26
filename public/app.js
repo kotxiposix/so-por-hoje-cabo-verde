@@ -59,6 +59,7 @@ const els = {
   historyList: document.querySelector("#history-list"),
   exportData: document.querySelector("#export-data"),
   reminderTime: document.querySelector("#reminder-time"),
+  reminderStatus: document.querySelector("#reminder-status"),
   showCleanDays: document.querySelector("#show-clean-days"),
   supportPlanForm: document.querySelector("#support-plan-form"),
   safePerson: document.querySelector("#safe-person"),
@@ -85,6 +86,7 @@ const els = {
 let lastToolButton = null;
 let currentSupport = null;
 let installPrompt = null;
+let reminderTimer = null;
 
 const tools = {
   repair: {
@@ -134,6 +136,7 @@ function normalizeProgress(progress) {
     reminderTime: /^([01]\d|2[0-3]):[0-5]\d$/.test(progress.reminderTime) ? progress.reminderTime : "07:00",
     showCleanDays: progress.showCleanDays !== false,
     supportPlan: normalizeSupportPlan(progress.supportPlan),
+    lastReminderAt: isIsoDate(progress.lastReminderAt) ? progress.lastReminderAt : "",
   };
 }
 
@@ -413,6 +416,65 @@ function renderJourneySettings() {
   els.showCleanDays.checked = state.progress.showCleanDays;
   const metric = els.cleanDaysMetric.closest("div");
   if (metric) metric.hidden = !state.progress.showCleanDays;
+  renderReminderStatus();
+}
+
+function renderReminderStatus() {
+  if (!("Notification" in window)) {
+    els.reminderStatus.textContent = "Este navegador não disponibiliza notificações.";
+    return;
+  }
+  if (Notification.permission !== "granted" || state.progress.notifications !== "on") {
+    els.reminderStatus.textContent = "Notificações ainda não autorizadas neste dispositivo.";
+    return;
+  }
+  els.reminderStatus.textContent = `Lembrete local preparado para ${state.progress.reminderTime}, enquanto a aplicação estiver aberta.`;
+}
+
+function scheduleSessionReminder() {
+  if (reminderTimer) {
+    window.clearTimeout(reminderTimer);
+    reminderTimer = null;
+  }
+  renderReminderStatus();
+  if (!("Notification" in window) || Notification.permission !== "granted" || state.progress.notifications !== "on") {
+    return;
+  }
+
+  const [hour, minute] = state.progress.reminderTime.split(":").map(Number);
+  const now = new Date();
+  const next = new Date(now);
+  next.setHours(hour, minute, 0, 0);
+  if (next <= now) next.setDate(next.getDate() + 1);
+
+  reminderTimer = window.setTimeout(async () => {
+    try {
+      const today = getCapeVerdeToday().iso;
+      if (state.progress.lastReminderAt !== today) {
+        await showAppNotification("Só Por Hoje", "A meditação de hoje está pronta. Um dia de cada vez.");
+        state.progress.lastReminderAt = today;
+        saveProgress();
+      }
+    } finally {
+      scheduleSessionReminder();
+    }
+  }, next.getTime() - now.getTime());
+}
+
+async function showAppNotification(title, body) {
+  if ("serviceWorker" in navigator) {
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (registration) {
+      await registration.showNotification(title, {
+        body,
+        icon: "/icon-512.png",
+        badge: "/favicon-32.png",
+        tag: "sph-daily-reminder",
+      });
+      return;
+    }
+  }
+  new Notification(title, { body, icon: "icon-512.png", tag: "sph-daily-reminder" });
 }
 
 function exportJourneyData() {
@@ -875,11 +937,13 @@ async function activateNotifications() {
   saveProgress();
 
   if (permission === "granted") {
-    new Notification("Só Por Hoje", {
-      body: "Notificações ativadas. A versão app poderá lembrar a meditação diária automaticamente.",
-      icon: "icon-512.png",
-    });
-    flashStatus("Notificação ativada", "No navegador, o lembrete real precisa de versão PWA/app.");
+    try {
+      await showAppNotification("Só Por Hoje", "Notificações ativadas neste dispositivo.");
+    } catch {
+      // Permission is stored even when the browser suppresses the confirmation notification.
+    }
+    scheduleSessionReminder();
+    flashStatus("Notificação ativada", "O lembrete local funciona enquanto a aplicação estiver aberta.");
     return;
   }
 
@@ -1080,6 +1144,7 @@ els.exportData.addEventListener("click", exportJourneyData);
 els.reminderTime.addEventListener("change", (event) => {
   state.progress.reminderTime = event.target.value || "07:00";
   saveProgress();
+  scheduleSessionReminder();
 });
 els.showCleanDays.addEventListener("change", (event) => {
   state.progress.showCleanDays = event.target.checked;
@@ -1138,6 +1203,9 @@ window.addEventListener("appinstalled", () => {
   els.installApp.hidden = true;
   els.pwaStatus.textContent = "Aplicação instalada com sucesso.";
 });
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") scheduleSessionReminder();
+});
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !els.prayerModal.hidden) {
@@ -1156,4 +1224,5 @@ document.addEventListener("keydown", (event) => {
 
 showView(getViewFromHash(), { scroll: false });
 setupPwa();
+scheduleSessionReminder();
 loadToday();
