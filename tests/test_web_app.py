@@ -59,6 +59,7 @@ class WebAppStructureTests(unittest.TestCase):
             "complete-button",
             "share-button",
             "story-button",
+            "pwa-update",
             "export-data",
             "delete-local-data",
             "delete-account",
@@ -89,6 +90,12 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn('url.pathname.startsWith("/api/")', worker)
         self.assertIn('pathname.startsWith("/expo")', worker)
         self.assertIn('pathname.startsWith("/privacidade")', worker)
+        self.assertIn('event.data?.type === "SKIP_WAITING"', worker)
+
+        script = (PUBLIC / "app.js").read_text(encoding="utf-8")
+        self.assertIn("function loadLocalDailySupport", script)
+        self.assertIn("function watchServiceWorkerRegistration", script)
+        self.assertIn("function activateAppUpdate", script)
 
     def test_vercel_routes_dynamic_api_before_static_files(self) -> None:
         config = json.loads((ROOT / "vercel.json").read_text(encoding="utf-8"))

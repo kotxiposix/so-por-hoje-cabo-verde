@@ -7,6 +7,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Cinco areas principais com navegacao inferior responsiva.
 - [x] Meditacao, Jornada, Viver Saudavel, Ajuda e Sobre funcionais em modo local.
 - [x] PWA instalavel, base diaria offline e fallbacks separados para app, privacidade e exposicao.
+- [x] Apoio diário local preserva dia e estado offline; atualizações da PWA exigem ação explícita.
 - [x] Testes automaticos no GitHub Actions para `dev`, `production` e pull requests.
 - [ ] Confirmar instalacao e atualizacao da PWA em Android Chrome e iPhone Safari.
 - [ ] Confirmar os contactos e horarios comunitarios diretamente com cada entidade.

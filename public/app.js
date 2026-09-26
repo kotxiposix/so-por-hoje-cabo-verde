@@ -76,6 +76,7 @@ const els = {
   importData: document.querySelector("#import-data"),
   importStatus: document.querySelector("#import-status"),
   installAppSecondary: document.querySelector("#install-app-secondary"),
+  pwaUpdate: document.querySelector("#pwa-update"),
   notificationsSecondary: document.querySelector("#notifications-secondary"),
   disableNotifications: document.querySelector("#disable-notifications"),
   accountSummary: document.querySelector("#account-summary"),
@@ -108,6 +109,9 @@ let activeModal = null;
 let activeModalClose = null;
 let modalReturnFocus = null;
 let disabledBackgroundFocus = [];
+let pendingServiceWorker = null;
+let appUpdateRequested = false;
+let localSupportCatalog = null;
 
 const accountState = {
   client: null,
@@ -1068,17 +1072,62 @@ async function importJourneyData(file) {
   }
 }
 
+function updateConnectivityStatus() {
+  if (pendingServiceWorker) return;
+  if (!navigator.onLine) {
+    els.pwaStatus.textContent = "Sem ligação. A meditação, a Jornada e o apoio local continuam disponíveis.";
+    return;
+  }
+  els.pwaStatus.textContent = isStandalone()
+    ? "Aplicação instalada. O conteúdo essencial está disponível offline."
+    : "A plataforma pode funcionar parcialmente offline depois da primeira visita.";
+}
+
+function offerAppUpdate(worker) {
+  pendingServiceWorker = worker;
+  els.pwaUpdate.hidden = false;
+  els.pwaStatus.textContent = "Existe uma nova versão pronta para atualizar.";
+}
+
+function watchServiceWorkerRegistration(registration) {
+  if (registration.waiting && navigator.serviceWorker.controller) {
+    offerAppUpdate(registration.waiting);
+  }
+  registration.addEventListener("updatefound", () => {
+    const worker = registration.installing;
+    if (!worker) return;
+    worker.addEventListener("statechange", () => {
+      if (worker.state === "installed" && navigator.serviceWorker.controller) {
+        offerAppUpdate(worker);
+      }
+    });
+  });
+}
+
+function activateAppUpdate() {
+  if (!pendingServiceWorker) return;
+  appUpdateRequested = true;
+  els.pwaUpdate.disabled = true;
+  els.pwaStatus.textContent = "A atualizar a aplicação...";
+  pendingServiceWorker.postMessage({ type: "SKIP_WAITING" });
+}
+
 function setupPwa() {
   if ("serviceWorker" in navigator && window.location.protocol !== "file:") {
-    navigator.serviceWorker.register("/sw.js").catch(() => {
-      els.pwaStatus.textContent = "O modo offline não ficou disponível neste navegador.";
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (!appUpdateRequested) return;
+      appUpdateRequested = false;
+      window.location.reload();
     });
+    navigator.serviceWorker.register("/sw.js")
+      .then(watchServiceWorkerRegistration)
+      .catch(() => {
+        els.pwaStatus.textContent = "O modo offline não ficou disponível neste navegador.";
+      });
   }
 
-  if (isStandalone()) {
-    els.installApp.hidden = true;
-    els.pwaStatus.textContent = "Aplicação instalada. O conteúdo essencial funciona parcialmente offline.";
-  }
+  if (isStandalone()) els.installApp.hidden = true;
+  updateConnectivityStatus();
 }
 
 function renderCleanDays(cleanDays) {
@@ -1574,6 +1623,19 @@ function closePrayer() {
   closeModal(els.prayerModal);
 }
 
+async function loadLocalDailySupport(payload) {
+  if (!localSupportCatalog) {
+    const response = await fetch("/data/daily_support.json");
+    if (!response.ok) throw new Error("Catálogo local indisponível");
+    localSupportCatalog = await response.json();
+  }
+  const { selectDailySupport } = await import("./offline-support.mjs");
+  const monthDay = payload.daily.month_day || payload.daily.date?.slice(5);
+  const support = selectDailySupport(localSupportCatalog, monthDay, payload.user_state || "standard");
+  if (!support) throw new Error("Apoio local não encontrado");
+  return support;
+}
+
 async function getDailySupport() {
   if (!state.daily) {
     return tools.default;
@@ -1612,22 +1674,28 @@ async function getDailySupport() {
     currentSupport = null;
   }
 
-  const response = await fetch("/api/v1/ai/daily-support", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(authorization ? { Authorization: authorization } : {}),
-    },
-    body: JSON.stringify(payload),
-  });
-  if (!response.ok) {
-    throw new Error(`Apoio diário respondeu com ${response.status}`);
-  }
+  if (!navigator.onLine) return loadLocalDailySupport(payload);
 
-  const support = await response.json();
-  currentSupport = support;
-  localStorage.setItem(cacheKey, JSON.stringify(support));
-  return support;
+  try {
+    const response = await fetch("/api/v1/ai/daily-support", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(authorization ? { Authorization: authorization } : {}),
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      throw new Error(`Apoio diário respondeu com ${response.status}`);
+    }
+
+    const support = await response.json();
+    currentSupport = support;
+    localStorage.setItem(cacheKey, JSON.stringify(support));
+    return support;
+  } catch {
+    return loadLocalDailySupport(payload);
+  }
 }
 
 function getSupportText(support, type) {
@@ -1785,6 +1853,7 @@ els.moreModal.addEventListener("click", (event) => {
 els.exportDataSecondary.addEventListener("click", exportJourneyData);
 els.importData.addEventListener("change", (event) => importJourneyData(event.target.files[0]));
 els.installAppSecondary.addEventListener("click", () => installApp());
+els.pwaUpdate.addEventListener("click", activateAppUpdate);
 els.notificationsSecondary.addEventListener("click", () => activateNotifications());
 els.disableNotifications.addEventListener("click", () => disableNotifications());
 els.accountEmailForm.addEventListener("submit", (event) => {
@@ -1855,6 +1924,8 @@ window.addEventListener("appinstalled", () => {
   els.installApp.hidden = true;
   els.pwaStatus.textContent = "Aplicação instalada com sucesso.";
 });
+window.addEventListener("online", updateConnectivityStatus);
+window.addEventListener("offline", updateConnectivityStatus);
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") scheduleSessionReminder();
 });

@@ -1,10 +1,11 @@
-const CACHE_NAME = "sph-shell-v17";
+const CACHE_NAME = "sph-shell-v18";
 const CORE_ASSETS = [
   "/",
   "/index.html",
   "/styles.css",
   "/app.js",
   "/account-client.mjs",
+  "/offline-support.mjs",
   "/manifest.webmanifest",
   "/favicon-32.png",
   "/apple-touch-icon.png",
@@ -28,7 +29,10 @@ function navigationFallback(pathname) {
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS)));
-  self.skipWaiting();
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
