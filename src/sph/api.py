@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
 
 from sph.ai_support import DailySupportRequest, build_daily_support, support_to_dict
@@ -10,6 +10,7 @@ from sph.channels.console import ConsoleChannel
 from sph.config import settings
 from sph.models import DailyMeditation
 from sph.public_config import public_runtime_config
+from sph.push_delivery import PushDeliveryConfig, deliver_due_notifications, is_authorized
 from sph.repository import MeditationRepository
 from sph.send_log import JsonlSendLog
 from sph.sender import DailySender
@@ -71,6 +72,17 @@ def ai_daily_support(payload: AiDailySupportPayload) -> dict[str, str]:
         )
     )
     return support_to_dict(support)
+
+
+@app.post("/api/v1/internal/push/deliver")
+def deliver_push_notifications(authorization: str | None = Header(default=None)) -> dict[str, int]:
+    config = PushDeliveryConfig.from_environment()
+    if not is_authorized(authorization, config.cron_secret):
+        raise HTTPException(status_code=401, detail="Não autorizado")
+    try:
+        return deliver_due_notifications(config)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @app.get("/api/v1/day/{month_day}")

@@ -18,6 +18,8 @@ SUPABASE_PUBLISHABLE_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...  # apenas servidor, nunca no browser
 VAPID_PUBLIC_KEY=...           # pode ser enviada ao browser
 VAPID_PRIVATE_KEY=...          # apenas no emissor seguro
+VAPID_SUBJECT=mailto:equipa@exemplo.cv
+PUSH_CRON_SECRET=...           # segredo longo enviado apenas pelo agendador
 PUSH_DELIVERY_READY=false      # mudar para true so depois do teste integral
 ```
 
@@ -92,4 +94,6 @@ Nunca colocar a chave OpenAI nem a service role do Supabase em `public/`, no Git
 
 O cliente, o registo de subscricao, as preferencias e o service worker estao preparados. A API publica so anuncia push quando conta, `VAPID_PUBLIC_KEY` e `PUSH_DELIVERY_READY=true` estiverem presentes. A chave privada nunca e devolvida ao browser.
 
-No plano Hobby, o Vercel Cron so pode executar uma vez por dia e sem precisao ao minuto. Para respeitar a hora escolhida, usar Supabase Cron (`pg_cron`) para invocar uma Edge Function a cada minuto. Guardar a credencial de servico no Supabase Vault e manter o emissor protegido por uma chave secreta. A Edge Function deve selecionar preferencias vencidas, enviar com a chave VAPID privada, marcar o envio do dia e desativar endpoints que respondam `404` ou `410`.
+O endpoint `POST /api/v1/internal/push/deliver` implementa a entrega e exige `Authorization: Bearer $PUSH_CRON_SECRET`. Seleciona preferencias pela hora e fuso local, evita um segundo envio no mesmo dia e desativa endpoints que respondam `404` ou `410`. A mensagem de bloqueio e generica e nao inclui dados da Jornada.
+
+No plano Hobby, o Vercel Cron so pode executar uma vez por dia e sem precisao ao minuto. Para respeitar a hora escolhida, usar Supabase Cron (`pg_cron` + `pg_net`) para invocar este endpoint a cada minuto. Guardar o segredo no Supabase Vault. So mudar `PUSH_DELIVERY_READY=true` depois de testar subscricao, entrega, cancelamento e expiracao de endpoint em dois dispositivos.

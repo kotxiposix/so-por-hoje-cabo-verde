@@ -12,6 +12,7 @@ from sph.ai_support import DailySupportRequest, build_daily_support, support_to_
 from sph.config import settings
 from sph.models import DailyMeditation
 from sph.public_config import public_runtime_config
+from sph.push_delivery import PushDeliveryConfig, deliver_due_notifications, is_authorized
 from sph.repository import MeditationRepository
 from sph.service import DailyMeditationService
 
@@ -71,10 +72,18 @@ class Handler(BaseHTTPRequestHandler):
                     )
                 )
                 self.respond(support_to_dict(support))
+            elif path == "/api/v1/internal/push/deliver":
+                config = PushDeliveryConfig.from_environment()
+                if not is_authorized(self.headers.get("Authorization"), config.cron_secret):
+                    self.respond({"detail": "Nao autorizado"}, HTTPStatus.UNAUTHORIZED)
+                    return
+                self.respond(deliver_due_notifications(config))
             else:
                 self.respond({"detail": "Not found"}, HTTPStatus.NOT_FOUND)
         except (TypeError, ValueError) as exc:
             self.respond({"detail": str(exc)}, HTTPStatus.BAD_REQUEST)
+        except RuntimeError as exc:
+            self.respond({"detail": str(exc)}, HTTPStatus.SERVICE_UNAVAILABLE)
 
     def read_json_body(self) -> dict[str, object]:
         length = int(self.headers.get("Content-Length") or 0)
