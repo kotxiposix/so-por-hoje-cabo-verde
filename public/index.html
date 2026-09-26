@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="app-shell">
+    <main class="app-shell" id="app-content">
       <header class="brand">
         <button class="more-button" id="more-button" type="button" aria-label="Abrir menu Mais">
           <span aria-hidden="true">•••</span>
@@ -78,13 +78,13 @@
       </nav>
 
       <article class="meditation-card view-section" id="meditation-card" data-section="meditation" aria-live="polite">
-        <div class="loading-state" id="loading-state">
+        <div class="loading-state" id="loading-state" role="status" aria-live="polite">
           <div class="wave" aria-hidden="true">∿</div>
           <h2>A carregar meditação</h2>
           <p>A ligar à base de dados local...</p>
         </div>
 
-        <div class="error-state" id="error-state" hidden>
+        <div class="error-state" id="error-state" role="alert" hidden>
           <div class="wave" aria-hidden="true">∿</div>
           <h2>Não foi possível carregar</h2>
           <p id="error-message">A API local não respondeu.</p>
@@ -109,7 +109,7 @@
         </div>
       </article>
 
-      <section class="status-card view-section" id="status-card" data-section="meditation" hidden>
+      <section class="status-card view-section" id="status-card" data-section="meditation" role="status" aria-live="polite" hidden>
         <div class="status-icon" id="status-icon">✓</div>
         <div>
           <strong id="status-title">Meditação lida!</strong>
@@ -118,7 +118,7 @@
       </section>
 
       <section class="action-row view-section" data-section="meditation" aria-label="Ações principais">
-        <button class="icon-action read-action" id="complete-button" type="button" aria-label="Marcar meditação como lida">
+        <button class="icon-action read-action" id="complete-button" type="button" aria-label="Marcar meditação como lida" aria-pressed="false">
           <span id="complete-label" aria-hidden="true">✓</span>
         </button>
         <button class="primary-action prayer-action" id="prayer-button" type="button" aria-label="Abrir Oração da Serenidade">
@@ -152,7 +152,7 @@
         </button>
       </section>
 
-      <section class="thought-card view-section" id="tool-output" data-section="meditation">
+      <section class="thought-card view-section" id="tool-output" data-section="meditation" aria-live="polite">
         <span id="tool-label">✦ Pensamento de recuperação</span>
         <p id="tool-text">O maior ato de coragem é continuar, mesmo quando tudo parece difícil.</p>
       </section>
@@ -207,13 +207,13 @@
 
         <div class="checkin-card">
           <span class="mini-label">Como estás hoje?</span>
-          <div class="checkin-actions" aria-label="Check-in diário">
-            <button type="button" data-checkin="firme">Firme</button>
-            <button type="button" data-checkin="ansioso">Preciso de serenidade</button>
-            <button type="button" data-checkin="risco">Estou em risco</button>
-            <button type="button" data-checkin="consumo">Voltei a consumir</button>
+          <div class="checkin-actions" role="group" aria-label="Check-in diário">
+            <button type="button" data-checkin="firme" aria-pressed="false">Firme</button>
+            <button type="button" data-checkin="ansioso" aria-pressed="false">Preciso de serenidade</button>
+            <button type="button" data-checkin="risco" aria-pressed="false">Estou em risco</button>
+            <button type="button" data-checkin="consumo" aria-pressed="false">Voltei a consumir</button>
           </div>
-          <p id="checkin-guidance">Escolhe um estado para receber uma sugestão prática para hoje.</p>
+          <p id="checkin-guidance" role="status" aria-live="polite">Escolhe um estado para receber uma sugestão prática para hoje.</p>
         </div>
 
         <div class="reward-list" id="reward-list" aria-label="Marcos da jornada">

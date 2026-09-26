@@ -51,7 +51,8 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [ ] Aprovar a politica de privacidade com apoio juridico adequado a Cabo Verde.
 - [ ] Definir retencao, auditoria e resposta a incidentes.
 - [ ] Confirmar que logs tecnicos nunca incluem meditacao privada, check-ins, gratidoes ou partilhas.
-- [ ] Fazer um teste de acessibilidade com leitor de ecrã e navegacao por teclado.
+- [x] Garantir foco visível, ciclo de teclado nos modais, estados anunciados e movimento reduzido.
+- [ ] Fazer um teste manual com VoiceOver e TalkBack em dispositivos reais.
 
 ### Diretório de ajuda verificado
 

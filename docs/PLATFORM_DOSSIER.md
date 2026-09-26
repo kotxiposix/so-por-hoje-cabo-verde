@@ -603,6 +603,7 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 - A Sala Anonima atual permanece local e deve dizer claramente que nao e uma conversa com outras pessoas.
 - O backend moderado já está preparado mas fechado por `COMMUNITY_READY=false`: toda partilha entra pendente, o pseudónimo nasce no servidor, a leitura pública omite identidade e a moderação exige acesso administrativo.
 - O diretório de ajuda gerido está preparado mas fechado por `HELP_DIRECTORY_READY=false`: só mostra recursos com fonte e revisão válida; qualquer alteração regressa a rascunho e contactos vencidos desaparecem da listagem.
+- Os modais isolam o fundo, mantêm o foco por teclado, fecham com `Escape` e devolvem o foco à origem; check-ins e feedback dinâmico expõem estados às tecnologias assistivas.
 - O botao SOS deve encaminhar para ajuda humana e nunca simular atendimento clinico.
 - Login, sincronizacao e notificacoes so avancam depois de politica de privacidade e modelo de dados minimos.
 - Loja e doacao nao entram como botoes inativos; entram apenas quando os fluxos reais estiverem definidos.

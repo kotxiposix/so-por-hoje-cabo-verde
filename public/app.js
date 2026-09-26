@@ -13,6 +13,7 @@ const viewHashes = {
 };
 
 const els = {
+  appContent: document.querySelector("#app-content"),
   currentDate: document.querySelector("#current-date"),
   streakCount: document.querySelector("#streak-count"),
   statusCard: document.querySelector("#status-card"),
@@ -99,11 +100,14 @@ const els = {
   supportMessageStatus: document.querySelector("#support-message-status"),
 };
 
-let lastToolButton = null;
 let currentSupport = null;
 let installPrompt = null;
 let reminderTimer = null;
 let journeySyncTimer = null;
+let activeModal = null;
+let activeModalClose = null;
+let modalReturnFocus = null;
+let disabledBackgroundFocus = [];
 
 const accountState = {
   client: null,
@@ -755,6 +759,7 @@ function renderProgress() {
     "aria-label",
     doneToday ? "Meditação lida hoje" : "Marcar meditação como lida",
   );
+  els.complete.setAttribute("aria-pressed", String(Boolean(doneToday)));
   els.completeLabel.textContent = "✓";
   els.sobrietyDate.value = state.progress.sobrietyDate;
   els.cleanDaysMetric.textContent = cleanDays;
@@ -959,16 +964,84 @@ async function installApp() {
   els.installApp.hidden = true;
 }
 
-function openMore() {
-  els.moreModal.hidden = false;
+function openModal(modal, closeHandler, returnFocus, initialFocus) {
+  activeModal = modal;
+  activeModalClose = closeHandler;
+  modalReturnFocus = returnFocus;
+  modal.hidden = false;
+  els.appContent.setAttribute("aria-hidden", "true");
+  if ("inert" in els.appContent) {
+    els.appContent.inert = true;
+  } else {
+    disabledBackgroundFocus = [...els.appContent.querySelectorAll(
+      'a[href], button, input, textarea, select, [tabindex]',
+    )].map((element) => ({ element, tabindex: element.getAttribute("tabindex") }));
+    disabledBackgroundFocus.forEach(({ element }) => element.setAttribute("tabindex", "-1"));
+  }
   document.body.classList.add("modal-open");
-  els.moreClose.focus();
+  window.requestAnimationFrame(() => initialFocus.focus());
+}
+
+function closeModal(modal) {
+  if (modal.hidden) return;
+  modal.hidden = true;
+  els.appContent.removeAttribute("aria-hidden");
+  if ("inert" in els.appContent) {
+    els.appContent.inert = false;
+  } else {
+    disabledBackgroundFocus.forEach(({ element, tabindex }) => {
+      if (tabindex === null) element.removeAttribute("tabindex");
+      else element.setAttribute("tabindex", tabindex);
+    });
+    disabledBackgroundFocus = [];
+  }
+  document.body.classList.remove("modal-open");
+  const returnFocus = modalReturnFocus;
+  activeModal = null;
+  activeModalClose = null;
+  modalReturnFocus = null;
+  if (returnFocus?.isConnected) returnFocus.focus();
+}
+
+function getModalFocusableElements(modal) {
+  return [...modal.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+  )].filter((element) => (
+    !element.hidden
+    && element.getAttribute("aria-hidden") !== "true"
+    && element.getClientRects().length > 0
+  ));
+}
+
+function trapModalFocus(event) {
+  if (!activeModal || event.key !== "Tab") return;
+  const focusable = getModalFocusableElements(activeModal);
+  if (!focusable.length) {
+    event.preventDefault();
+    return;
+  }
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && (document.activeElement === first || !activeModal.contains(document.activeElement))) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && (document.activeElement === last || !activeModal.contains(document.activeElement))) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+document.addEventListener("focusin", (event) => {
+  if (!activeModal || activeModal.contains(event.target)) return;
+  getModalFocusableElements(activeModal)[0]?.focus();
+});
+
+function openMore() {
+  openModal(els.moreModal, closeMore, els.moreButton, els.moreClose);
 }
 
 function closeMore() {
-  els.moreModal.hidden = true;
-  document.body.classList.remove("modal-open");
-  els.moreButton.focus();
+  closeModal(els.moreModal);
 }
 
 async function importJourneyData(file) {
@@ -1055,7 +1128,9 @@ function renderCheckinGuidance() {
   els.checkinGuidance.textContent = guidance[checkin] || "Escolhe um estado para receber uma sugestão prática para hoje.";
 
   document.querySelectorAll("[data-checkin]").forEach((button) => {
-    button.classList.toggle("active", button.dataset.checkin === checkin);
+    const isActive = button.dataset.checkin === checkin;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
   });
 }
 
@@ -1492,15 +1567,11 @@ async function updateRemoteReminderTime() {
 }
 
 function openPrayer() {
-  els.prayerModal.hidden = false;
-  document.body.classList.add("modal-open");
-  els.prayerClose.focus();
+  openModal(els.prayerModal, closePrayer, els.prayer, els.prayerClose);
 }
 
 function closePrayer() {
-  els.prayerModal.hidden = true;
-  document.body.classList.remove("modal-open");
-  els.prayer.focus();
+  closeModal(els.prayerModal);
 }
 
 async function getDailySupport() {
@@ -1574,15 +1645,12 @@ async function openTool(type, sourceButton) {
     challenge: { label: "⌖ Exercício de presença", title: "Desafio mental" },
   };
   const selected = labels[type];
-  lastToolButton = sourceButton;
   els.toolLabel.textContent = `${selected.label}`;
   els.toolText.textContent = "A preparar uma sugestão para este momento...";
   els.toolModalLabel.textContent = selected.label;
   els.toolModalTitle.textContent = selected.title;
   els.toolModalText.textContent = "A preparar uma sugestão para este momento...";
-  els.toolModal.hidden = false;
-  document.body.classList.add("modal-open");
-  els.toolClose.focus();
+  openModal(els.toolModal, closeTool, sourceButton, els.toolClose);
 
   try {
     const support = await getDailySupport();
@@ -1597,23 +1665,15 @@ async function openTool(type, sourceButton) {
 }
 
 function closeTool() {
-  els.toolModal.hidden = true;
-  document.body.classList.remove("modal-open");
-  if (lastToolButton) {
-    lastToolButton.focus();
-  }
+  closeModal(els.toolModal);
 }
 
 function openSos() {
-  els.sosModal.hidden = false;
-  document.body.classList.add("modal-open");
-  els.sosClose.focus();
+  openModal(els.sosModal, closeSos, els.sosButton, els.sosClose);
 }
 
 function closeSos() {
-  els.sosModal.hidden = true;
-  document.body.classList.remove("modal-open");
-  els.sosButton.focus();
+  closeModal(els.sosModal);
 }
 
 async function copySupportMessage() {
@@ -1666,7 +1726,8 @@ function showView(view, options = {}) {
   }
   renderProgress();
   if (scroll) {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
   }
 }
 
@@ -1799,18 +1860,12 @@ document.addEventListener("visibilitychange", () => {
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !els.prayerModal.hidden) {
-    closePrayer();
+  if (event.key === "Escape" && activeModalClose) {
+    event.preventDefault();
+    activeModalClose();
+    return;
   }
-  if (event.key === "Escape" && !els.toolModal.hidden) {
-    closeTool();
-  }
-  if (event.key === "Escape" && !els.moreModal.hidden) {
-    closeMore();
-  }
-  if (event.key === "Escape" && !els.sosModal.hidden) {
-    closeSos();
-  }
+  trapModalFocus(event);
 });
 
 showView(getViewFromHash(), { scroll: false });

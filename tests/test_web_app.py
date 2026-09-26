@@ -16,6 +16,8 @@ class AppMarkupParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__()
         self.ids: list[str] = []
+        self.attributes_by_id: dict[str, dict[str, str | None]] = {}
+        self.checkin_buttons: list[dict[str, str | None]] = []
         self.view_sections: list[str] = []
         self.nav_views: list[str] = []
 
@@ -23,11 +25,14 @@ class AppMarkupParser(HTMLParser):
         values = dict(attrs)
         if values.get("id"):
             self.ids.append(values["id"] or "")
+            self.attributes_by_id[values["id"] or ""] = values
         classes = set((values.get("class") or "").split())
         if "view-section" in classes and values.get("data-section"):
             self.view_sections.append(values["data-section"] or "")
         if tag == "button" and values.get("data-view"):
             self.nav_views.append(values["data-view"] or "")
+        if tag == "button" and values.get("data-checkin"):
+            self.checkin_buttons.append(values)
 
 
 class WebAppStructureTests(unittest.TestCase):
@@ -116,6 +121,28 @@ class WebAppStructureTests(unittest.TestCase):
 
         self.assertNotIn("SUPABASE_SERVICE_ROLE_KEY", public_text)
         self.assertNotIn("OPENAI_API_KEY", public_text)
+
+    def test_keyboard_and_assistive_technology_contracts(self) -> None:
+        app = self.parser.attributes_by_id["app-content"]
+        self.assertEqual(app["class"], "app-shell")
+
+        for modal_id in ("prayer-modal", "tool-modal", "sos-modal", "more-modal"):
+            self.assertIn(f'id="{modal_id}" hidden', self.index_text)
+        self.assertEqual(len(self.parser.checkin_buttons), 4)
+        self.assertTrue(all(button.get("aria-pressed") == "false" for button in self.parser.checkin_buttons))
+        self.assertEqual(self.parser.attributes_by_id["checkin-guidance"].get("aria-live"), "polite")
+        self.assertEqual(self.parser.attributes_by_id["status-card"].get("role"), "status")
+
+        script = (PUBLIC / "app.js").read_text(encoding="utf-8")
+        styles = (PUBLIC / "styles.css").read_text(encoding="utf-8")
+        self.assertIn("els.appContent.inert = true", script)
+        self.assertIn('els.appContent.setAttribute("aria-hidden", "true")', script)
+        self.assertIn("disabledBackgroundFocus", script)
+        self.assertIn("function trapModalFocus", script)
+        self.assertIn('event.key === "Escape" && activeModalClose', script)
+        self.assertIn("prefers-reduced-motion: reduce", script)
+        self.assertIn(":focus-visible", styles)
+        self.assertIn("@media (prefers-reduced-motion: reduce)", styles)
 
 
 if __name__ == "__main__":
