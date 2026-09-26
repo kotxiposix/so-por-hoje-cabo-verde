@@ -58,6 +58,9 @@ class WebAppStructureTests(unittest.TestCase):
             "delete-local-data",
             "delete-account",
             "account-email-form",
+            "verified-meeting-list",
+            "verified-help-list",
+            "help-directory-source",
         }
         self.assertFalse(critical.difference(counts))
 

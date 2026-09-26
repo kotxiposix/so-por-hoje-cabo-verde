@@ -53,6 +53,17 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [ ] Confirmar que logs tecnicos nunca incluem meditacao privada, check-ins, gratidoes ou partilhas.
 - [ ] Fazer um teste de acessibilidade com leitor de ecrã e navegacao por teclado.
 
+### Diretório de ajuda verificado
+
+- [x] Backend e interface preparados para mostrar apenas recursos verificados e dentro do prazo de revisão.
+- [x] Recursos novos ou alterados regressam automaticamente a rascunho.
+- [x] Acesso direto pelo browser removido; gestão exige endpoint administrativo protegido.
+- [ ] Importar todos os contactos como rascunho, sem os tornar públicos.
+- [ ] Confirmar cada contacto e horário diretamente com a entidade responsável.
+- [ ] Guardar a fonte e definir o prazo de revisão de cada recurso.
+- [ ] Testar expiração, retirada e indisponibilidade do diretório em Preview.
+- [ ] Mudar `HELP_DIRECTORY_READY=true` apenas depois de todos os recursos visíveis estarem confirmados.
+
 ## 6. Funcionalidades que ficam fechadas
 
 ### Sala Anonima publica

@@ -1305,6 +1305,12 @@ button {
   margin-top: 8px;
 }
 
+.info-list .resource-review {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .schedule-list {
   display: grid;
   gap: 6px;

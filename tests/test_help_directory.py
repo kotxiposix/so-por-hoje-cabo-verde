@@ -1,0 +1,135 @@
+from __future__ import annotations
+
+import json
+import os
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+from sph.help_directory import (
+    HelpDirectoryConfig,
+    HelpDirectoryInputError,
+    SupabaseHelpDirectory,
+    normalize_resource,
+    public_resource,
+)
+
+
+RESOURCE_ID = "4948b21e-facf-4bc8-a60e-8800b488dfee"
+SCHEMA_PATH = Path(__file__).resolve().parents[1] / "supabase" / "schema.sql"
+
+
+class FakeResponse:
+    def __init__(self, payload: object) -> None:
+        self.payload = json.dumps(payload).encode("utf-8")
+
+    def __enter__(self) -> "FakeResponse":
+        return self
+
+    def __exit__(self, *_args: object) -> None:
+        return None
+
+    def read(self) -> bytes:
+        return self.payload
+
+
+def config() -> HelpDirectoryConfig:
+    return HelpDirectoryConfig(True, "https://project.supabase.co", "service-role")
+
+
+def payload() -> dict[str, object]:
+    return {
+        "name": "Linha de apoio",
+        "island": "Santiago",
+        "municipality": "Praia",
+        "category": "emergency",
+        "description": "Atendimento confirmado pela fonte responsável.",
+        "phone": "+238 000 00 00",
+        "email": "apoio@example.cv",
+        "website": "https://example.cv/apoio",
+        "schedule": ["Todos os dias · 24 horas"],
+        "is_emergency": True,
+        "source_url": "https://example.cv/fonte",
+    }
+
+
+class HelpDirectoryTests(unittest.TestCase):
+    def test_directory_is_closed_until_explicitly_enabled(self) -> None:
+        environment = {
+            "SUPABASE_URL": "https://project.supabase.co",
+            "SUPABASE_SERVICE_ROLE_KEY": "service-role",
+        }
+        with patch.dict(os.environ, environment, clear=True):
+            self.assertFalse(HelpDirectoryConfig.from_environment().ready)
+        with patch.dict(os.environ, {**environment, "HELP_DIRECTORY_READY": "true"}, clear=True):
+            self.assertTrue(HelpDirectoryConfig.from_environment().ready)
+
+    def test_resource_validation_rejects_untrusted_urls_and_categories(self) -> None:
+        unsafe = payload() | {"website": "javascript:alert(1)"}
+        with self.assertRaises(HelpDirectoryInputError):
+            normalize_resource(unsafe)
+        with self.assertRaises(HelpDirectoryInputError):
+            normalize_resource(payload() | {"category": "unknown"})
+
+    def test_public_shape_excludes_internal_review_fields(self) -> None:
+        record = payload() | {
+            "id": RESOURCE_ID,
+            "is_verified": True,
+            "verification_status": "verified",
+            "moderation_note": "internal",
+            "review_due_at": "2026-12-01",
+        }
+
+        visible = public_resource(record)
+
+        self.assertEqual(visible["id"], RESOURCE_ID)
+        self.assertNotIn("is_verified", visible)
+        self.assertNotIn("verification_status", visible)
+        self.assertNotIn("moderation_note", visible)
+
+    def test_public_listing_requires_valid_verification_date(self) -> None:
+        returned = [payload() | {"id": RESOURCE_ID, "review_due_at": "2026-12-01"}]
+        with patch("sph.help_directory.urlopen", return_value=FakeResponse(returned)) as urlopen_mock:
+            result = SupabaseHelpDirectory(config()).list_verified(999)
+
+        request = urlopen_mock.call_args.args[0]
+        self.assertIn("is_verified=eq.true", request.full_url)
+        self.assertIn("verification_status=eq.verified", request.full_url)
+        self.assertIn("review_due_at=gte.", request.full_url)
+        self.assertIn("limit=200", request.full_url)
+        self.assertNotIn("select=*", request.full_url)
+        self.assertEqual(result[0]["id"], RESOURCE_ID)
+
+    def test_create_and_update_always_return_resource_to_draft(self) -> None:
+        returned = [payload() | {"id": RESOURCE_ID, "verification_status": "draft"}]
+        with patch("sph.help_directory.urlopen", return_value=FakeResponse(returned)) as urlopen_mock:
+            SupabaseHelpDirectory(config()).create_draft(payload())
+
+        request_payload = json.loads(urlopen_mock.call_args.args[0].data)
+        self.assertFalse(request_payload["is_verified"])
+        self.assertEqual(request_payload["verification_status"], "draft")
+        self.assertIsNone(request_payload["verified_at"])
+        self.assertIsNone(request_payload["review_due_at"])
+
+    def test_verification_requires_a_source_and_sets_review_deadline(self) -> None:
+        returned = [payload() | {"id": RESOURCE_ID, "verification_status": "verified"}]
+        with patch("sph.help_directory.urlopen", return_value=FakeResponse(returned)) as urlopen_mock:
+            SupabaseHelpDirectory(config()).verify(RESOURCE_ID, 90)
+
+        request = urlopen_mock.call_args.args[0]
+        request_payload = json.loads(request.data)
+        self.assertIn("source_url=not.is.null", request.full_url)
+        self.assertTrue(request_payload["is_verified"])
+        self.assertEqual(request_payload["verification_status"], "verified")
+        self.assertRegex(request_payload["review_due_at"], r"^\d{4}-\d{2}-\d{2}$")
+
+    def test_browser_has_no_direct_help_directory_policy(self) -> None:
+        schema = SCHEMA_PATH.read_text(encoding="utf-8")
+
+        self.assertIn('drop policy if exists "Public reads verified help resources"', schema)
+        self.assertNotIn('create policy "Public reads verified help resources"', schema)
+        self.assertIn("review_due_at date", schema)
+
+
+if __name__ == "__main__":
+    unittest.main()

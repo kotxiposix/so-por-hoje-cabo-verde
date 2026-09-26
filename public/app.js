@@ -113,6 +113,7 @@ const accountState = {
   syncEnabled: localStorage.getItem("sph-account-sync") === "on",
   aiEnabled: false,
   pushEnabled: false,
+  helpDirectoryEnabled: false,
   vapidPublicKey: "",
   pushRegistered: localStorage.getItem("sph-push-enabled") === "on",
 };
@@ -257,6 +258,10 @@ async function setupAccount() {
     });
     if (!response.ok) throw new Error("Configuração indisponível");
     const config = await response.json();
+    accountState.helpDirectoryEnabled = Boolean(config.features?.helpDirectory);
+    if (accountState.helpDirectoryEnabled) {
+      await loadVerifiedHelpResources();
+    }
     if (!config.features?.account || !config.supabase) {
       renderAccount();
       return;
@@ -304,6 +309,152 @@ function renderAccount() {
     ? "A Jornada está ligada à tua conta. Alterações locais serão sincronizadas."
     : "Sessão iniciada. Escolhe qual cópia da Jornada queres usar.";
   els.accountStatus.textContent = accountState.syncEnabled ? "Sincronização ativa." : "Sincronização à espera da tua decisão.";
+}
+
+function appendHelpLink(container, label, href) {
+  if (!href) return null;
+  const link = document.createElement("a");
+  link.textContent = label;
+  link.href = href;
+  if (href.startsWith("http")) {
+    link.target = "_blank";
+    link.rel = "noreferrer";
+  }
+  container.append(link);
+  return link;
+}
+
+function primaryTelephone(value) {
+  const match = String(value || "").match(/\+?\d[\d\s-]{5,}/);
+  return match ? match[0].replace(/(?!^)\D/g, "") : "";
+}
+
+function createHelpResourceCard(resource) {
+  const categoryLabels = {
+    emergency: "Apoio imediato",
+    health: "Saúde",
+    treatment: "Tratamento",
+    meeting: "Reunião",
+    family: "Família",
+    information: "Informação",
+    other: "Recurso",
+  };
+  const article = document.createElement("article");
+  const heading = document.createElement("div");
+  heading.className = "resource-heading";
+  const name = document.createElement("strong");
+  name.textContent = resource.name || "Recurso de apoio";
+  const status = document.createElement("span");
+  status.className = "resource-status verified";
+  status.textContent = categoryLabels[resource.category] || "Verificado";
+  heading.append(name, status);
+  article.append(heading);
+
+  const location = [resource.municipality, resource.island].filter(Boolean).join(" · ");
+  if (location) {
+    const locationLine = document.createElement("p");
+    locationLine.textContent = location;
+    article.append(locationLine);
+  }
+  if (resource.description) {
+    const description = document.createElement("p");
+    description.textContent = resource.description;
+    article.append(description);
+  }
+  if (Array.isArray(resource.schedule) && resource.schedule.length) {
+    const schedule = document.createElement("ul");
+    schedule.className = "schedule-list";
+    resource.schedule.forEach((item) => {
+      const entry = document.createElement("li");
+      entry.textContent = item;
+      schedule.append(entry);
+    });
+    article.append(schedule);
+  }
+
+  const actions = document.createElement("div");
+  actions.className = "help-actions";
+  const telephone = primaryTelephone(resource.phone);
+  const phoneLink = appendHelpLink(actions, resource.is_emergency ? "Ligar agora" : "Ligar", telephone ? `tel:${telephone}` : "");
+  if (phoneLink && resource.is_emergency) phoneLink.classList.add("help-primary");
+  appendHelpLink(actions, "Email", resource.email ? `mailto:${resource.email}` : "");
+  appendHelpLink(actions, "Site", resource.website || "");
+  appendHelpLink(actions, "Fonte", resource.source_url || "");
+  if (actions.childElementCount) article.append(actions);
+
+  if (resource.review_due_at) {
+    const review = document.createElement("p");
+    review.className = "resource-review";
+    review.textContent = `Verificação válida até ${new Date(`${resource.review_due_at}T12:00:00`).toLocaleDateString("pt-CV")}.`;
+    article.append(review);
+  }
+  return article;
+}
+
+function renderHelpResourceGroup(list, resources, emptyTitle, emptyCopy) {
+  list.replaceChildren();
+  if (!resources.length) {
+    const empty = document.createElement("article");
+    const title = document.createElement("strong");
+    title.textContent = emptyTitle;
+    const copy = document.createElement("p");
+    copy.textContent = emptyCopy;
+    empty.append(title, copy);
+    list.append(empty);
+    return;
+  }
+  resources.forEach((resource) => list.append(createHelpResourceCard(resource)));
+}
+
+function renderVerifiedHelpResources(resources) {
+  const meetingList = document.querySelector("#verified-meeting-list");
+  const helpList = document.querySelector("#verified-help-list");
+  const source = document.querySelector("#help-directory-source");
+  if (!meetingList || !helpList || !source) return;
+
+  const meetings = resources.filter((resource) => ["meeting", "family"].includes(resource.category));
+  const support = resources.filter((resource) => !["meeting", "family"].includes(resource.category));
+  renderHelpResourceGroup(
+    meetingList,
+    meetings,
+    "Reuniões em revisão",
+    "Ainda não existem reuniões com verificação válida no diretório.",
+  );
+  renderHelpResourceGroup(
+    helpList,
+    support,
+    "Diretório em revisão",
+    "Ainda não existem recursos com verificação válida. Usa as opções de apoio imediato acima.",
+  );
+
+  source.replaceChildren();
+  const note = document.createElement("p");
+  note.textContent = "Este diretório mostra apenas recursos com fonte registada e revisão ainda válida. Confirma sempre o atendimento antes da deslocação.";
+  source.append(note);
+}
+
+function renderHelpDirectoryUnavailable() {
+  const meetingList = document.querySelector("#verified-meeting-list");
+  const helpList = document.querySelector("#verified-help-list");
+  const source = document.querySelector("#help-directory-source");
+  if (!meetingList || !helpList || !source) return;
+  renderHelpResourceGroup(meetingList, [], "Reuniões temporariamente indisponíveis", "Confirma diretamente com os grupos antes de te deslocares.");
+  renderHelpResourceGroup(helpList, [], "Diretório temporariamente indisponível", "Usa as opções de apoio imediato acima ou procura um serviço de saúde próximo.");
+  source.replaceChildren();
+}
+
+async function loadVerifiedHelpResources() {
+  try {
+    const response = await fetch("/api/v1/help/resources", {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) throw new Error("Diretório indisponível");
+    const resources = await response.json();
+    renderVerifiedHelpResources(Array.isArray(resources) ? resources : []);
+  } catch {
+    renderHelpDirectoryUnavailable();
+  }
 }
 
 async function requestAccountCode(email) {

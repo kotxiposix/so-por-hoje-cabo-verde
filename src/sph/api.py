@@ -24,6 +24,12 @@ from sph.community import (
     SupabaseCommunity,
 )
 from sph.config import settings
+from sph.help_directory import (
+    HelpDirectoryConfig,
+    HelpDirectoryInputError,
+    HelpDirectoryServiceError,
+    SupabaseHelpDirectory,
+)
 from sph.models import DailyMeditation
 from sph.public_config import public_runtime_config
 from sph.push_delivery import PushDeliveryConfig, deliver_due_notifications, is_authorized
@@ -63,6 +69,24 @@ class CommunityModerationPayload(BaseModel):
     note: str | None = Field(default=None, max_length=500)
 
 
+class HelpResourcePayload(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    island: str | None = Field(default=None, max_length=60)
+    municipality: str | None = Field(default=None, max_length=80)
+    category: str = Field(min_length=1, max_length=40)
+    description: str | None = Field(default=None, max_length=1000)
+    phone: str | None = Field(default=None, max_length=80)
+    email: str | None = Field(default=None, max_length=254)
+    website: str | None = Field(default=None, max_length=500)
+    schedule: list[str] = Field(default_factory=list, max_length=20)
+    is_emergency: bool = False
+    source_url: str | None = Field(default=None, max_length=500)
+
+
+class HelpVerificationPayload(BaseModel):
+    review_days: int = Field(default=90, ge=1, le=365)
+
+
 def require_admin_access(authorization: str | None) -> None:
     if not admin_access_allowed(authorization):
         raise HTTPException(status_code=401, detail="Não autorizado")
@@ -83,6 +107,13 @@ def authenticated_user_id(authorization: str | None) -> str:
     except AccountAuthenticationError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
     except AccountServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+def help_directory_service() -> SupabaseHelpDirectory:
+    try:
+        return SupabaseHelpDirectory(HelpDirectoryConfig.from_environment())
+    except HelpDirectoryServiceError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
@@ -211,6 +242,84 @@ def moderate_community_post(
     except CommunityInputError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except CommunityServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.get("/api/v1/help/resources")
+def verified_help_resources(limit: int = 100) -> list[dict[str, object]]:
+    try:
+        return help_directory_service().list_verified(limit)
+    except HelpDirectoryServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.get("/api/v1/admin/help/resources")
+def help_resources_for_review(
+    limit: int = 200,
+    authorization: str | None = Header(default=None),
+) -> list[dict[str, object]]:
+    require_admin_access(authorization)
+    try:
+        return help_directory_service().list_for_review(limit)
+    except HelpDirectoryServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/admin/help/resources")
+def create_help_resource(
+    payload: HelpResourcePayload,
+    authorization: str | None = Header(default=None),
+) -> dict[str, object]:
+    require_admin_access(authorization)
+    try:
+        return help_directory_service().create_draft(payload.model_dump())
+    except HelpDirectoryInputError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except HelpDirectoryServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.put("/api/v1/admin/help/resources/{resource_id}")
+def update_help_resource(
+    resource_id: str,
+    payload: HelpResourcePayload,
+    authorization: str | None = Header(default=None),
+) -> dict[str, object]:
+    require_admin_access(authorization)
+    try:
+        return help_directory_service().update_draft(resource_id, payload.model_dump())
+    except HelpDirectoryInputError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except HelpDirectoryServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/admin/help/resources/{resource_id}/verify")
+def verify_help_resource(
+    resource_id: str,
+    payload: HelpVerificationPayload,
+    authorization: str | None = Header(default=None),
+) -> dict[str, object]:
+    require_admin_access(authorization)
+    try:
+        return help_directory_service().verify(resource_id, payload.review_days)
+    except HelpDirectoryInputError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except HelpDirectoryServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/admin/help/resources/{resource_id}/retire")
+def retire_help_resource(
+    resource_id: str,
+    authorization: str | None = Header(default=None),
+) -> dict[str, object]:
+    require_admin_access(authorization)
+    try:
+        return help_directory_service().retire(resource_id)
+    except HelpDirectoryInputError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except HelpDirectoryServiceError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 

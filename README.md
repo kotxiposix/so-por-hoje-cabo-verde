@@ -82,6 +82,7 @@ POST /api/v1/ai/daily-support
 GET /api/v1/community/posts
 POST /api/v1/community/posts
 POST /api/v1/community/posts/{post_id}/reports
+GET /api/v1/help/resources
 DELETE /api/v1/account
 POST /api/v1/internal/push/deliver
 ```
@@ -158,6 +159,21 @@ Quando a equipa concluir as decisões operacionais e ativar a flag, o servidor:
 - reserva publicação, rejeição e ocultação para endpoints administrativos protegidos.
 
 Esta preparação não substitui moderadores, regras editoriais, retenção, horário de resposta nem protocolo de crise.
+
+## Diretório verificado de ajuda
+
+A página mantém os contactos estáticos enquanto `HELP_DIRECTORY_READY=false`. O backend gerido e a substituição automática na interface já estão preparados para uma ativação posterior.
+
+No fluxo gerido:
+
+- recursos novos ou alterados ficam sempre em `draft` e invisíveis ao público;
+- a verificação exige uma fonte URL e define uma data máxima para nova revisão;
+- recursos cuja revisão venceu deixam automaticamente de aparecer;
+- o endpoint público devolve apenas campos necessários para apresentar e contactar o recurso;
+- retirar um recurso muda-o para `retired`, preservando o histórico em vez de o apagar;
+- gestão, verificação e retirada exigem `ADMIN_API_SECRET`.
+
+Não ativar o diretório sem rever os contactos, horários e fontes diretamente com as entidades responsáveis.
 
 ## Importar novamente a planilha
 

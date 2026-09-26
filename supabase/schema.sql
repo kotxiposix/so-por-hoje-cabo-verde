@@ -48,9 +48,43 @@ create table if not exists public.help_resources (
   schedule jsonb not null default '[]'::jsonb,
   is_emergency boolean not null default false,
   is_verified boolean not null default false,
+  source_url text,
+  verification_status text not null default 'draft',
   verified_at timestamptz,
-  updated_at timestamptz not null default now()
+  review_due_at date,
+  updated_at timestamptz not null default now(),
+  constraint help_resources_schedule_array_check
+    check (jsonb_typeof(schedule) = 'array'),
+  constraint help_resources_verification_status_check
+    check (verification_status in ('draft', 'verified', 'stale', 'retired'))
 );
+
+alter table public.help_resources add column if not exists source_url text;
+alter table public.help_resources
+  add column if not exists verification_status text not null default 'draft';
+alter table public.help_resources add column if not exists review_due_at date;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'help_resources_verification_status_check'
+  ) then
+    alter table public.help_resources
+      add constraint help_resources_verification_status_check
+      check (verification_status in ('draft', 'verified', 'stale', 'retired')) not valid;
+  end if;
+  if not exists (
+    select 1 from pg_constraint where conname = 'help_resources_schedule_array_check'
+  ) then
+    alter table public.help_resources
+      add constraint help_resources_schedule_array_check
+      check (jsonb_typeof(schedule) = 'array') not valid;
+  end if;
+end;
+$$;
+
+create index if not exists help_resources_public_idx
+  on public.help_resources (is_verified, verification_status, review_due_at, is_emergency, name);
 
 create table if not exists public.notification_preferences (
   user_id uuid primary key references auth.users(id) on delete cascade,
@@ -209,10 +243,6 @@ drop policy if exists "Members submit pending posts" on public.anonymous_posts;
 drop policy if exists "Members report published posts" on public.anonymous_reports;
 
 drop policy if exists "Public reads verified help resources" on public.help_resources;
-create policy "Public reads verified help resources"
-  on public.help_resources for select
-  to anon, authenticated
-  using (is_verified = true);
 
 drop policy if exists "Users manage notification preferences" on public.notification_preferences;
 create policy "Users manage notification preferences"

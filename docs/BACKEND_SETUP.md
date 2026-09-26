@@ -28,6 +28,7 @@ AI_DAILY_LIMIT=3               # entre 1 e 20
 AI_DELIVERY_READY=false        # ativar so depois de validar conta e quota
 COMMUNITY_READY=false          # manter fechada ate existir operacao de moderacao
 COMMUNITY_DAILY_POST_LIMIT=3   # limite por conta e dia, entre 1 e 20
+HELP_DIRECTORY_READY=false     # usar a lista estática até validar e importar os recursos
 ```
 
 A URL e a chave publica podem ser usadas pelo cliente depois de as regras RLS estarem ativas. A `SERVICE_ROLE_KEY` ignora RLS e fica exclusivamente no ambiente seguro da Vercel.
@@ -80,7 +81,22 @@ O backend já contém os endpoints de criação pendente, listagem publicada, de
 
 Manter `COMMUNITY_READY=false` em todos os ambientes até a checklist operacional estar concluída. Com a flag desligada, a interface continua a usar apenas o diário local.
 
-## 5. API e OpenAI na Vercel
+## 5. Diretório verificado de ajuda
+
+O diretório gerido permanece desligado por `HELP_DIRECTORY_READY=false`; nesse estado, a página mostra a lista estática existente. Quando ativado, `GET /api/v1/help/resources` substitui na interface reuniões e recursos por registos verificados cuja data de revisão ainda não venceu.
+
+Criação e atualização administrativas colocam sempre o recurso em `draft`. A verificação é uma ação separada, exige `source_url` e define `review_due_at`. Uma alteração posterior retira imediatamente o recurso da listagem pública até nova verificação. A retirada usa o estado `retired` em vez de apagar o histórico.
+
+Antes de ativar:
+
+1. importar os recursos como rascunho;
+2. contactar cada entidade e confirmar nome, telefone, horário e âmbito do serviço;
+3. guardar a fonte responsável;
+4. verificar com um prazo proporcional ao risco do contacto;
+5. testar a expiração e a indisponibilidade do endpoint;
+6. definir quem revê alterações e com que frequência.
+
+## 6. API e OpenAI na Vercel
 
 `api/index.py` expõe a aplicacao FastAPI como funcao Python. `vercel.json` envia `/api/*` para essa funcao antes das rotas estaticas.
 
@@ -97,9 +113,9 @@ Nunca colocar a chave OpenAI nem a service role do Supabase em `public/`, no Git
 
 O endpoint de apoio diário usa sempre o catálogo local por defeito. Só reserva e envia um pedido à OpenAI quando `AI_DELIVERY_READY=true`, a sessão da própria pessoa é validada no Supabase e a função atómica `claim_ai_daily_request` confirma que a quota diária ainda não foi atingida. A identidade da conta não é enviada à OpenAI. Falhas de autenticação, quota, rede ou fornecedor regressam silenciosamente ao catálogo local.
 
-Os endpoints `/api/v1/admin/send-logs`, `/api/v1/admin/send-test` e `/api/v1/admin/community/*` exigem `Authorization: Bearer $ADMIN_API_SECRET`. Sem esse segredo configurado, permanecem fechados.
+Os endpoints `/api/v1/admin/send-logs`, `/api/v1/admin/send-test`, `/api/v1/admin/community/*` e `/api/v1/admin/help/*` exigem `Authorization: Bearer $ADMIN_API_SECRET`. Sem esse segredo configurado, permanecem fechados.
 
-## 6. Checklist antes de producao
+## 7. Checklist antes de producao
 
 - Politica de privacidade aprovada e publicada.
 - SMTP e remetente validados.
@@ -111,7 +127,7 @@ Os endpoints `/api/v1/admin/send-logs`, `/api/v1/admin/send-test` e `/api/v1/adm
 - Processo de exportacao e eliminacao de conta testado.
 - Chaves VAPID, cron e cancelamento de subscricao push testados antes de ativar lembretes em segundo plano.
 
-## 7. Entrega Web Push
+## 8. Entrega Web Push
 
 O cliente, o registo de subscricao, as preferencias e o service worker estao preparados. A API publica so anuncia push quando conta, `VAPID_PUBLIC_KEY` e `PUSH_DELIVERY_READY=true` estiverem presentes. A chave privada nunca e devolvida ao browser.
 

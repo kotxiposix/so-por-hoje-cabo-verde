@@ -28,11 +28,18 @@ def public_runtime_config(environment: Mapping[str, str] | None = None) -> dict[
         and community_ready
         and env.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
     )
+    help_directory_ready = env.get("HELP_DIRECTORY_READY", "").strip().lower() in {"1", "true", "yes"}
+    help_directory_enabled = bool(
+        help_directory_ready
+        and supabase_url
+        and env.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    )
 
     payload: dict[str, object] = {
         "features": {
             "account": account_enabled,
             "community": community_enabled,
+            "helpDirectory": help_directory_enabled,
             "push": push_enabled,
             "ai": ai_enabled,
         }

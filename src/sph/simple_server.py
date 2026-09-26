@@ -17,6 +17,7 @@ from sph.account_deletion import (
 )
 from sph.ai_support import DailySupportRequest, build_daily_support, support_to_dict
 from sph.config import settings
+from sph.help_directory import HelpDirectoryConfig, HelpDirectoryServiceError, SupabaseHelpDirectory
 from sph.models import DailyMeditation
 from sph.public_config import public_runtime_config
 from sph.push_delivery import PushDeliveryConfig, deliver_due_notifications, is_authorized
@@ -66,6 +67,9 @@ class Handler(BaseHTTPRequestHandler):
                 self.respond({"message": service.format_message(service.today())}, write_body=write_body)
             elif path == "/api/v1/meditations":
                 self.respond([item.__dict__ for item in repository.all()], write_body=write_body)
+            elif path == "/api/v1/help/resources":
+                directory = SupabaseHelpDirectory(HelpDirectoryConfig.from_environment())
+                self.respond(directory.list_verified(), write_body=write_body)
             elif path.startswith("/api/v1/day/"):
                 month_day = path.rsplit("/", 1)[-1]
                 self.respond(service.by_month_day(month_day).__dict__, write_body=write_body)
@@ -75,6 +79,8 @@ class Handler(BaseHTTPRequestHandler):
             self.respond({"detail": str(exc)}, HTTPStatus.BAD_REQUEST, write_body=write_body)
         except LookupError as exc:
             self.respond({"detail": str(exc)}, HTTPStatus.NOT_FOUND, write_body=write_body)
+        except HelpDirectoryServiceError as exc:
+            self.respond({"detail": str(exc)}, HTTPStatus.SERVICE_UNAVAILABLE, write_body=write_body)
 
     def handle_post(self) -> None:
         path = urlparse(self.path).path
