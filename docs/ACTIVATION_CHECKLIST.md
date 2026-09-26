@@ -18,6 +18,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [ ] Configurar Email OTP, SMTP proprio, remetente e CAPTCHA.
 - [ ] Configurar Site URL e Redirect URLs apenas para os dominios `dev` autorizados.
 - [ ] Guardar na Vercel Preview: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` e `SUPABASE_SERVICE_ROLE_KEY`.
+- [ ] Gerar e guardar `ADMIN_API_SECRET` para os endpoints tecnicos; nao o reutilizar noutros servicos.
 - [ ] Entrar com duas contas diferentes e confirmar que a RLS impede acesso cruzado.
 - [ ] Testar escolha entre copia local e copia da conta nos dois sentidos.
 - [ ] Testar exportacao, eliminacao da Jornada, eliminacao da conta e limpeza local.

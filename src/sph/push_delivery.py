@@ -4,12 +4,13 @@ import json
 import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from hmac import compare_digest
 from typing import Protocol
 from urllib.error import HTTPError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+from sph.security import is_bearer_secret
 
 
 class HttpTransport(Protocol):
@@ -60,15 +61,7 @@ class PushDeliveryConfig:
 
 
 def is_authorized(authorization: str | None, expected_secret: str) -> bool:
-    if not authorization or not expected_secret:
-        return False
-    scheme, separator, token = authorization.partition(" ")
-    return bool(
-        separator
-        and scheme.lower() == "bearer"
-        and token
-        and compare_digest(token, expected_secret)
-    )
+    return is_bearer_secret(authorization, expected_secret)
 
 
 def _local_due(preference: dict[str, object], now_utc: datetime) -> tuple[bool, str]:

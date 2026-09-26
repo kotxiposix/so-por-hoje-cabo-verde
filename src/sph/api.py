@@ -19,6 +19,7 @@ from sph.models import DailyMeditation
 from sph.public_config import public_runtime_config
 from sph.push_delivery import PushDeliveryConfig, deliver_due_notifications, is_authorized
 from sph.repository import MeditationRepository
+from sph.security import admin_access_allowed
 from sph.send_log import JsonlSendLog
 from sph.sender import DailySender
 from sph.service import DailyMeditationService
@@ -37,6 +38,11 @@ class AiDailySupportPayload(BaseModel):
     clean_days: int = 0
     reading_streak: int = 0
     language: str = "pt-CV"
+
+
+def require_admin_access(authorization: str | None) -> None:
+    if not admin_access_allowed(authorization):
+        raise HTTPException(status_code=401, detail="Não autorizado")
 
 
 @app.get("/api/v1/health")
@@ -120,12 +126,17 @@ def meditations() -> list[dict[str, str | None]]:
 
 
 @app.get("/api/v1/admin/send-logs")
-def send_logs() -> list[dict[str, str | None]]:
+def send_logs(authorization: str | None = Header(default=None)) -> list[dict[str, str | None]]:
+    require_admin_access(authorization)
     return [entry.__dict__ for entry in send_log.list()]
 
 
 @app.post("/api/v1/admin/send-test")
-async def send_test(force: bool = True) -> dict[str, str | bool | None]:
+async def send_test(
+    force: bool = True,
+    authorization: str | None = Header(default=None),
+) -> dict[str, str | bool | None]:
+    require_admin_access(authorization)
     daily = service.today()
     result = await sender.send_for_date(
         target=date.fromisoformat(daily.date),

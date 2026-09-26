@@ -20,6 +20,7 @@ VAPID_PUBLIC_KEY=...           # pode ser enviada ao browser
 VAPID_PRIVATE_KEY=...          # apenas no emissor seguro
 VAPID_SUBJECT=mailto:equipa@exemplo.cv
 PUSH_CRON_SECRET=...           # segredo longo enviado apenas pelo agendador
+ADMIN_API_SECRET=...           # protege testes e registos tecnicos
 PUSH_DELIVERY_READY=false      # mudar para true so depois do teste integral
 ```
 
@@ -79,6 +80,8 @@ OPENAI_MODEL=gpt-4.1-mini
 ```
 
 Nunca colocar a chave OpenAI nem a service role do Supabase em `public/`, no Git ou em JavaScript enviado ao navegador.
+
+Os endpoints `/api/v1/admin/send-logs` e `/api/v1/admin/send-test` exigem `Authorization: Bearer $ADMIN_API_SECRET`. Sem esse segredo configurado, permanecem fechados.
 
 ## 6. Checklist antes de producao
 
