@@ -102,12 +102,17 @@ Para regenerar esta base local:
 PYTHONPATH=src python scripts/generate_support_catalog.py
 ```
 
-Para ativar OpenAI no backend local:
+O servidor simples mantém sempre o catálogo local. Para testar a integração OpenAI com os mesmos controlos usados em produção, use FastAPI, uma conta Supabase válida e o esquema atualizado:
 
 ```bash
+export SUPABASE_URL="https://PROJECT_REF.supabase.co"
+export SUPABASE_PUBLISHABLE_KEY="..."
+export SUPABASE_SERVICE_ROLE_KEY="..."
 export OPENAI_API_KEY="sk-..."
 export OPENAI_MODEL="gpt-4.1-mini"
-PYTHONPATH=src python -m sph.simple_server --port 8000
+export AI_DAILY_LIMIT="3"
+export AI_DELIVERY_READY="true"
+uvicorn sph.api:app --reload
 ```
 
 Na Vercel:
@@ -116,15 +121,21 @@ Na Vercel:
 Project Settings -> Environment Variables
 OPENAI_API_KEY = sk-...
 OPENAI_MODEL = gpt-4.1-mini
+AI_DAILY_LIMIT = 3
+AI_DELIVERY_READY = false
 Redeploy
 ```
+
+Manter `AI_DELIVERY_READY=false` até executar `supabase/schema.sql`, validar o acesso por email e testar a quota. Depois do teste integral, mudar para `true` primeiro em Preview. Pessoas sem conta continuam a receber o catálogo local.
 
 Implicacoes:
 
 - A chave OpenAI fica apenas no servidor. Nunca colocar a chave no `public/app.js` ou no browser.
 - Cada pedido AI pode ter custo e alguma latencia.
+- A OpenAI só é chamada para uma conta autenticada e dentro do limite diário configurado; o limite é reclamado atomicamente no servidor.
 - O pedido envia apenas contexto minimo: titulo, excerto da meditacao, reflexao, estado local, dias limpos e sequencia de leituras.
-- Nome, telefone e identidade do utilizador nao sao enviados nesta versao.
+- Nome, email, telefone e identificador da conta nao sao enviados à OpenAI nesta versao.
+- O Supabase guarda por conta apenas a data e o número de utilizações AI necessárias para aplicar a quota.
 - Se a OpenAI falhar, faltar saldo, faltar internet ou nao houver chave, o sistema usa automaticamente a base local.
 
 O conteudo gerado e complementar: nao altera a meditacao oficial e nao substitui tecnicos de saude, sponsor, reunioes ou emergencia.

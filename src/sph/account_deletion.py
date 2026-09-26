@@ -48,6 +48,15 @@ class SupabaseAccountDeletion:
         self.config = config
 
     def delete_for_access_token(self, access_token: str) -> str:
+        user_id = self.resolve_user_id(access_token)
+        self._request(
+            "DELETE",
+            f"/auth/v1/admin/users/{quote(user_id, safe='')}",
+            authorization=self.config.service_role_key,
+        )
+        return user_id
+
+    def resolve_user_id(self, access_token: str) -> str:
         user = self._request(
             "GET",
             "/auth/v1/user",
@@ -57,11 +66,6 @@ class SupabaseAccountDeletion:
         user_id = user.get("id") if isinstance(user, dict) else None
         if not isinstance(user_id, str) or not user_id:
             raise AccountAuthenticationError("A sessão não identifica uma conta válida.")
-        self._request(
-            "DELETE",
-            f"/auth/v1/admin/users/{quote(user_id, safe='')}",
-            authorization=self.config.service_role_key,
-        )
         return user_id
 
     def _request(

@@ -320,6 +320,13 @@ https://na-pt.erlog.pt/sph.php
 
 Gerar atividades, frases e desafios alinhados com a meditacao do dia e o estado da pessoa.
 
+### Estado implementado
+
+- Catálogo local com quatro estados para os 366 dias, disponível sem conta e offline.
+- OpenAI fechada por defeito através de `AI_DELIVERY_READY=false`.
+- Quando ativada, exige sessão Supabase válida e quota diária atómica por conta.
+- A identidade da conta não é enviada à OpenAI; falhas regressam ao catálogo local.
+
 ### Regras importantes
 
 - Nao substituir tecnico de saude.

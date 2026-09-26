@@ -34,7 +34,18 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [ ] Confirmar que o ecrã bloqueado mostra apenas a mensagem generica.
 - [ ] Mudar `PUSH_DELIVERY_READY=true` apenas depois do teste integral.
 
-## 4. Conteudo e seguranca
+## 4. Apoio diário com AI
+
+- [x] Manter o catálogo local disponível para todas as pessoas e como fallback automático.
+- [x] Exigir conta validada e reclamar a quota diária de forma atómica antes de chamar a OpenAI.
+- [ ] Guardar na Vercel Preview: `OPENAI_API_KEY`, `OPENAI_MODEL` e `AI_DAILY_LIMIT`.
+- [ ] Manter `AI_DELIVERY_READY=false` durante a configuração e os primeiros testes.
+- [ ] Confirmar no Supabase que `ai_daily_usage` guarda apenas conta, data, contador e atualização.
+- [ ] Testar utilizador sem conta, sessão inválida, limite atingido e falha da OpenAI; todos devem receber o catálogo local.
+- [ ] Rever custos e definir o limite diário inicial; recomendado: `3`.
+- [ ] Mudar `AI_DELIVERY_READY=true` apenas em Preview e monitorizar custo, latência e falhas antes de produção.
+
+## 5. Conteudo e seguranca
 
 - [ ] Rever atividade, frase e desafio com pessoas com experiencia clinica e comunitaria.
 - [ ] Aprovar a politica de privacidade com apoio juridico adequado a Cabo Verde.
@@ -42,7 +53,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [ ] Confirmar que logs tecnicos nunca incluem meditacao privada, check-ins, gratidoes ou partilhas.
 - [ ] Fazer um teste de acessibilidade com leitor de ecrã e navegacao por teclado.
 
-## 5. Funcionalidades que ficam fechadas
+## 6. Funcionalidades que ficam fechadas
 
 ### Sala Anonima publica
 
@@ -52,7 +63,7 @@ Nao ativar antes de existirem moderadores identificados, horario e tempo de resp
 
 Nao ativar antes de definir entidade responsavel, catalogo, stock, precos, pagamentos, entregas, devolucoes, recibos e transparencia sobre o destino do apoio.
 
-## 6. Promocao para producao
+## 7. Promocao para producao
 
 - [ ] Repetir no projeto e variaveis de Production tudo o que foi validado em Preview.
 - [ ] Confirmar `production` como Production Branch na Vercel.

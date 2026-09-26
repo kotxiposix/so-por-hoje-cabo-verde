@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import json
+import os
 import unittest
 from datetime import date
 from pathlib import Path
+from unittest.mock import patch
 
 from sph.repository import MeditationRepository
-from sph.ai_support import DailySupportRequest, local_daily_support
+from sph.ai_support import DailySupport, DailySupportRequest, build_daily_support, local_daily_support
 from sph.service import DailyMeditationService
 
 
@@ -101,6 +103,37 @@ class MeditationTests(unittest.TestCase):
         self.assertTrue(support.activity)
         self.assertTrue(support.phrase)
         self.assertTrue(support.mental_challenge)
+
+    def test_openai_is_not_used_without_explicit_server_authorization(self) -> None:
+        service = DailyMeditationService(MeditationRepository(DATA_PATH), "Atlantic/Cape_Verde")
+        request = DailySupportRequest(daily=service.for_date(date(2026, 1, 3)))
+
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=False), patch(
+            "sph.ai_support.openai_daily_support"
+        ) as openai_support:
+            support = build_daily_support(request)
+
+        openai_support.assert_not_called()
+        self.assertEqual(support.source, "catalog")
+
+    def test_openai_can_be_used_after_server_authorization(self) -> None:
+        service = DailyMeditationService(MeditationRepository(DATA_PATH), "Atlantic/Cape_Verde")
+        request = DailySupportRequest(daily=service.for_date(date(2026, 1, 3)))
+        expected = DailySupport(
+            activity="Ação",
+            phrase="Frase",
+            mental_challenge="Desafio",
+            safety_note="Nota",
+            source="openai",
+        )
+
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=False), patch(
+            "sph.ai_support.openai_daily_support", return_value=expected
+        ) as openai_support:
+            support = build_daily_support(request, allow_openai=True)
+
+        openai_support.assert_called_once_with(request, "secret")
+        self.assertEqual(support, expected)
 
 
 if __name__ == "__main__":

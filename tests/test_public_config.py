@@ -46,6 +46,23 @@ class PublicConfigTests(unittest.TestCase):
         self.assertEqual(config["push"]["vapidPublicKey"], "public-vapid-key")
         self.assertNotIn("must-stay-private", repr(config))
 
+    def test_ai_requires_account_private_keys_and_explicit_delivery_flag(self) -> None:
+        environment = {
+            "SUPABASE_URL": "https://project.supabase.co",
+            "SUPABASE_PUBLISHABLE_KEY": "public-key",
+            "SUPABASE_SERVICE_ROLE_KEY": "service-role",
+            "OPENAI_API_KEY": "openai-secret",
+        }
+
+        self.assertFalse(public_runtime_config(environment)["features"]["ai"])
+
+        environment["AI_DELIVERY_READY"] = "true"
+        config = public_runtime_config(environment)
+
+        self.assertTrue(config["features"]["ai"])
+        self.assertNotIn("service-role", repr(config))
+        self.assertNotIn("openai-secret", repr(config))
+
 
 if __name__ == "__main__":
     unittest.main()

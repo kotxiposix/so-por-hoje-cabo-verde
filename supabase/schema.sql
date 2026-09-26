@@ -80,12 +80,49 @@ create table if not exists public.push_subscriptions (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.ai_daily_usage (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  usage_date date not null,
+  request_count integer not null default 0 check (request_count >= 0),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, usage_date)
+);
+
+create or replace function public.claim_ai_daily_request(p_user_id uuid, p_limit integer default 3)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  affected integer;
+begin
+  if p_limit < 1 then
+    return false;
+  end if;
+
+  insert into public.ai_daily_usage (user_id, usage_date, request_count, updated_at)
+  values (p_user_id, (now() at time zone 'Atlantic/Cape_Verde')::date, 1, now())
+  on conflict (user_id, usage_date) do update
+    set request_count = public.ai_daily_usage.request_count + 1,
+        updated_at = now()
+    where public.ai_daily_usage.request_count < p_limit;
+
+  get diagnostics affected = row_count;
+  return affected = 1;
+end;
+$$;
+
+revoke all on function public.claim_ai_daily_request(uuid, integer) from public, anon, authenticated;
+grant execute on function public.claim_ai_daily_request(uuid, integer) to service_role;
+
 alter table public.journey_state enable row level security;
 alter table public.anonymous_posts enable row level security;
 alter table public.anonymous_reports enable row level security;
 alter table public.help_resources enable row level security;
 alter table public.notification_preferences enable row level security;
 alter table public.push_subscriptions enable row level security;
+alter table public.ai_daily_usage enable row level security;
 
 drop policy if exists "Users read their journey" on public.journey_state;
 create policy "Users read their journey"

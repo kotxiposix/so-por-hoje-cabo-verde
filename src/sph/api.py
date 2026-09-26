@@ -13,6 +13,7 @@ from sph.account_deletion import (
     bearer_token,
 )
 from sph.ai_support import DailySupportRequest, build_daily_support, support_to_dict
+from sph.ai_access import AiRuntimeConfig, AiUsageError, SupabaseAiUsage
 from sph.channels.console import ConsoleChannel
 from sph.config import settings
 from sph.models import DailyMeditation
@@ -70,11 +71,26 @@ def today_preview() -> dict[str, str]:
 
 
 @app.post("/api/v1/ai/daily-support")
-def ai_daily_support(payload: AiDailySupportPayload) -> dict[str, str]:
+def ai_daily_support(
+    payload: AiDailySupportPayload,
+    authorization: str | None = Header(default=None),
+) -> dict[str, str]:
     try:
         daily = DailyMeditation(**payload.daily) if payload.daily else service.today()
     except TypeError as exc:
         raise HTTPException(status_code=400, detail="Dados da meditação inválidos") from exc
+    allow_openai = False
+    runtime = AiRuntimeConfig.from_environment()
+    if runtime.ready and authorization:
+        try:
+            token = bearer_token(authorization)
+            user_id = SupabaseAccountDeletion(
+                AccountDeletionConfig(runtime.supabase_url, runtime.service_role_key)
+            ).resolve_user_id(token)
+            allow_openai = SupabaseAiUsage(runtime).claim(user_id)
+        except (AccountAuthenticationError, AccountServiceError, AiUsageError):
+            allow_openai = False
+
     support = build_daily_support(
         DailySupportRequest(
             daily=daily,
@@ -82,7 +98,8 @@ def ai_daily_support(payload: AiDailySupportPayload) -> dict[str, str]:
             clean_days=payload.clean_days,
             reading_streak=payload.reading_streak,
             language=payload.language,
-        )
+        ),
+        allow_openai=allow_openai,
     )
     return support_to_dict(support)
 

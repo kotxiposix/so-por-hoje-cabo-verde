@@ -111,6 +111,7 @@ const accountState = {
   pendingEmail: "",
   session: loadAccountSession(),
   syncEnabled: localStorage.getItem("sph-account-sync") === "on",
+  aiEnabled: false,
   pushEnabled: false,
   vapidPublicKey: "",
   pushRegistered: localStorage.getItem("sph-push-enabled") === "on",
@@ -242,6 +243,12 @@ function persistAccountSession(session) {
   }
 }
 
+function clearAiSupportCache() {
+  Object.keys(localStorage)
+    .filter((key) => key.startsWith("sph-ai-support:"))
+    .forEach((key) => localStorage.removeItem(key));
+}
+
 async function setupAccount() {
   try {
     const response = await fetch("/api/v1/config", {
@@ -258,6 +265,7 @@ async function setupAccount() {
     const { SupabaseAccountClient } = await import("./account-client.mjs");
     accountState.client = new SupabaseAccountClient(config.supabase);
     accountState.enabled = true;
+    accountState.aiEnabled = Boolean(config.features?.ai);
     accountState.pushEnabled = Boolean(config.features?.push && config.push?.vapidPublicKey);
     accountState.vapidPublicKey = config.push?.vapidPublicKey || "";
     if (accountState.session) {
@@ -398,6 +406,7 @@ async function signOutAccount() {
     }
   }
   persistAccountSession(null);
+  clearAiSupportCache();
   accountState.syncEnabled = false;
   localStorage.removeItem("sph-account-sync");
   renderAccount();
@@ -1356,7 +1365,20 @@ async function getDailySupport() {
     reading_streak: getCurrentStreak(completed, state.daily.date),
     language: "pt-CV",
   };
-  const cacheKey = `sph-ai-support:${state.daily.date}:${payload.user_state}:${payload.clean_days}:${payload.reading_streak}`;
+  let authorization = "";
+  let cacheOwner = "local";
+  if (accountState.aiEnabled && accountState.client && accountState.session) {
+    try {
+      const session = await accountState.client.ensureSession(accountState.session);
+      persistAccountSession(session);
+      authorization = `Bearer ${session.access_token}`;
+      cacheOwner = session.user.id;
+    } catch {
+      authorization = "";
+    }
+  }
+  const supportMode = authorization ? "ai" : "local";
+  const cacheKey = `sph-ai-support:${supportMode}:${cacheOwner}:${state.daily.date}:${payload.user_state}:${payload.clean_days}:${payload.reading_streak}`;
 
   try {
     const cached = JSON.parse(localStorage.getItem(cacheKey));
@@ -1370,7 +1392,10 @@ async function getDailySupport() {
 
   const response = await fetch("/api/v1/ai/daily-support", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(authorization ? { Authorization: authorization } : {}),
+    },
     body: JSON.stringify(payload),
   });
   if (!response.ok) {

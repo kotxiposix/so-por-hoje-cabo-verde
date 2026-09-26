@@ -15,12 +15,20 @@ def public_runtime_config(environment: Mapping[str, str] | None = None) -> dict[
     vapid_public_key = env.get("VAPID_PUBLIC_KEY", "").strip()
     delivery_ready = env.get("PUSH_DELIVERY_READY", "").strip().lower() in {"1", "true", "yes"}
     push_enabled = bool(account_enabled and vapid_public_key and delivery_ready)
+    ai_ready = env.get("AI_DELIVERY_READY", "").strip().lower() in {"1", "true", "yes"}
+    ai_enabled = bool(
+        account_enabled
+        and ai_ready
+        and env.get("OPENAI_API_KEY", "").strip()
+        and env.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    )
 
     payload: dict[str, object] = {
         "features": {
             "account": account_enabled,
             "community": False,
             "push": push_enabled,
+            "ai": ai_enabled,
         }
     }
     if account_enabled:

@@ -64,9 +64,9 @@ Regras obrigatórias:
 """.strip()
 
 
-def build_daily_support(request: DailySupportRequest) -> DailySupport:
+def build_daily_support(request: DailySupportRequest, *, allow_openai: bool = False) -> DailySupport:
     api_key = os.getenv("OPENAI_API_KEY", "").strip()
-    if not api_key:
+    if not allow_openai or not api_key:
         return local_daily_support(request)
 
     try:

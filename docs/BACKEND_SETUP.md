@@ -22,6 +22,10 @@ VAPID_SUBJECT=mailto:equipa@exemplo.cv
 PUSH_CRON_SECRET=...           # segredo longo enviado apenas pelo agendador
 ADMIN_API_SECRET=...           # protege testes e registos tecnicos
 PUSH_DELIVERY_READY=false      # mudar para true so depois do teste integral
+OPENAI_API_KEY=...             # apenas servidor
+OPENAI_MODEL=gpt-4.1-mini
+AI_DAILY_LIMIT=3               # entre 1 e 20
+AI_DELIVERY_READY=false        # ativar so depois de validar conta e quota
 ```
 
 A URL e a chave publica podem ser usadas pelo cliente depois de as regras RLS estarem ativas. A `SERVICE_ROLE_KEY` ignora RLS e fica exclusivamente no ambiente seguro da Vercel.
@@ -36,6 +40,7 @@ O endpoint `DELETE /api/v1/account` valida o token de acesso no Supabase antes d
 - `help_resources`: o publico ve apenas recursos marcados como verificados.
 - `notification_preferences`: consentimento, hora local e fuso horario de cada conta.
 - `push_subscriptions`: subscricoes Web Push pertencentes ao proprio utilizador.
+- `ai_daily_usage`: contador diário por conta usado apenas para limitar pedidos OpenAI.
 
 O browser nao recebe permissoes para publicar diretamente, moderar, apagar mensagens de outras pessoas ou alterar recursos de ajuda. Essas operacoes pertencem a funcoes de servidor e a uma area administrativa protegida.
 
@@ -77,9 +82,13 @@ Variaveis privadas na Vercel:
 ```text
 OPENAI_API_KEY=...
 OPENAI_MODEL=gpt-4.1-mini
+AI_DAILY_LIMIT=3
+AI_DELIVERY_READY=false
 ```
 
 Nunca colocar a chave OpenAI nem a service role do Supabase em `public/`, no Git ou em JavaScript enviado ao navegador.
+
+O endpoint de apoio diário usa sempre o catálogo local por defeito. Só reserva e envia um pedido à OpenAI quando `AI_DELIVERY_READY=true`, a sessão da própria pessoa é validada no Supabase e a função atómica `claim_ai_daily_request` confirma que a quota diária ainda não foi atingida. A identidade da conta não é enviada à OpenAI. Falhas de autenticação, quota, rede ou fornecedor regressam silenciosamente ao catálogo local.
 
 Os endpoints `/api/v1/admin/send-logs` e `/api/v1/admin/send-test` exigem `Authorization: Bearer $ADMIN_API_SECRET`. Sem esse segredo configurado, permanecem fechados.
 
