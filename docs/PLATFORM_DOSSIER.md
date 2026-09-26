@@ -552,14 +552,14 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 | Meditacao | Funcional, com gratidao diaria | Rever conteudo complementar com equipa clinica/comunitaria |
 | Jornada | Funcional no dispositivo, com historico, exportacao e preferencias | Ligar sincronizacao opcional |
 | Viver Saudavel | Podcast, documentario, exposicao e recursos praticos | Adicionar historias e novos conteudos aprovados |
-| Ajuda | Contactos e respostas iniciais | Validar dados e criar fluxo SOS |
+| Ajuda | Fluxo SOS e contactos oficiais principais | Validar horarios e restantes respostas locais |
 | Sala anonima | Prototipo apenas local | Nao publicar como sala real sem backend e moderacao |
 | Sobre | Missao, visao, privacidade, contactos e FAQ | Completar historia, equipa e parceiros |
 | Conta/login | Esquema e regras RLS preparados | Criar projeto Supabase e ligar email OTP |
 | Notificacoes push | Permissao e preferencia local | Ligar agendamento/push no backend |
 | PWA | Instalacao e offline parcial implementados | Verificar em producao e ampliar cache quando necessario |
 | Loja e doacao | Nao iniciado | Definir operacao, pagamentos, entregas e transparencia |
-| Privacidade e seguranca | Parcial | Politica, permissoes, encriptacao e conformidade |
+| Privacidade e seguranca | Politica preliminar publicada e modelo RLS preparado | Revisao juridica, permissoes e conformidade |
 
 ### Ordem de desenvolvimento
 

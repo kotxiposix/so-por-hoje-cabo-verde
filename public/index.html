@@ -384,7 +384,7 @@
             <span>Preciso de apoio</span>
             <h3 id="support-now-title">Um pedido de ajuda pode ser o próximo passo seguro.</h3>
           </div>
-          <a href="tel:8002527">Ligar SOS Álcool · 800 25 27</a>
+          <button id="sos-button" type="button">Abrir opções de apoio</button>
         </section>
 
         <section class="anonymous-room" aria-labelledby="anonymous-title">
@@ -459,8 +459,8 @@
         </section>
 
         <div class="source-note community-source">
-          <p>Base inicial retirada da CCAD. Antes de publicar, validar horários, moradas, contactos e estado atual de cada resposta.</p>
-          <p><a href="https://www.ccad.cv/site/index.php/tratamento/12-servicos-respostas-de-tratamento-das-dependencias-disponiveis-em-cabo-verde" target="_blank" rel="noreferrer">Ver fonte CCAD</a></p>
+          <p>A Linha SOS Álcool e os contactos gerais da CCAD foram confirmados na fonte oficial. Horários comunitários e restantes respostas continuam assinalados para validação.</p>
+          <p><a href="https://www.ccad.cv/site/index.php/tratamento/12-servicos-respostas-de-tratamento-das-dependencias-disponiveis-em-cabo-verde" target="_blank" rel="noreferrer">Ver fonte oficial CCAD</a></p>
         </div>
       </section>
 
@@ -487,6 +487,7 @@
         <div class="about-links" aria-label="Informações do projeto">
           <button id="install-app" type="button" hidden>Instalar aplicação</button>
           <a href="/expo">Conhecer a exposição</a>
+          <a href="/privacidade">Política de privacidade</a>
           <a href="mailto:sandrofonseca@lentilhas.com">Contactar o projeto</a>
           <a href="https://www.instagram.com/soporhojecaboverde/" target="_blank" rel="noreferrer">Instagram</a>
           <a href="https://youtube.com/@soporhojecaboverde?sub_confirmation=1" target="_blank" rel="noreferrer">YouTube</a>
@@ -553,6 +554,30 @@
       </section>
     </div>
 
+    <div class="modal-backdrop" id="sos-modal" hidden>
+      <section class="sos-modal" role="dialog" aria-modal="true" aria-labelledby="sos-title">
+        <button class="modal-close" id="sos-close" type="button" aria-label="Fechar opções de apoio">×</button>
+        <div class="sos-content">
+          <span class="mini-label">Apoio humano</span>
+          <h2 id="sos-title">Não precisas passar por isto sozinho.</h2>
+          <p>Escolhe a ação mais segura para este momento. A plataforma não presta atendimento de emergência.</p>
+
+          <section class="danger-guidance">
+            <strong>Há perigo imediato?</strong>
+            <p>Vai à urgência mais próxima e pede a uma pessoa de confiança para ficar contigo. Não fiques sozinho.</p>
+          </section>
+
+          <div class="sos-actions">
+            <a class="primary" href="tel:8002527">Ligar SOS Álcool · 800 25 27</a>
+            <a href="tel:2623129">Ligar CCAD · 262 31 29</a>
+            <button id="copy-support-message" type="button">Copiar mensagem para pedir ajuda</button>
+          </div>
+          <p class="sos-source">Linha SOS Álcool: serviço nacional, gratuito, anónimo e confidencial, segundo a CCAD.</p>
+          <p class="more-feedback" id="support-message-status" role="status"></p>
+        </div>
+      </section>
+    </div>
+
     <div class="modal-backdrop" id="more-modal" hidden>
       <section class="more-modal" role="dialog" aria-modal="true" aria-labelledby="more-title">
         <button class="modal-close" id="more-close" type="button" aria-label="Fechar menu Mais">×</button>
@@ -568,6 +593,7 @@
               <label class="file-action" for="import-data">Importar cópia</label>
               <input id="import-data" type="file" accept="application/json,.json" hidden />
             </div>
+            <p class="policy-link"><a href="/privacidade">Ler política de privacidade</a></p>
             <p class="more-feedback" id="import-status" role="status"></p>
           </section>
 

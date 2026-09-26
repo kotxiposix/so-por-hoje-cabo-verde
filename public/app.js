@@ -70,6 +70,11 @@ const els = {
   importStatus: document.querySelector("#import-status"),
   installAppSecondary: document.querySelector("#install-app-secondary"),
   notificationsSecondary: document.querySelector("#notifications-secondary"),
+  sosButton: document.querySelector("#sos-button"),
+  sosModal: document.querySelector("#sos-modal"),
+  sosClose: document.querySelector("#sos-close"),
+  copySupportMessage: document.querySelector("#copy-support-message"),
+  supportMessageStatus: document.querySelector("#support-message-status"),
 };
 
 let lastToolButton = null;
@@ -892,6 +897,24 @@ function closeTool() {
   }
 }
 
+function openSos() {
+  els.sosModal.hidden = false;
+  document.body.classList.add("modal-open");
+  els.sosClose.focus();
+}
+
+function closeSos() {
+  els.sosModal.hidden = true;
+  document.body.classList.remove("modal-open");
+  els.sosButton.focus();
+}
+
+async function copySupportMessage() {
+  const message = "Preciso de ajuda agora. Podes ligar-me ou ficar comigo enquanto procuro apoio?";
+  await copyPlainText(message);
+  els.supportMessageStatus.textContent = "Mensagem copiada. Envia-a a uma pessoa segura.";
+}
+
 function detectTheme() {
   const text = `${state.daily?.title || ""} ${state.daily?.body || ""}`.toLowerCase();
   if (text.includes("repara")) return "repair";
@@ -987,6 +1010,14 @@ els.exportDataSecondary.addEventListener("click", exportJourneyData);
 els.importData.addEventListener("change", (event) => importJourneyData(event.target.files[0]));
 els.installAppSecondary.addEventListener("click", () => installApp());
 els.notificationsSecondary.addEventListener("click", () => activateNotifications());
+els.sosButton.addEventListener("click", openSos);
+els.sosClose.addEventListener("click", closeSos);
+els.sosModal.addEventListener("click", (event) => {
+  if (event.target === els.sosModal) closeSos();
+});
+els.copySupportMessage.addEventListener("click", () => copySupportMessage().catch(() => {
+  els.supportMessageStatus.textContent = "Não foi possível copiar. Escreve a uma pessoa segura e pede companhia.";
+}));
 els.anonymousForm.addEventListener("submit", (event) => {
   event.preventDefault();
   addAnonymousShare(els.anonymousMessage.value);
@@ -1027,6 +1058,9 @@ document.addEventListener("keydown", (event) => {
   }
   if (event.key === "Escape" && !els.moreModal.hidden) {
     closeMore();
+  }
+  if (event.key === "Escape" && !els.sosModal.hidden) {
+    closeSos();
   }
 });
 

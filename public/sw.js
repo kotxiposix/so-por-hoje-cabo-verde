@@ -1,4 +1,4 @@
-const CACHE_NAME = "sph-shell-v1";
+const CACHE_NAME = "sph-shell-v3";
 const CORE_ASSETS = [
   "/",
   "/index.html",
@@ -9,7 +9,8 @@ const CORE_ASSETS = [
   "/apple-touch-icon.png",
   "/icon-512.png",
   "/data/meditations.json",
-  "/data/daily_support.json"
+  "/data/daily_support.json",
+  "/privacidade/index.html"
 ];
 
 self.addEventListener("install", (event) => {

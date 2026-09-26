@@ -20,6 +20,10 @@
       "dest": "/public/expo/index.html"
     },
     {
+      "src": "/privacidade/?",
+      "dest": "/public/privacidade/index.html"
+    },
+    {
       "src": "/",
       "dest": "/public/index.html"
     },
