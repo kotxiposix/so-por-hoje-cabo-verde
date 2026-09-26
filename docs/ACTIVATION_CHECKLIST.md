@@ -59,6 +59,16 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 
 Nao ativar antes de existirem moderadores identificados, horario e tempo de resposta, regras de publicacao, denuncia, retencao e protocolo de crise. A versao atual permanece um diario local e diz isso claramente.
 
+- [x] Backend preparado com partilha pendente, pseudónimo gerado no servidor, listagem pública mínima, denúncia e moderação protegida.
+- [x] `COMMUNITY_READY=false` mantém todos os endpoints comunitários indisponíveis por defeito.
+- [x] Limite diário atómico protege a fila de moderação; valor inicial recomendado: `3`.
+- [ ] Nomear pelo menos dois moderadores e definir escalas, permissões e substituição.
+- [ ] Aprovar regras de publicação, motivos de denúncia, retenção e auditoria.
+- [ ] Aprovar e ensaiar o protocolo para conteúdo de risco antes de receber uma única partilha pública.
+- [ ] Construir e testar a área administrativa com contas individuais; não usar um segredo partilhado como solução final.
+- [ ] Testar publicação, rejeição, ocultação, denúncia duplicada e eliminação de conta em Preview.
+- [ ] Só depois destes passos ativar `COMMUNITY_READY=true` em Preview.
+
 ### Loja e doacao
 
 Nao ativar antes de definir entidade responsavel, catalogo, stock, precos, pagamentos, entregas, devolucoes, recibos e transparencia sobre o destino do apoio.

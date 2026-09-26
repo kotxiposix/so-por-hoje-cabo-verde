@@ -79,11 +79,14 @@ GET /api/v1/day/{month_day}
 GET /api/v1/meditations
 GET /api/v1/today/preview
 POST /api/v1/ai/daily-support
+GET /api/v1/community/posts
+POST /api/v1/community/posts
+POST /api/v1/community/posts/{post_id}/reports
 DELETE /api/v1/account
 POST /api/v1/internal/push/deliver
 ```
 
-Os dois ultimos endpoints sao fluxos protegidos: a eliminacao exige a sessao da propria pessoa e a entrega push exige o segredo do agendador.
+Publicação e denúncia na comunidade exigem a sessão da própria pessoa e só funcionam quando `COMMUNITY_READY=true`. A eliminação exige a mesma validação de sessão e a entrega push exige o segredo do agendador.
 
 ## Apoio diario com AI
 
@@ -139,6 +142,22 @@ Implicacoes:
 - Se a OpenAI falhar, faltar saldo, faltar internet ou nao houver chave, o sistema usa automaticamente a base local.
 
 O conteudo gerado e complementar: nao altera a meditacao oficial e nao substitui tecnicos de saude, sponsor, reunioes ou emergencia.
+
+## Sala Anónima moderada
+
+O backend da futura comunidade está preparado, mas permanece fechado por defeito. Quando `COMMUNITY_READY=false`, os endpoints devolvem indisponível e a interface mantém a Sala Anónima apenas no dispositivo.
+
+Quando a equipa concluir as decisões operacionais e ativar a flag, o servidor:
+
+- valida a conta sem confiar num identificador enviado pelo browser;
+- gera um pseudónimo novo no servidor;
+- cria todas as partilhas como `pending`;
+- aplica um limite diário atómico por conta, configurado por `COMMUNITY_DAILY_POST_LIMIT`;
+- expõe publicamente apenas `id`, pseudónimo, texto e data de mensagens publicadas;
+- aceita uma denúncia por conta e publicação;
+- reserva publicação, rejeição e ocultação para endpoints administrativos protegidos.
+
+Esta preparação não substitui moderadores, regras editoriais, retenção, horário de resposta nem protocolo de crise.
 
 ## Importar novamente a planilha
 

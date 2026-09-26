@@ -26,6 +26,8 @@ OPENAI_API_KEY=...             # apenas servidor
 OPENAI_MODEL=gpt-4.1-mini
 AI_DAILY_LIMIT=3               # entre 1 e 20
 AI_DELIVERY_READY=false        # ativar so depois de validar conta e quota
+COMMUNITY_READY=false          # manter fechada ate existir operacao de moderacao
+COMMUNITY_DAILY_POST_LIMIT=3   # limite por conta e dia, entre 1 e 20
 ```
 
 A URL e a chave publica podem ser usadas pelo cliente depois de as regras RLS estarem ativas. A `SERVICE_ROLE_KEY` ignora RLS e fica exclusivamente no ambiente seguro da Vercel.
@@ -41,6 +43,7 @@ O endpoint `DELETE /api/v1/account` valida o token de acesso no Supabase antes d
 - `notification_preferences`: consentimento, hora local e fuso horario de cada conta.
 - `push_subscriptions`: subscricoes Web Push pertencentes ao proprio utilizador.
 - `ai_daily_usage`: contador diário por conta usado apenas para limitar pedidos OpenAI.
+- `community_daily_usage`: contador diário por conta usado para proteger a fila de moderação.
 
 O browser nao recebe permissoes para publicar diretamente, moderar, apagar mensagens de outras pessoas ou alterar recursos de ajuda. Essas operacoes pertencem a funcoes de servidor e a uma area administrativa protegida.
 
@@ -73,6 +76,10 @@ Fluxo previsto:
 
 Antes de abrir ao publico, definir moderadores, tempos de resposta, criterios de remocao, politica de retencao e protocolo de crise.
 
+O backend já contém os endpoints de criação pendente, listagem publicada, denúncia e moderação. O pseudónimo é gerado pelo servidor e a resposta pública nunca inclui `author_id` ou notas internas. A moderação usa `ADMIN_API_SECRET`; isto é uma base técnica, não uma área administrativa final com papéis individuais e auditoria.
+
+Manter `COMMUNITY_READY=false` em todos os ambientes até a checklist operacional estar concluída. Com a flag desligada, a interface continua a usar apenas o diário local.
+
 ## 5. API e OpenAI na Vercel
 
 `api/index.py` expõe a aplicacao FastAPI como funcao Python. `vercel.json` envia `/api/*` para essa funcao antes das rotas estaticas.
@@ -90,7 +97,7 @@ Nunca colocar a chave OpenAI nem a service role do Supabase em `public/`, no Git
 
 O endpoint de apoio diário usa sempre o catálogo local por defeito. Só reserva e envia um pedido à OpenAI quando `AI_DELIVERY_READY=true`, a sessão da própria pessoa é validada no Supabase e a função atómica `claim_ai_daily_request` confirma que a quota diária ainda não foi atingida. A identidade da conta não é enviada à OpenAI. Falhas de autenticação, quota, rede ou fornecedor regressam silenciosamente ao catálogo local.
 
-Os endpoints `/api/v1/admin/send-logs` e `/api/v1/admin/send-test` exigem `Authorization: Bearer $ADMIN_API_SECRET`. Sem esse segredo configurado, permanecem fechados.
+Os endpoints `/api/v1/admin/send-logs`, `/api/v1/admin/send-test` e `/api/v1/admin/community/*` exigem `Authorization: Bearer $ADMIN_API_SECRET`. Sem esse segredo configurado, permanecem fechados.
 
 ## 6. Checklist antes de producao
 

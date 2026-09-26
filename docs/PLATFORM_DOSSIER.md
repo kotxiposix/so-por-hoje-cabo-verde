@@ -601,6 +601,7 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 ### Decisoes de seguranca
 
 - A Sala Anonima atual permanece local e deve dizer claramente que nao e uma conversa com outras pessoas.
+- O backend moderado já está preparado mas fechado por `COMMUNITY_READY=false`: toda partilha entra pendente, o pseudónimo nasce no servidor, a leitura pública omite identidade e a moderação exige acesso administrativo.
 - O botao SOS deve encaminhar para ajuda humana e nunca simular atendimento clinico.
 - Login, sincronizacao e notificacoes so avancam depois de politica de privacidade e modelo de dados minimos.
 - Loja e doacao nao entram como botoes inativos; entram apenas quando os fluxos reais estiverem definidos.

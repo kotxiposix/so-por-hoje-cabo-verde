@@ -63,6 +63,21 @@ class PublicConfigTests(unittest.TestCase):
         self.assertNotIn("service-role", repr(config))
         self.assertNotIn("openai-secret", repr(config))
 
+    def test_community_requires_account_service_role_and_explicit_readiness(self) -> None:
+        environment = {
+            "SUPABASE_URL": "https://project.supabase.co",
+            "SUPABASE_PUBLISHABLE_KEY": "public-key",
+            "SUPABASE_SERVICE_ROLE_KEY": "service-role",
+        }
+
+        self.assertFalse(public_runtime_config(environment)["features"]["community"])
+
+        environment["COMMUNITY_READY"] = "true"
+        config = public_runtime_config(environment)
+
+        self.assertTrue(config["features"]["community"])
+        self.assertNotIn("service-role", repr(config))
+
 
 if __name__ == "__main__":
     unittest.main()

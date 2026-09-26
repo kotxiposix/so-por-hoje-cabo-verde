@@ -88,6 +88,14 @@ create table if not exists public.ai_daily_usage (
   primary key (user_id, usage_date)
 );
 
+create table if not exists public.community_daily_usage (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  usage_date date not null,
+  post_count integer not null default 0 check (post_count >= 0),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, usage_date)
+);
+
 create or replace function public.claim_ai_daily_request(p_user_id uuid, p_limit integer default 3)
 returns boolean
 language plpgsql
@@ -116,6 +124,52 @@ $$;
 revoke all on function public.claim_ai_daily_request(uuid, integer) from public, anon, authenticated;
 grant execute on function public.claim_ai_daily_request(uuid, integer) to service_role;
 
+drop function if exists public.claim_community_daily_post(uuid, integer);
+
+create or replace function public.submit_anonymous_post(
+  p_user_id uuid,
+  p_pseudonym text,
+  p_body text,
+  p_limit integer default 3
+)
+returns setof public.anonymous_posts
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  affected integer;
+begin
+  if p_limit < 1
+    or char_length(p_pseudonym) not between 3 and 32
+    or char_length(p_body) not between 1 and 280 then
+    return;
+  end if;
+
+  insert into public.community_daily_usage (user_id, usage_date, post_count, updated_at)
+  values (p_user_id, (now() at time zone 'Atlantic/Cape_Verde')::date, 1, now())
+  on conflict (user_id, usage_date) do update
+    set post_count = public.community_daily_usage.post_count + 1,
+        updated_at = now()
+    where public.community_daily_usage.post_count < p_limit;
+
+  get diagnostics affected = row_count;
+  if affected <> 1 then
+    return;
+  end if;
+
+  return query
+    insert into public.anonymous_posts (author_id, pseudonym, body, status)
+    values (p_user_id, p_pseudonym, p_body, 'pending')
+    returning *;
+end;
+$$;
+
+revoke all on function public.submit_anonymous_post(uuid, text, text, integer)
+  from public, anon, authenticated;
+grant execute on function public.submit_anonymous_post(uuid, text, text, integer)
+  to service_role;
+
 alter table public.journey_state enable row level security;
 alter table public.anonymous_posts enable row level security;
 alter table public.anonymous_reports enable row level security;
@@ -123,6 +177,7 @@ alter table public.help_resources enable row level security;
 alter table public.notification_preferences enable row level security;
 alter table public.push_subscriptions enable row level security;
 alter table public.ai_daily_usage enable row level security;
+alter table public.community_daily_usage enable row level security;
 
 drop policy if exists "Users read their journey" on public.journey_state;
 create policy "Users read their journey"
@@ -150,34 +205,8 @@ create policy "Users delete their journey"
   using ((select auth.uid()) = user_id);
 
 drop policy if exists "Public reads moderated posts" on public.anonymous_posts;
-create policy "Public reads moderated posts"
-  on public.anonymous_posts for select
-  to anon, authenticated
-  using (status = 'published');
-
 drop policy if exists "Members submit pending posts" on public.anonymous_posts;
-create policy "Members submit pending posts"
-  on public.anonymous_posts for insert
-  to authenticated
-  with check (
-    (select auth.uid()) = author_id
-    and status = 'pending'
-    and moderated_at is null
-    and moderation_note is null
-  );
-
 drop policy if exists "Members report published posts" on public.anonymous_reports;
-create policy "Members report published posts"
-  on public.anonymous_reports for insert
-  to authenticated
-  with check (
-    (select auth.uid()) = reporter_id
-    and exists (
-      select 1
-      from public.anonymous_posts post
-      where post.id = post_id and post.status = 'published'
-    )
-  );
 
 drop policy if exists "Public reads verified help resources" on public.help_resources;
 create policy "Public reads verified help resources"
@@ -199,5 +228,6 @@ create policy "Users manage push subscriptions"
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
 
--- Moderation and resource management deliberately have no browser write policy.
--- Use a trusted server process with the Supabase service role for those actions.
+-- Community access, moderation and resource management deliberately have no
+-- browser policy. Use trusted server endpoints with the service role so feature
+-- flags, generated pseudonyms and response shaping cannot be bypassed.

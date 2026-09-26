@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date
 
 from fastapi import FastAPI, Header, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from sph.account_deletion import (
     AccountAuthenticationError,
@@ -15,6 +15,14 @@ from sph.account_deletion import (
 from sph.ai_support import DailySupportRequest, build_daily_support, support_to_dict
 from sph.ai_access import AiRuntimeConfig, AiUsageError, SupabaseAiUsage
 from sph.channels.console import ConsoleChannel
+from sph.community import (
+    CommunityConfig,
+    CommunityConflictError,
+    CommunityInputError,
+    CommunityLimitError,
+    CommunityServiceError,
+    SupabaseCommunity,
+)
 from sph.config import settings
 from sph.models import DailyMeditation
 from sph.public_config import public_runtime_config
@@ -41,9 +49,41 @@ class AiDailySupportPayload(BaseModel):
     language: str = "pt-CV"
 
 
+class CommunityPostPayload(BaseModel):
+    body: str = Field(min_length=1, max_length=280)
+
+
+class CommunityReportPayload(BaseModel):
+    reason: str = Field(min_length=1, max_length=32)
+    details: str | None = Field(default=None, max_length=500)
+
+
+class CommunityModerationPayload(BaseModel):
+    status: str = Field(min_length=1, max_length=20)
+    note: str | None = Field(default=None, max_length=500)
+
+
 def require_admin_access(authorization: str | None) -> None:
     if not admin_access_allowed(authorization):
         raise HTTPException(status_code=401, detail="Não autorizado")
+
+
+def community_service() -> SupabaseCommunity:
+    try:
+        return SupabaseCommunity(CommunityConfig.from_environment())
+    except CommunityServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+def authenticated_user_id(authorization: str | None) -> str:
+    try:
+        token = bearer_token(authorization)
+        config = AccountDeletionConfig.from_environment()
+        return SupabaseAccountDeletion(config).resolve_user_id(token)
+    except AccountAuthenticationError as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
+    except AccountServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @app.get("/api/v1/health")
@@ -102,6 +142,76 @@ def ai_daily_support(
         allow_openai=allow_openai,
     )
     return support_to_dict(support)
+
+
+@app.get("/api/v1/community/posts")
+def community_posts(limit: int = 20) -> list[dict[str, object]]:
+    try:
+        return community_service().list_published_posts(limit)
+    except CommunityServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/community/posts")
+def create_community_post(
+    payload: CommunityPostPayload,
+    authorization: str | None = Header(default=None),
+) -> dict[str, object]:
+    community = community_service()
+    user_id = authenticated_user_id(authorization)
+    try:
+        return community.create_pending_post(user_id, payload.body)
+    except CommunityInputError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except CommunityLimitError as exc:
+        raise HTTPException(status_code=429, detail=str(exc)) from exc
+    except CommunityServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/community/posts/{post_id}/reports")
+def report_community_post(
+    post_id: str,
+    payload: CommunityReportPayload,
+    authorization: str | None = Header(default=None),
+) -> dict[str, object]:
+    community = community_service()
+    user_id = authenticated_user_id(authorization)
+    try:
+        return community.report_post(user_id, post_id, payload.reason, payload.details)
+    except CommunityInputError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except CommunityConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except CommunityServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.get("/api/v1/admin/community/pending")
+def pending_community_posts(
+    limit: int = 50,
+    authorization: str | None = Header(default=None),
+) -> list[dict[str, object]]:
+    require_admin_access(authorization)
+    try:
+        return community_service().list_pending_posts(limit)
+    except CommunityServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.patch("/api/v1/admin/community/posts/{post_id}")
+def moderate_community_post(
+    post_id: str,
+    payload: CommunityModerationPayload,
+    authorization: str | None = Header(default=None),
+) -> dict[str, object]:
+    require_admin_access(authorization)
+    try:
+        return community_service().moderate_post(post_id, payload.status, payload.note)
+    except CommunityInputError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except CommunityServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @app.post("/api/v1/internal/push/deliver")

@@ -22,11 +22,17 @@ def public_runtime_config(environment: Mapping[str, str] | None = None) -> dict[
         and env.get("OPENAI_API_KEY", "").strip()
         and env.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
     )
+    community_ready = env.get("COMMUNITY_READY", "").strip().lower() in {"1", "true", "yes"}
+    community_enabled = bool(
+        account_enabled
+        and community_ready
+        and env.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    )
 
     payload: dict[str, object] = {
         "features": {
             "account": account_enabled,
-            "community": False,
+            "community": community_enabled,
             "push": push_enabled,
             "ai": ai_enabled,
         }
