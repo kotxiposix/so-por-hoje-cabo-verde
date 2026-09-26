@@ -28,6 +28,11 @@ from sph.service import DailyMeditationService
 repository = MeditationRepository(settings.data_path)
 service = DailyMeditationService(repository, settings.timezone)
 PUBLIC_DIR = settings.data_path.parents[1] / "public"
+MAX_JSON_BODY_BYTES = 64 * 1024
+
+
+class RequestBodyTooLarge(ValueError):
+    pass
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -107,6 +112,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.respond(deliver_due_notifications(config))
             else:
                 self.respond({"detail": "Not found"}, HTTPStatus.NOT_FOUND)
+        except RequestBodyTooLarge as exc:
+            self.respond({"detail": str(exc)}, HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
         except (TypeError, ValueError) as exc:
             self.respond({"detail": str(exc)}, HTTPStatus.BAD_REQUEST)
         except RuntimeError as exc:
@@ -116,6 +123,8 @@ class Handler(BaseHTTPRequestHandler):
         length = int(self.headers.get("Content-Length") or 0)
         if length <= 0:
             return {}
+        if length > MAX_JSON_BODY_BYTES:
+            raise RequestBodyTooLarge("Pedido JSON excede o limite de 64 KB")
         body = self.rfile.read(length)
         payload = json.loads(body.decode("utf-8"))
         if not isinstance(payload, dict):

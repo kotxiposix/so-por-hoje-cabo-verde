@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections import deque
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
@@ -23,14 +24,16 @@ class JsonlSendLog:
     def __init__(self, path: Path):
         self.path = path
 
-    def list(self) -> list[SendLogEntry]:
+    def list(self, limit: int | None = None) -> list[SendLogEntry]:
         if not self.path.exists():
             return []
-        entries: list[SendLogEntry] = []
-        for line in self.path.read_text(encoding="utf-8").splitlines():
-            if line.strip():
-                entries.append(SendLogEntry(**json.loads(line)))
-        return entries
+        entries: list[str] | deque[str]
+        entries = deque(maxlen=limit) if limit is not None else []
+        with self.path.open(encoding="utf-8") as handle:
+            for line in handle:
+                if line.strip():
+                    entries.append(line)
+        return [SendLogEntry(**json.loads(line)) for line in entries]
 
     def already_sent(self, send_date: str, channel: str, destination_id: str | None) -> bool:
         return any(
@@ -49,4 +52,3 @@ class JsonlSendLog:
 
 def now_iso(timezone: str) -> str:
     return datetime.now(ZoneInfo(timezone)).isoformat(timespec="seconds")
-

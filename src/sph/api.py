@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from datetime import date
 
-from fastapi import FastAPI, Header, HTTPException
-from pydantic import BaseModel, Field
+from fastapi import FastAPI, Header, HTTPException, Query
+from pydantic import BaseModel, ConfigDict, Field
 
 from sph.account_deletion import (
     AccountAuthenticationError,
@@ -47,12 +47,25 @@ sender = DailySender(service, send_log, settings.timezone)
 app = FastAPI(title="So Por Hoje Cabo Verde", version="0.1.0")
 
 
+class DailyMeditationPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    date: str = Field(min_length=10, max_length=10)
+    weekday: str = Field(min_length=1, max_length=30)
+    month_day: str = Field(pattern=r"^\d{2}-\d{2}$")
+    title: str = Field(min_length=1, max_length=200)
+    body: str = Field(min_length=1, max_length=10_000)
+    reflection: str = Field(min_length=1, max_length=2_000)
+
+
 class AiDailySupportPayload(BaseModel):
-    daily: dict[str, str] | None = None
-    user_state: str = ""
-    clean_days: int = 0
-    reading_streak: int = 0
-    language: str = "pt-CV"
+    model_config = ConfigDict(extra="forbid")
+
+    daily: DailyMeditationPayload | None = None
+    user_state: str = Field(default="", max_length=20)
+    clean_days: int = Field(default=0, ge=0, le=100_000)
+    reading_streak: int = Field(default=0, ge=0, le=3_660)
+    language: str = Field(default="pt-CV", min_length=2, max_length=12)
 
 
 class CommunityPostPayload(BaseModel):
@@ -147,7 +160,7 @@ def ai_daily_support(
     authorization: str | None = Header(default=None),
 ) -> dict[str, str]:
     try:
-        daily = DailyMeditation(**payload.daily) if payload.daily else service.today()
+        daily = DailyMeditation(**payload.daily.model_dump()) if payload.daily else service.today()
     except TypeError as exc:
         raise HTTPException(status_code=400, detail="Dados da meditação inválidos") from exc
     allow_openai = False
@@ -176,7 +189,7 @@ def ai_daily_support(
 
 
 @app.get("/api/v1/community/posts")
-def community_posts(limit: int = 20) -> list[dict[str, object]]:
+def community_posts(limit: int = Query(default=20, ge=1, le=100)) -> list[dict[str, object]]:
     try:
         return community_service().list_published_posts(limit)
     except CommunityServiceError as exc:
@@ -220,7 +233,7 @@ def report_community_post(
 
 @app.get("/api/v1/admin/community/pending")
 def pending_community_posts(
-    limit: int = 50,
+    limit: int = Query(default=50, ge=1, le=200),
     authorization: str | None = Header(default=None),
 ) -> list[dict[str, object]]:
     require_admin_access(authorization)
@@ -246,7 +259,7 @@ def moderate_community_post(
 
 
 @app.get("/api/v1/help/resources")
-def verified_help_resources(limit: int = 100) -> list[dict[str, object]]:
+def verified_help_resources(limit: int = Query(default=100, ge=1, le=200)) -> list[dict[str, object]]:
     try:
         return help_directory_service().list_verified(limit)
     except HelpDirectoryServiceError as exc:
@@ -255,7 +268,7 @@ def verified_help_resources(limit: int = 100) -> list[dict[str, object]]:
 
 @app.get("/api/v1/admin/help/resources")
 def help_resources_for_review(
-    limit: int = 200,
+    limit: int = Query(default=200, ge=1, le=500),
     authorization: str | None = Header(default=None),
 ) -> list[dict[str, object]]:
     require_admin_access(authorization)
@@ -362,9 +375,12 @@ def meditations() -> list[dict[str, str | None]]:
 
 
 @app.get("/api/v1/admin/send-logs")
-def send_logs(authorization: str | None = Header(default=None)) -> list[dict[str, str | None]]:
+def send_logs(
+    limit: int = Query(default=100, ge=1, le=500),
+    authorization: str | None = Header(default=None),
+) -> list[dict[str, str | None]]:
     require_admin_access(authorization)
-    return [entry.__dict__ for entry in send_log.list()]
+    return [entry.__dict__ for entry in send_log.list(limit=limit)]
 
 
 @app.post("/api/v1/admin/send-test")
