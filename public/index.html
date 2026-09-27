@@ -457,13 +457,14 @@
           <header>
             <span id="anonymous-name">Guerreiro000</span>
             <h3 id="anonymous-title">Sala anónima</h3>
-            <p>Nesta fase, as partilhas ficam guardadas apenas neste dispositivo. Não são enviadas nem vistas por outras pessoas, e podes eliminá-las individualmente.</p>
+            <p id="anonymous-description">Nesta fase, as partilhas ficam guardadas apenas neste dispositivo. Não são enviadas nem vistas por outras pessoas, e podes eliminá-las individualmente.</p>
           </header>
           <form id="anonymous-form">
             <label for="anonymous-message">Escreve o que precisas de partilhar</label>
             <textarea id="anonymous-message" rows="3" maxlength="280" placeholder="Evita nomes, contactos e outros dados pessoais."></textarea>
-            <button type="submit">Guardar partilha</button>
+            <button id="anonymous-submit" type="submit">Guardar partilha</button>
           </form>
+          <p class="anonymous-status" id="anonymous-status" role="status" aria-live="polite"></p>
           <div class="anonymous-feed" id="anonymous-feed" aria-live="polite"></div>
         </section>
 

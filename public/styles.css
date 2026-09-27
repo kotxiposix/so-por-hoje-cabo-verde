@@ -1626,6 +1626,22 @@ button {
   font-size: 12px;
 }
 
+.anonymous-status {
+  min-height: 22px;
+  margin-top: 10px !important;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.anonymous-room .anonymous-report {
+  min-height: 36px;
+  padding: 0 10px;
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.86);
+  background: transparent;
+  font-size: 12px;
+}
+
 .expo-hero {
   position: relative;
   min-height: 360px;

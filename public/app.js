@@ -74,8 +74,11 @@ const els = {
   bestStreak: document.querySelector("#best-streak"),
   checkinGuidance: document.querySelector("#checkin-guidance"),
   anonymousName: document.querySelector("#anonymous-name"),
+  anonymousDescription: document.querySelector("#anonymous-description"),
   anonymousForm: document.querySelector("#anonymous-form"),
   anonymousMessage: document.querySelector("#anonymous-message"),
+  anonymousSubmit: document.querySelector("#anonymous-submit"),
+  anonymousStatus: document.querySelector("#anonymous-status"),
   anonymousFeed: document.querySelector("#anonymous-feed"),
   gratitudeForm: document.querySelector("#gratitude-form"),
   gratitudeInput: document.querySelector("#gratitude-input"),
@@ -158,6 +161,9 @@ const accountState = {
   pushEnabled: false,
   helpDirectoryEnabled: false,
   editorialContentEnabled: false,
+  communityEnabled: false,
+  communityPosts: [],
+  communityLoaded: false,
   vapidPublicKey: "",
   pushRegistered: localStorage.getItem("sph-push-enabled") === "on",
 };
@@ -311,11 +317,15 @@ async function setupAccount() {
     const config = await response.json();
     accountState.helpDirectoryEnabled = Boolean(config.features?.helpDirectory);
     accountState.editorialContentEnabled = Boolean(config.features?.editorialContent);
+    accountState.communityEnabled = Boolean(config.features?.community);
     if (accountState.helpDirectoryEnabled) {
       await loadVerifiedHelpResources();
     }
     if (accountState.editorialContentEnabled) {
       await loadEditorialContent();
+    }
+    if (accountState.communityEnabled) {
+      await loadPublishedCommunity();
     }
     if (!config.features?.account || !config.supabase) {
       renderAccount();
@@ -419,6 +429,7 @@ function renderAccount() {
   els.accountAuth.hidden = !accountState.enabled || signedIn;
   els.accountSession.hidden = !signedIn;
   renderPrivacyState();
+  renderAnonymousRoom();
 
   if (!accountState.enabled) {
     els.accountSummary.textContent = "A conta opcional ainda não está configurada neste ambiente. Continuas no modo local e anónimo.";
@@ -1675,22 +1686,157 @@ function flashStatus(title, copy) {
 }
 
 function renderAnonymousRoom() {
+  if (accountState.communityEnabled) {
+    const signedIn = accountState.enabled && Boolean(accountState.session);
+    els.anonymousName.textContent = "Comunidade moderada";
+    els.anonymousDescription.textContent = signedIn
+      ? "As partilhas entram numa fila privada e só aparecem depois de revisão humana. Não incluas nomes, contactos ou ligações."
+      : "Podes ler partilhas aprovadas. Para partilhar ou denunciar, entra com uma conta validada no menu Mais.";
+    els.anonymousMessage.disabled = !signedIn;
+    els.anonymousSubmit.disabled = !signedIn;
+    els.anonymousSubmit.textContent = "Enviar para moderação";
+    renderPublishedCommunity();
+    return;
+  }
+
+  els.anonymousDescription.textContent = "Nesta fase, as partilhas ficam guardadas apenas neste dispositivo. Não são enviadas nem vistas por outras pessoas, e podes eliminá-las individualmente.";
+  els.anonymousMessage.disabled = false;
+  els.anonymousSubmit.disabled = false;
+  els.anonymousSubmit.textContent = "Guardar partilha";
   els.anonymousName.textContent = state.progress.anonymousName;
   const shares = state.progress.anonymousShares
     .map((share, index) => ({ share, index }))
     .slice(-4)
     .reverse();
-  els.anonymousFeed.innerHTML = shares.length
-    ? shares.map(({ share, index }) => `
-        <article>
-          <div class="anonymous-share-heading">
-            <strong>${escapeHtml(share.name)}</strong>
-            <button type="button" class="anonymous-delete" data-anonymous-delete="${index}" aria-label="Eliminar esta partilha local">Eliminar</button>
-          </div>
-          <p>${escapeHtml(share.message)}</p>
-        </article>
-      `).join("")
-    : "<p class=\"empty-feed\">Ainda não há partilhas nesta sessão.</p>";
+  els.anonymousFeed.replaceChildren();
+  if (!shares.length) {
+    const empty = document.createElement("p");
+    empty.className = "empty-feed";
+    empty.textContent = "Ainda não há partilhas nesta sessão.";
+    els.anonymousFeed.append(empty);
+    return;
+  }
+  shares.forEach(({ share, index }) => {
+    const article = document.createElement("article");
+    const heading = document.createElement("div");
+    heading.className = "anonymous-share-heading";
+    const name = document.createElement("strong");
+    name.textContent = share.name;
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "anonymous-delete";
+    remove.dataset.anonymousDelete = String(index);
+    remove.setAttribute("aria-label", "Eliminar esta partilha local");
+    remove.textContent = "Eliminar";
+    const body = document.createElement("p");
+    body.textContent = share.message;
+    heading.append(name, remove);
+    article.append(heading, body);
+    els.anonymousFeed.append(article);
+  });
+}
+
+function renderPublishedCommunity() {
+  els.anonymousFeed.replaceChildren();
+  if (!accountState.communityLoaded) {
+    const loading = document.createElement("p");
+    loading.className = "empty-feed";
+    loading.textContent = "A carregar partilhas aprovadas...";
+    els.anonymousFeed.append(loading);
+    return;
+  }
+  if (!accountState.communityPosts.length) {
+    const empty = document.createElement("p");
+    empty.className = "empty-feed";
+    empty.textContent = "Ainda não existem partilhas públicas aprovadas.";
+    els.anonymousFeed.append(empty);
+    return;
+  }
+  const canReport = accountState.enabled && Boolean(accountState.session);
+  accountState.communityPosts.forEach((post) => {
+    const article = document.createElement("article");
+    const heading = document.createElement("div");
+    heading.className = "anonymous-share-heading";
+    const name = document.createElement("strong");
+    name.textContent = post.pseudonym || "Anónimo";
+    heading.append(name);
+    if (canReport) {
+      const report = document.createElement("button");
+      report.type = "button";
+      report.className = "anonymous-report";
+      report.dataset.communityReport = post.id;
+      report.textContent = "Denunciar";
+      heading.append(report);
+    }
+    const body = document.createElement("p");
+    body.textContent = post.body || "";
+    article.append(heading, body);
+    els.anonymousFeed.append(article);
+  });
+}
+
+async function authenticatedCommunityRequest(path, options = {}) {
+  if (!accountState.client || !accountState.session) throw new Error("Entra na conta para continuar.");
+  const session = await accountState.client.ensureSession(accountState.session);
+  persistAccountSession(session);
+  const response = await fetch(path, {
+    ...options,
+    cache: "no-store",
+    headers: {
+      Accept: "application/json",
+      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      Authorization: `Bearer ${session.access_token}`,
+    },
+  });
+  let payload = null;
+  try { payload = await response.json(); } catch { /* Keep the generic message. */ }
+  if (!response.ok) throw new Error(payload?.detail || "Não foi possível concluir o pedido.");
+  return payload;
+}
+
+async function loadPublishedCommunity() {
+  try {
+    const response = await fetch("/api/v1/community/posts?limit=20", {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) throw new Error("Comunidade indisponível");
+    const posts = await response.json();
+    accountState.communityPosts = Array.isArray(posts) ? posts : [];
+    accountState.communityLoaded = true;
+  } catch {
+    accountState.communityPosts = [];
+    accountState.communityLoaded = true;
+    els.anonymousStatus.textContent = "As partilhas públicas estão temporariamente indisponíveis.";
+  }
+  renderAnonymousRoom();
+}
+
+async function submitAnonymousShare(message) {
+  const cleanMessage = message.trim();
+  if (!cleanMessage) return;
+  if (!accountState.communityEnabled) {
+    addAnonymousShare(cleanMessage);
+    els.anonymousMessage.value = "";
+    return;
+  }
+  els.anonymousStatus.textContent = "A enviar para revisão...";
+  await authenticatedCommunityRequest("/api/v1/community/posts", {
+    method: "POST",
+    body: JSON.stringify({ body: cleanMessage }),
+  });
+  els.anonymousMessage.value = "";
+  els.anonymousStatus.textContent = "Partilha recebida. Só ficará pública depois de revisão humana.";
+}
+
+async function reportCommunityPost(postId) {
+  if (!window.confirm("Denunciar esta partilha para revisão da equipa?")) return;
+  els.anonymousStatus.textContent = "A enviar denúncia...";
+  await authenticatedCommunityRequest(`/api/v1/community/posts/${encodeURIComponent(postId)}/reports`, {
+    method: "POST",
+    body: JSON.stringify({ reason: "unsafe", details: null }),
+  });
+  els.anonymousStatus.textContent = "Denúncia recebida pela equipa.";
 }
 
 function addAnonymousShare(message) {
@@ -1714,16 +1860,6 @@ function removeAnonymousShare(index) {
   state.progress.anonymousShares.splice(index, 1);
   saveProgress({ touch: false, sync: false });
   renderAnonymousRoom();
-}
-
-function escapeHtml(value) {
-  return value.replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    "\"": "&quot;",
-    "'": "&#039;",
-  }[char]));
 }
 
 async function activateNotifications() {
@@ -2149,10 +2285,18 @@ els.copySupportMessage.addEventListener("click", () => copySupportMessage().catc
 }));
 els.anonymousForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  addAnonymousShare(els.anonymousMessage.value);
-  els.anonymousMessage.value = "";
+  submitAnonymousShare(els.anonymousMessage.value).catch((error) => {
+    els.anonymousStatus.textContent = error.message || "Não foi possível enviar a partilha.";
+  });
 });
 els.anonymousFeed.addEventListener("click", (event) => {
+  const report = event.target.closest("[data-community-report]");
+  if (report) {
+    reportCommunityPost(report.dataset.communityReport).catch((error) => {
+      els.anonymousStatus.textContent = error.message || "Não foi possível enviar a denúncia.";
+    });
+    return;
+  }
   const button = event.target.closest("[data-anonymous-delete]");
   if (!button) return;
   removeAnonymousShare(Number(button.dataset.anonymousDelete));

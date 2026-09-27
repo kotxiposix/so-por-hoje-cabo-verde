@@ -198,7 +198,7 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("function getInstallGuidance", script)
         self.assertIn("function updateInstallAction", script)
         self.assertIn("function removeAnonymousShare", script)
-        self.assertIn('data-anonymous-delete="${index}"', script)
+        self.assertIn("remove.dataset.anonymousDelete = String(index)", script)
         self.assertIn('saveProgress({ touch: false, sync: false })', script)
         self.assertEqual(self.parser.attributes_by_id["pwa-install-status"].get("role"), "status")
         self.assertIn("openPrayer(sourceButton)", script)
@@ -207,6 +207,17 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("prefers-reduced-motion: reduce", script)
         self.assertIn(":focus-visible", styles)
         self.assertIn("@media (prefers-reduced-motion: reduce)", styles)
+
+    def test_community_client_is_gated_authenticated_and_text_safe(self) -> None:
+        script = (PUBLIC / "app.js").read_text(encoding="utf-8")
+
+        self.assertIn("accountState.communityEnabled = Boolean(config.features?.community)", script)
+        self.assertIn('fetch("/api/v1/community/posts?limit=20"', script)
+        self.assertIn('Authorization: `Bearer ${session.access_token}`', script)
+        self.assertIn("Partilha recebida. Só ficará pública depois de revisão humana.", script)
+        self.assertIn("body.textContent = post.body", script)
+        self.assertNotIn("anonymousFeed.innerHTML", script)
+        self.assertEqual(self.parser.attributes_by_id["anonymous-status"].get("aria-live"), "polite")
 
     def test_bottom_navigation_and_long_help_labels_are_responsive(self) -> None:
         styles = (PUBLIC / "styles.css").read_text(encoding="utf-8")

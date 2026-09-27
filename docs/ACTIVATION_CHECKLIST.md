@@ -99,6 +99,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 Nao ativar antes de existirem moderadores identificados, horario e tempo de resposta, regras de publicacao, denuncia, retencao e protocolo de crise. A versao atual permanece um diario local e diz isso claramente.
 
 - [x] Backend preparado com partilha pendente, pseudónimo gerado no servidor, listagem pública mínima, denúncia e moderação protegida.
+- [x] Cliente público preparado para ler partilhas aprovadas e, com conta validada, enviar para moderação e denunciar; o modo local permanece quando a flag está fechada.
 - [x] `COMMUNITY_READY=false` mantém todos os endpoints comunitários indisponíveis por defeito.
 - [x] Limite diário atómico protege a fila de moderação; valor inicial recomendado: `3`.
 - [x] Saída pública revalidada e transições de moderação limitadas para impedir exposição de registos malformados ou republicação acidental.
