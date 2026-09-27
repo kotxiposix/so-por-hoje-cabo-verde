@@ -18,6 +18,7 @@ class AppMarkupParser(HTMLParser):
         self.ids: list[str] = []
         self.attributes_by_id: dict[str, dict[str, str | None]] = {}
         self.checkin_buttons: list[dict[str, str | None]] = []
+        self.tool_buttons: list[dict[str, str | None]] = []
         self.view_sections: list[str] = []
         self.nav_views: list[str] = []
 
@@ -33,6 +34,8 @@ class AppMarkupParser(HTMLParser):
             self.nav_views.append(values["data-view"] or "")
         if tag == "button" and values.get("data-checkin"):
             self.checkin_buttons.append(values)
+        if tag == "button" and values.get("data-tool"):
+            self.tool_buttons.append(values)
 
 
 class WebAppStructureTests(unittest.TestCase):
@@ -59,7 +62,15 @@ class WebAppStructureTests(unittest.TestCase):
             "complete-button",
             "share-button",
             "story-button",
+            "gratitude-form",
+            "sobriety-date",
+            "support-plan-form",
+            "history-list",
+            "reminder-time",
+            "show-clean-days",
             "pwa-update",
+            "install-app-secondary",
+            "notifications-secondary",
             "export-data",
             "delete-local-data",
             "delete-account",
@@ -67,6 +78,8 @@ class WebAppStructureTests(unittest.TestCase):
             "verified-meeting-list",
             "verified-help-list",
             "help-directory-source",
+            "anonymous-form",
+            "copy-support-message",
             "browse-meditations",
             "archive-modal",
             "archive-date",
@@ -78,6 +91,17 @@ class WebAppStructureTests(unittest.TestCase):
             "privacy-faq-answer",
         }
         self.assertFalse(critical.difference(counts))
+
+    def test_daily_support_and_checkin_options_match_the_product_map(self) -> None:
+        self.assertEqual(
+            {button["data-tool"] for button in self.parser.tool_buttons},
+            {"activity", "phrase", "challenge"},
+        )
+        self.assertEqual(
+            {button["data-checkin"] for button in self.parser.checkin_buttons},
+            {"firme", "ansioso", "risco", "consumo"},
+        )
+        self.assertTrue(all(button.get("aria-pressed") == "false" for button in self.parser.checkin_buttons))
 
     def test_manifest_and_service_worker_assets_exist(self) -> None:
         manifest = json.loads((PUBLIC / "manifest.webmanifest").read_text(encoding="utf-8"))

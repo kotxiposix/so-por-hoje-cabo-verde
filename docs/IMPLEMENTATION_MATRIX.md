@@ -19,7 +19,7 @@ Esta matriz traduz o mapa funcional da plataforma em estado técnico, porta de a
 | Ajuda | Ativa localmente | SOS, orientação de risco, contactos estáticos e acesso acionável | Confirmar contactos/horários e testar o diretório gerido antes de ativar `HELP_DIRECTORY_READY` |
 | Sobre | Ativa localmente | Missão, visão, história, equipa, privacidade, contacto e FAQ | Concluir revisão jurídica e confirmar parceiros antes de os identificar publicamente |
 
-A navegação principal é fixa no fundo em ecrãs pequenos. O conteúdo reserva espaço para que a barra não cubra ações ou texto.
+A navegação principal é fixa no fundo em ecrãs pequenos. O conteúdo reserva espaço para que a barra não cubra ações ou texto. Um contrato automatizado confirma as cinco áreas, os controlos essenciais, os três apoios diários e os quatro estados de check-in previstos neste mapa.
 
 ## Conta, dados e experiência instalada
 
