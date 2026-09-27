@@ -158,15 +158,120 @@ create table if not exists public.notification_preferences (
   local_time time not null default '07:00',
   timezone text not null default 'Atlantic/Cape_Verde',
   last_sent_on date,
+  delivery_claimed_on date,
+  delivery_claimed_at timestamptz,
   updated_at timestamptz not null default now()
 );
 
 alter table public.notification_preferences
   add column if not exists last_sent_on date;
+alter table public.notification_preferences
+  add column if not exists delivery_claimed_on date;
+alter table public.notification_preferences
+  add column if not exists delivery_claimed_at timestamptz;
 
 create index if not exists notification_preferences_due_idx
   on public.notification_preferences (enabled, local_time)
   where enabled = true;
+
+create or replace function public.claim_push_delivery(
+  p_user_id uuid,
+  p_local_day date,
+  p_claimed_at timestamptz
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  affected integer;
+begin
+  if p_user_id is null or p_local_day is null or p_claimed_at is null then
+    return false;
+  end if;
+
+  update public.notification_preferences
+    set delivery_claimed_on = p_local_day,
+        delivery_claimed_at = p_claimed_at,
+        updated_at = p_claimed_at
+    where user_id = p_user_id
+      and enabled = true
+      and last_sent_on is distinct from p_local_day
+      and (
+        delivery_claimed_on is distinct from p_local_day
+        or delivery_claimed_at is null
+        or delivery_claimed_at < p_claimed_at - interval '5 minutes'
+      );
+
+  get diagnostics affected = row_count;
+  return affected = 1;
+end;
+$$;
+
+create or replace function public.complete_push_delivery(
+  p_user_id uuid,
+  p_local_day date,
+  p_completed_at timestamptz
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  affected integer;
+begin
+  update public.notification_preferences
+    set last_sent_on = p_local_day,
+        delivery_claimed_on = null,
+        delivery_claimed_at = null,
+        updated_at = p_completed_at
+    where user_id = p_user_id
+      and delivery_claimed_on = p_local_day;
+
+  get diagnostics affected = row_count;
+  return affected = 1;
+end;
+$$;
+
+create or replace function public.release_push_delivery(
+  p_user_id uuid,
+  p_local_day date,
+  p_released_at timestamptz
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  affected integer;
+begin
+  update public.notification_preferences
+    set delivery_claimed_on = null,
+        delivery_claimed_at = null,
+        updated_at = p_released_at
+    where user_id = p_user_id
+      and delivery_claimed_on = p_local_day;
+
+  get diagnostics affected = row_count;
+  return affected = 1;
+end;
+$$;
+
+revoke all on function public.claim_push_delivery(uuid, date, timestamptz)
+  from public, anon, authenticated;
+grant execute on function public.claim_push_delivery(uuid, date, timestamptz)
+  to service_role;
+revoke all on function public.complete_push_delivery(uuid, date, timestamptz)
+  from public, anon, authenticated;
+grant execute on function public.complete_push_delivery(uuid, date, timestamptz)
+  to service_role;
+revoke all on function public.release_push_delivery(uuid, date, timestamptz)
+  from public, anon, authenticated;
+grant execute on function public.release_push_delivery(uuid, date, timestamptz)
+  to service_role;
 
 create table if not exists public.push_subscriptions (
   id uuid primary key default gen_random_uuid(),

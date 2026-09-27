@@ -33,6 +33,18 @@ class JourneySyncSchemaTests(unittest.TestCase):
         self.assertIn(f"revoke all on function {signature}\n  from public, anon;", self.schema)
         self.assertIn(f"grant execute on function {signature}\n  to authenticated;", self.schema)
 
+    def test_push_delivery_claim_is_atomic_and_service_role_only(self) -> None:
+        self.assertIn("create or replace function public.claim_push_delivery", self.schema)
+        self.assertIn("delivery_claimed_at < p_claimed_at - interval '5 minutes'", self.schema)
+        self.assertIn("last_sent_on is distinct from p_local_day", self.schema)
+        for function_name in ("claim", "complete", "release"):
+            signature = f"public.{function_name}_push_delivery(uuid, date, timestamptz)"
+            self.assertIn(
+                f"revoke all on function {signature}\n  from public, anon, authenticated;",
+                self.schema,
+            )
+            self.assertIn(f"grant execute on function {signature}\n  to service_role;", self.schema)
+
 
 if __name__ == "__main__":
     unittest.main()

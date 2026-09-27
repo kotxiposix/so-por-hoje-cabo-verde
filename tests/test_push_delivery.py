@@ -56,6 +56,10 @@ class PushDeliveryTests(unittest.TestCase):
 
         def transport(method: str, path: str, payload: object | None = None) -> object:
             calls.append((method, path, payload))
+            if "rpc/claim_push_delivery" in path:
+                return True
+            if "rpc/complete_push_delivery" in path:
+                return True
             if "notification_preferences?select" in path:
                 return [{
                     "user_id": "user-one",
@@ -89,17 +93,15 @@ class PushDeliveryTests(unittest.TestCase):
             "url": "/#meditacao",
         })
         self.assertNotIn("user-one", sent[0][1].values())
-        self.assertIn(
-            (
-                "PATCH",
-                "/rest/v1/notification_preferences?user_id=eq.user-one",
-                {
-                    "last_sent_on": "2026-09-26",
-                    "updated_at": "2026-09-26T08:00:00+00:00",
-                },
-            ),
-            calls,
-        )
+        self.assertIn((
+            "POST",
+            "/rest/v1/rpc/complete_push_delivery",
+            {
+                "p_user_id": "user-one",
+                "p_local_day": "2026-09-26",
+                "p_completed_at": "2026-09-26T08:00:00+00:00",
+            },
+        ), calls)
 
     def test_already_sent_preference_is_skipped(self) -> None:
         def transport(method: str, path: str, payload: object | None = None) -> object:
@@ -124,6 +126,8 @@ class PushDeliveryTests(unittest.TestCase):
 
         def transport(method: str, path: str, payload: object | None = None) -> object:
             calls.append((method, path, payload))
+            if "rpc/claim_push_delivery" in path:
+                return True
             if "notification_preferences?select" in path:
                 return [{
                     "user_id": "user-one",
@@ -156,7 +160,86 @@ class PushDeliveryTests(unittest.TestCase):
             ),
             calls,
         )
-        self.assertFalse(any("last_sent_on" in str(payload) for _, _, payload in calls))
+        self.assertIn(
+            (
+                "PATCH",
+                "/rest/v1/notification_preferences?user_id=eq.user-one",
+                {
+                    "enabled": False,
+                    "delivery_claimed_on": None,
+                    "delivery_claimed_at": None,
+                    "updated_at": "2026-09-26T08:00:00+00:00",
+                },
+            ),
+            calls,
+        )
+
+    def test_overlapping_delivery_cannot_claim_the_same_user_twice(self) -> None:
+        calls: list[tuple[str, str, object | None]] = []
+
+        def transport(method: str, path: str, payload: object | None = None) -> object:
+            calls.append((method, path, payload))
+            if "notification_preferences?select" in path:
+                return [{
+                    "user_id": "user-one",
+                    "local_time": "07:00:00",
+                    "timezone": "Atlantic/Cape_Verde",
+                    "last_sent_on": None,
+                }]
+            if "rpc/claim_push_delivery" in path:
+                return False
+            self.fail(f"Unexpected request after rejected claim: {method} {path}")
+
+        result = deliver_due_notifications(
+            self.config,
+            now_utc=datetime(2026, 9, 26, 8, 0, tzinfo=timezone.utc),
+            transport=transport,
+            send_push=lambda *_: self.fail("Push must not be sent without the atomic claim"),
+        )
+
+        self.assertEqual(result, {"due": 0, "sent": 0, "expired": 0, "failed": 0})
+        self.assertTrue(any("rpc/claim_push_delivery" in path for _, path, _ in calls))
+
+    def test_transient_failure_releases_claim_for_a_later_retry(self) -> None:
+        calls: list[tuple[str, str, object | None]] = []
+
+        def transport(method: str, path: str, payload: object | None = None) -> object:
+            calls.append((method, path, payload))
+            if "notification_preferences?select" in path:
+                return [{
+                    "user_id": "user-one",
+                    "local_time": "07:00:00",
+                    "timezone": "Atlantic/Cape_Verde",
+                    "last_sent_on": None,
+                }]
+            if "rpc/claim_push_delivery" in path or "rpc/release_push_delivery" in path:
+                return True
+            if "push_subscriptions?select" in path:
+                return [{
+                    "id": "subscription-one",
+                    "endpoint": "https://push.example/temporary-failure",
+                    "p256dh": "client-key",
+                    "auth_secret": "auth-secret",
+                }]
+            return None
+
+        result = deliver_due_notifications(
+            self.config,
+            now_utc=datetime(2026, 9, 26, 8, 0, tzinfo=timezone.utc),
+            transport=transport,
+            send_push=lambda *_: (_ for _ in ()).throw(RuntimeError("temporary")),
+        )
+
+        self.assertEqual(result["failed"], 1)
+        self.assertIn((
+            "POST",
+            "/rest/v1/rpc/release_push_delivery",
+            {
+                "p_user_id": "user-one",
+                "p_local_day": "2026-09-26",
+                "p_released_at": "2026-09-26T08:00:00+00:00",
+            },
+        ), calls)
 
 
 if __name__ == "__main__":

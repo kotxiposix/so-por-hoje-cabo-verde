@@ -95,6 +95,30 @@ def _subscription_payload(row: dict[str, object]) -> dict[str, object]:
     }
 
 
+def _delivery_rpc(
+    request: HttpTransport,
+    action: str,
+    user_id: str,
+    local_day: str,
+    timestamp: datetime,
+) -> bool:
+    time_parameter = {
+        "claim": "p_claimed_at",
+        "complete": "p_completed_at",
+        "release": "p_released_at",
+    }[action]
+    result = request(
+        "POST",
+        f"/rest/v1/rpc/{action}_push_delivery",
+        {
+            "p_user_id": user_id,
+            "p_local_day": local_day,
+            time_parameter: timestamp.isoformat(),
+        },
+    )
+    return result is True
+
+
 def deliver_due_notifications(
     config: PushDeliveryConfig,
     *,
@@ -133,14 +157,18 @@ def deliver_due_notifications(
         due, local_day = _local_due(preference, current_time)
         if not due:
             continue
+        raw_user_id = str(preference.get("user_id") or "")
+        if not raw_user_id or not _delivery_rpc(request, "claim", raw_user_id, local_day, current_time):
+            continue
         stats["due"] += 1
-        user_id = quote(str(preference.get("user_id") or ""), safe="")
+        user_id = quote(raw_user_id, safe="")
         subscriptions = request(
             "GET",
             "/rest/v1/push_subscriptions"
             f"?select=id,endpoint,p256dh,auth_secret&user_id=eq.{user_id}&active=eq.true",
         )
         sent_for_user = False
+        transient_failure = False
         for subscription in subscriptions if isinstance(subscriptions, list) else []:
             if not isinstance(subscription, dict):
                 continue
@@ -160,12 +188,22 @@ def deliver_due_notifications(
                     stats["expired"] += 1
                 else:
                     stats["failed"] += 1
+                    transient_failure = True
 
         if sent_for_user:
+            _delivery_rpc(request, "complete", raw_user_id, local_day, current_time)
+        elif transient_failure:
+            _delivery_rpc(request, "release", raw_user_id, local_day, current_time)
+        else:
             request(
                 "PATCH",
                 f"/rest/v1/notification_preferences?user_id=eq.{user_id}",
-                {"last_sent_on": local_day, "updated_at": current_time.isoformat()},
+                {
+                    "enabled": False,
+                    "delivery_claimed_on": None,
+                    "delivery_claimed_at": None,
+                    "updated_at": current_time.isoformat(),
+                },
             )
 
     return stats
