@@ -1,72 +1,165 @@
-# Arquitetura
+# Arquitetura da plataforma
+
+Este documento descreve a arquitetura implementada da plataforma So Por Hoje Cabo Verde. A referencia funcional e de ativacao permanece em `docs/ACTIVATION_CHECKLIST.md`.
+
+## 1. Visao geral
+
+```text
+                         +----------------------+
+                         |  Navegador / PWA     |
+                         |  public/index.html   |
+                         +----------+-----------+
+                                    |
+                  catalogo local    | API /api/v1
+                +-------------------+-------------------+
+                |                                       |
+                v                                       v
+     public/data/meditations.json             FastAPI em src/sph/api.py
+     public/data/daily-support.json                       |
+                |                          +--------------+--------------+
+                |                          |              |              |
+                v                          v              v              v
+       experiencia offline              Supabase       OpenAI        Web Push
+       e fallback seguro             conta/dados    apoio diario    entrega
+```
+
+A aplicacao funciona primeiro com dados locais. Conta, sincronizacao, AI, notificacoes push, diretorio gerido e comunidade publica sao integracoes opcionais, fechadas por defeito e ativadas separadamente.
+
+## 2. Superficies publicas
+
+- `/`: aplicacao principal com Meditacao, Jornada, Viver Saudavel, Ajuda e Sobre.
+- `/expo`: pagina publica da exposicao fotografica.
+- `/privacidade`: politica e explicacao sobre dados.
+- `/api/v1/*`: API JSON com respostas `no-store`.
+- `sw.js`: instalacao, cache offline e rececao de notificacoes genericas.
+
+A navegacao principal fica no fundo em ecras moveis e mantem espaco reservado para nao tapar o conteudo. No desktop continua acessivel sem transformar a aplicacao numa pagina promocional.
+
+## 3. Fonte unica da meditacao
 
 ```text
 data/meditations.json
-        |
-        v
-Repositorio de Meditacoes
-        |
-        v
-Servico Diario
-        |
-        +--> API REST
-        |
-        +--> Scheduler
-                |
-                v
-             Canais
-             - Console
-             - Facebook Messenger
-             - Email
-             - Telegram
-             - WhatsApp
+          |
+          | scripts/import_meditations.py
+          v
+public/data/meditations.json
+          |
+          +--> aplicacao e PWA offline
+          +--> API diaria
+          +--> formatacao de partilha
 ```
 
-## Principios
+Regras:
 
-- A meditacao usa `month_day` como chave primaria (`MM-DD`).
-- O ano nunca pertence ao conteudo canonico.
-- Historico de envios deve usar data completa para auditoria e idempotencia.
-- Canais de envio sao adaptadores independentes.
-- A API e o scheduler consomem o mesmo servico de dominio.
+- `month_day` (`MM-DD`) e a chave canonica.
+- O ano pertence apenas a data de apresentacao ou envio.
+- O texto oficial nao e reescrito pela AI.
+- Os testes recusam divergencia entre a base canonica e a copia publica.
+- Atividade, frase e desafio sao conteudo complementar e vivem num catalogo separado.
 
-## Tabelas recomendadas para PostgreSQL
+## 4. Dados da Jornada
 
-```sql
-create table meditations (
-  month_day text primary key check (month_day ~ '^\d{2}-\d{2}$'),
-  title text not null,
-  body text not null,
-  reflection text not null,
-  language text not null default 'pt-CV',
-  status text not null default 'published',
-  source text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
+Sem conta, os dados pessoais permanecem no dispositivo em `localStorage`:
 
-create table channels (
-  id uuid primary key,
-  type text not null,
-  name text not null,
-  destination_id text,
-  config jsonb not null default '{}',
-  enabled boolean not null default true,
-  created_at timestamptz not null default now()
-);
+- data de sobriedade;
+- leituras e sequencias;
+- check-in diario;
+- gratidoes e plano pessoal;
+- preferencias e marcos.
 
-create table send_logs (
-  id uuid primary key,
-  send_date date not null,
-  month_day text not null references meditations(month_day),
-  channel_id uuid references channels(id),
-  destination_id text,
-  status text not null,
-  message_hash text not null,
-  error_message text,
-  sent_at timestamptz,
-  created_at timestamptz not null default now(),
-  unique (send_date, channel_id, destination_id)
-);
+A pessoa pode exportar e importar uma copia JSON versionada. A importacao valida tamanho, versao, datas e campos permitidos antes de substituir os dados.
+
+Com conta ativa, o cliente usa Supabase Email OTP. A sincronizacao e explicita: a pessoa escolhe qual copia conservar quando existe conflito. Campos exclusivos do dispositivo, incluindo a Sala Anonima local e preferencias de notificacao, nao sao sincronizados.
+
+## 5. Backend e integracoes
+
+### Conta e Supabase
+
+`ACCOUNT_READY=true` so expoe a conta quando URL e chave publica tambem existem. Operacoes privilegiadas usam `SUPABASE_SERVICE_ROLE_KEY` apenas no servidor. As politicas RLS continuam a ser a defesa principal para acesso por utilizador.
+
+### Apoio diario com AI
+
+`AI_DELIVERY_READY=true` requer conta ativa, sessao valida, chave OpenAI, modelo, limite diario e service role. A quota e reclamada atomicamente antes da chamada. Qualquer falha regressa ao catalogo local, sem impedir o uso da aplicacao.
+
+### Web Push
+
+`PUSH_DELIVERY_READY=true` so anuncia a funcionalidade ao browser quando todo o caminho de entrega esta configurado: conta, service role, par VAPID, assunto e segredo do cron. O service worker ignora titulo e corpo remotos e apresenta uma mensagem generica, reduzindo exposicao no ecra bloqueado.
+
+### Diretorio de ajuda
+
+O catalogo estatico continua disponivel enquanto `HELP_DIRECTORY_READY=false`. O diretorio gerido aceita importacao administrativa de rascunhos, mas so publica recursos verificados e dentro do prazo de revisao.
+
+### Comunidade
+
+`COMMUNITY_READY=false` mantem a Sala Anonima publica indisponivel. O prototipo local nao simula conversa real. O backend preparado recebe partilhas como pendentes e exige moderacao antes de qualquer publicacao.
+
+## 6. Portoes de ativacao
+
+```text
+ACCOUNT_READY
+    +--> conta e sincronizacao
+    +--> AI_DELIVERY_READY
+    +--> PUSH_DELIVERY_READY
+    +--> COMMUNITY_READY
+
+HELP_DIRECTORY_READY
+    +--> independente da conta, mas exige backend administrativo seguro
 ```
 
+As flags nao substituem as credenciais nem os testes operacionais. A API publica so anuncia uma funcionalidade quando a flag, as dependencias e todas as variaveis obrigatorias estao presentes.
+
+Auditoria segura:
+
+```bash
+PYTHONPATH=src python scripts/check_readiness.py
+```
+
+O comando mostra estados e nomes de variaveis em falta, nunca valores.
+
+## 7. Seguranca e privacidade
+
+- Segredos nunca entram em `public/`, respostas publicas ou logs.
+- Check-ins, gratidoes, partilhas e conteudo privado da Jornada nao sao registados em logs da aplicacao.
+- Eliminacao de conta resolve a identidade a partir do token autenticado, nunca de um `user_id` enviado pelo browser.
+- Endpoints internos exigem segredos proprios e independentes.
+- A politica CSP restringe scripts, ligacoes e embeds externos.
+- Push mostra conteudo generico e aceita apenas rotas da mesma origem.
+- Dados comunitarios publicos usam pseudonimo criado no servidor e omitem identidade.
+- Loja, doacao e comunidade nao sao ativadas sem operacao e responsaveis definidos.
+
+## 8. PWA e funcionamento offline
+
+O service worker mantem um cache versionado da interface, meditacoes e apoio diario. Atualizacoes exigem acao explicita para evitar trocar a aplicacao durante uma leitura. Ao regressar a app depois da meia-noite, o cliente atualiza a data e carrega a nova meditacao.
+
+Ha fallbacks separados para aplicacao, exposicao e privacidade. A instalacao apresenta instrucoes adequadas a iPhone/iPad, Android ou desktop quando o navegador nao fornece um prompt automatico.
+
+## 9. Verificacao
+
+A suite cobre:
+
+- dominio e API Python;
+- cliente de conta e sincronizacao;
+- aritmetica de datas e sequencias;
+- exportacao/importacao da Jornada;
+- apoio offline e fallbacks da AI;
+- portoes publicos e entrega push;
+- diretorio de ajuda e importadores;
+- estrutura web, headers e PWA.
+
+Comandos locais:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -p 'test_*.py'
+node --test tests/*.mjs
+git diff --check
+```
+
+## 10. Publicacao
+
+- `dev`: desenvolvimento e Preview.
+- `production`: ramo de producao na Vercel.
+- GitHub Pages nao e usado porque nao executa a API.
+- Cada integracao deve ser validada primeiro em Preview.
+- Producao so recebe a mesma configuracao depois do roteiro manual e automatico completo.
+
+O deploy do frontend nao ativa automaticamente servicos sensiveis. As flags permanecem falsas ate a equipa concluir os passos humanos e operacionais da checklist.
