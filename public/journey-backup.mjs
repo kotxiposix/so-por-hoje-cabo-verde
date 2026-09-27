@@ -1,5 +1,19 @@
+import { mergeRemoteJourneyProgress, selectSyncableProgress } from "./journey-sync.mjs";
+
 export const JOURNEY_BACKUP_VERSION = 1;
 export const MAX_JOURNEY_BACKUP_BYTES = 1_000_000;
+
+export function createJourneyBackup(progress, exportedAt = new Date().toISOString()) {
+  return {
+    exportedAt,
+    version: JOURNEY_BACKUP_VERSION,
+    progress: selectSyncableProgress(progress),
+  };
+}
+
+export function mergeJourneyBackupProgress(importedProgress, localProgress) {
+  return mergeRemoteJourneyProgress(importedProgress, localProgress);
+}
 
 export function parseJourneyBackup(text) {
   if (typeof text !== "string" || new TextEncoder().encode(text).byteLength > MAX_JOURNEY_BACKUP_BYTES) {

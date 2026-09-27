@@ -7,6 +7,12 @@ import {
 } from "./date-utils.mjs";
 import { getPrivacyCopy } from "./privacy-copy.mjs";
 import { composeGroupMessage } from "./share-format.mjs";
+import {
+  createJourneyBackup,
+  MAX_JOURNEY_BACKUP_BYTES,
+  mergeJourneyBackupProgress,
+  parseJourneyBackup,
+} from "./journey-backup.mjs";
 
 const state = {
   daily: null,
@@ -1190,11 +1196,7 @@ async function showAppNotification(title, body) {
 }
 
 function exportJourneyData() {
-  const payload = {
-    exportedAt: new Date().toISOString(),
-    version: 1,
-    progress: state.progress,
-  };
+  const payload = createJourneyBackup(state.progress);
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -1337,7 +1339,6 @@ function closeMore() {
 async function importJourneyData(file) {
   if (!file) return;
   try {
-    const { MAX_JOURNEY_BACKUP_BYTES, parseJourneyBackup } = await import("./journey-backup.mjs");
     if (file.size > MAX_JOURNEY_BACKUP_BYTES) throw new Error("Cópia demasiado grande");
     const progress = parseJourneyBackup(await file.text());
     const confirmed = window.confirm("Substituir os dados locais da Jornada pelos dados desta cópia?");
@@ -1345,7 +1346,7 @@ async function importJourneyData(file) {
       els.importStatus.textContent = "Importação cancelada.";
       return;
     }
-    state.progress = normalizeProgress(progress);
+    state.progress = normalizeProgress(mergeJourneyBackupProgress(progress, state.progress));
     saveProgress({ sync: false });
     const syncWasActive = accountState.syncEnabled;
     if (syncWasActive) {

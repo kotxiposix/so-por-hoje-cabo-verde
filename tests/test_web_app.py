@@ -187,7 +187,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v58"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v59"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -229,6 +229,8 @@ class WebAppStructureTests(unittest.TestCase):
         backup_parser = (PUBLIC / "journey-backup.mjs").read_text(encoding="utf-8")
         self.assertIn("JOURNEY_BACKUP_VERSION = 1", backup_parser)
         self.assertIn("MAX_JOURNEY_BACKUP_BYTES = 1_000_000", backup_parser)
+        self.assertIn("selectSyncableProgress(progress)", backup_parser)
+        self.assertIn("mergeRemoteJourneyProgress(importedProgress, localProgress)", backup_parser)
 
     def test_push_notification_ignores_remote_lock_screen_text(self) -> None:
         service_worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
@@ -492,8 +494,9 @@ class WebAppStructureTests(unittest.TestCase):
 
         self.assertIn("cópia JSON versionada", privacy)
         self.assertIn("aceita até 1 MB", privacy)
-        self.assertIn("pede confirmação antes de substituir os dados locais", privacy)
+        self.assertIn("pede confirmação antes de substituir os dados portáteis", privacy)
         self.assertIn("nunca é enviada automaticamente para a conta", privacy)
+        self.assertIn("não entram no ficheiro nem são substituídos ao importar", privacy)
         self.assertIn("Por defeito", privacy)
         self.assertIn("escolheres sincronizar a Jornada", privacy)
         self.assertIn("modo de privacidade reforçada do YouTube", privacy)
