@@ -1366,17 +1366,18 @@ function setSobrietyDate(value) {
   renderProgress();
 }
 
-function setCheckin(type) {
+function setCheckin(type, sourceButton) {
   if (!state.daily) return;
   state.progress.checkins[state.daily.date] = type;
   saveProgress();
   renderProgress();
 
   if (type === "ansioso") {
-    openPrayer();
+    openPrayer(sourceButton);
   }
   if (type === "risco" || type === "consumo") {
-    showView("help");
+    showView("help", { updateHistory: true });
+    window.requestAnimationFrame(() => els.sosButton.focus());
   }
 }
 
@@ -1738,8 +1739,8 @@ async function updateRemoteReminderTime() {
   }));
 }
 
-function openPrayer() {
-  openModal(els.prayerModal, closePrayer, els.prayer, els.prayerClose);
+function openPrayer(sourceButton = els.prayer) {
+  openModal(els.prayerModal, closePrayer, sourceButton, els.prayerClose);
 }
 
 function closePrayer() {
@@ -2041,7 +2042,7 @@ document.querySelectorAll(".tool-tile").forEach((button) => {
 });
 
 document.querySelectorAll("[data-checkin]").forEach((button) => {
-  button.addEventListener("click", () => setCheckin(button.dataset.checkin));
+  button.addEventListener("click", () => setCheckin(button.dataset.checkin, button));
 });
 
 document.querySelectorAll(".bottom-nav button").forEach((button) => {
