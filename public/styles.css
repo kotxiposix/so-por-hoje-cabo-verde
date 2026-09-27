@@ -1992,6 +1992,34 @@ button {
   line-height: 1.45;
 }
 
+.share-modal {
+  width: min(680px, calc(100vw - 32px));
+}
+
+.share-preview {
+  max-height: min(46vh, 420px);
+  margin: 18px 0;
+  padding: 16px;
+  overflow: auto;
+  border: 1px solid rgba(7, 52, 87, 0.2);
+  border-radius: 8px;
+  background: rgba(7, 52, 87, 0.06);
+  color: #17324a;
+  font: inherit;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.share-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.share-options button {
+  min-height: 44px;
+}
+
 .principles-list {
   display: grid;
   gap: 10px;

@@ -187,7 +187,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v55"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v56"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -307,7 +307,7 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertEqual(self.parser.attributes_by_id["view-announcement"].get("aria-live"), "polite")
         self.assertIn('class="skip-link" href="#app-content"', self.index_text)
 
-        for modal_id in ("prayer-modal", "tool-modal", "archive-modal", "sos-modal", "more-modal"):
+        for modal_id in ("prayer-modal", "tool-modal", "share-modal", "archive-modal", "sos-modal", "more-modal"):
             self.assertIn(f'id="{modal_id}" hidden', self.index_text)
         self.assertEqual(len(self.parser.checkin_buttons), 4)
         self.assertTrue(all(button.get("aria-pressed") == "false" for button in self.parser.checkin_buttons))
@@ -328,6 +328,11 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("function renderArchiveMeditation", script)
         self.assertIn("function loadMeditationForDate", script)
         self.assertIn("function openArchiveForDate", script)
+        self.assertIn("function openMeditationShare", script)
+        self.assertIn("function shareMeditationNative", script)
+        self.assertIn("function copyMeditationText", script)
+        self.assertIn('text: composeGroupMessage(state.daily)', script)
+        self.assertNotIn('url: "https://soporhoje.cv"', script)
         self.assertIn("item.dataset.historyDate = day", script)
         self.assertIn("gratitude.textContent = state.progress.gratitudes[day]", script)
         self.assertNotIn(".innerHTML", script)

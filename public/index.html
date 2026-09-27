@@ -137,8 +137,8 @@
           <span aria-hidden="true">◷</span>
           <span>Ativar notificação</span>
         </button>
-        <button class="icon-action share-action" id="share-button" type="button" aria-label="Copiar meditação no formato do grupo">
-          <span aria-hidden="true">⧉</span>
+        <button class="icon-action share-action" id="share-button" type="button" aria-label="Abrir opções de partilha da meditação">
+          <span aria-hidden="true">↥</span>
         </button>
         <button class="icon-action story-action" id="story-button" type="button" aria-label="Partilhar imagem da meditação para status ou stories">
           <span aria-hidden="true">↗</span>
@@ -676,6 +676,23 @@
           <span id="tool-modal-label">Ferramenta do dia</span>
           <h2 id="tool-modal-title">Atividade do dia</h2>
           <p id="tool-modal-text"></p>
+        </div>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="share-modal" hidden>
+      <section class="tool-modal share-modal" role="dialog" aria-modal="true" aria-labelledby="share-modal-title">
+        <button class="modal-close" id="share-close" type="button" aria-label="Fechar opções de partilha">×</button>
+        <div class="tool-modal-content">
+          <span>Partilha consciente</span>
+          <h2 id="share-modal-title">Partilhar meditação</h2>
+          <p>Revê o texto antes de escolher onde o queres enviar.</p>
+          <pre class="share-preview" id="share-preview"></pre>
+          <div class="share-options">
+            <button id="share-native" type="button">Partilhar</button>
+            <button id="share-copy" type="button">Copiar texto</button>
+          </div>
+          <p class="more-feedback" id="share-status" role="status" aria-live="polite"></p>
         </div>
       </section>
     </div>

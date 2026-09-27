@@ -52,6 +52,12 @@ const els = {
   prayerClose: document.querySelector("#prayer-close"),
   share: document.querySelector("#share-button"),
   story: document.querySelector("#story-button"),
+  shareModal: document.querySelector("#share-modal"),
+  shareClose: document.querySelector("#share-close"),
+  sharePreview: document.querySelector("#share-preview"),
+  shareNative: document.querySelector("#share-native"),
+  shareCopy: document.querySelector("#share-copy"),
+  shareStatus: document.querySelector("#share-status"),
   reminder: document.querySelector("#reminder-button"),
   toolLabel: document.querySelector("#tool-label"),
   toolText: document.querySelector("#tool-text"),
@@ -1528,12 +1534,40 @@ function setCheckin(type, sourceButton) {
   }
 }
 
-async function shareMeditation() {
+function openMeditationShare() {
+  if (!state.daily) return;
+  els.sharePreview.textContent = composeGroupMessage(state.daily);
+  els.shareStatus.textContent = "";
+  els.shareNative.hidden = typeof navigator.share !== "function";
+  openModal(els.shareModal, closeMeditationShare, els.share, els.shareClose);
+}
+
+function closeMeditationShare() {
+  closeModal(els.shareModal);
+}
+
+async function shareMeditationNative() {
+  if (!state.daily || typeof navigator.share !== "function") return;
+  try {
+    await navigator.share({
+      title: "Só Por Hoje",
+      text: composeGroupMessage(state.daily),
+    });
+    closeMeditationShare();
+    flashStatus("Meditação partilhada", "O destino foi escolhido no teu dispositivo.");
+  } catch (error) {
+    if (error?.name !== "AbortError") {
+      els.shareStatus.textContent = "Não foi possível abrir a partilha. Podes copiar o texto.";
+    }
+  }
+}
+
+async function copyMeditationText() {
   if (!state.daily) return;
   const text = composeGroupMessage(state.daily);
 
   await copyPlainText(text);
-  flashStatus("Meditação copiada", "Copiada para a área de transferência.");
+  els.shareStatus.textContent = "Meditação copiada para a área de transferência.";
 }
 
 async function copyPlainText(text) {
@@ -2296,8 +2330,14 @@ els.historyList.addEventListener("click", (event) => {
   const historyItem = event.target.closest("[data-history-date]");
   if (historyItem) openArchiveForDate(historyItem.dataset.historyDate, historyItem);
 });
-els.share.addEventListener("click", () => shareMeditation().catch(() => {
-  flashStatus("Partilha indisponível", "Tente copiar o texto manualmente.");
+els.share.addEventListener("click", openMeditationShare);
+els.shareClose.addEventListener("click", closeMeditationShare);
+els.shareModal.addEventListener("click", (event) => {
+  if (event.target === els.shareModal) closeMeditationShare();
+});
+els.shareNative.addEventListener("click", () => shareMeditationNative());
+els.shareCopy.addEventListener("click", () => copyMeditationText().catch(() => {
+  els.shareStatus.textContent = "Não foi possível copiar o texto neste navegador.";
 }));
 els.story.addEventListener("click", () => shareStoryImage().catch(() => {
   flashStatus("Imagem indisponível", "Não foi possível gerar a imagem agora.");
