@@ -9,6 +9,7 @@ import { getPrivacyCopy } from "./privacy-copy.mjs";
 import { composeGroupMessage } from "./share-format.mjs";
 import { normalizeEditorialLink } from "./editorial-links.mjs";
 import { normalizeHelpAction } from "./help-links.mjs";
+import { normalizePublishedHelpResources } from "./help-resources.mjs";
 import { normalizePublishedCommunityPosts } from "./community-posts.mjs";
 import {
   createJourneySyncCursor,
@@ -747,8 +748,12 @@ async function loadVerifiedHelpResources() {
       headers: { Accept: "application/json" },
     });
     if (!response.ok) throw new Error("Diretório indisponível");
-    const resources = await response.json();
-    if (!Array.isArray(resources) || !resources.length) {
+    const resources = normalizePublishedHelpResources(
+      await response.json(),
+      getCapeVerdeToday().iso,
+      200,
+    );
+    if (!resources.length) {
       renderHelpDirectoryUnavailable();
       return;
     }
