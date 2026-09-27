@@ -28,6 +28,7 @@ Executar primeiro no ambiente `dev`. Usar apenas dados de teste: nao introduzir 
 4. Confirmar que abre em modo autonomo, com titulo e icone corretos.
 5. Repetir o teste offline descrito para Android.
 6. Confirmar que o menu inferior respeita a area segura do ecra e nao fica por baixo do indicador de inicio.
+7. Rodar o dispositivo e confirmar que a aplicacao continua utilizavel em paisagem, sem forcar o regresso a vertical.
 
 ## Dados e continuidade
 
@@ -56,4 +57,3 @@ Executar primeiro no ambiente `dev`. Usar apenas dados de teste: nao introduzir 
 ## Criterio de aprovacao
 
 O dispositivo passa quando todos os passos aplicaveis funcionam sem perda de dados, sobreposicao visual, ecra vazio ou exposicao de informacao privada. Qualquer falha deve incluir dispositivo, sistema, navegador, passos exatos e captura sem dados pessoais.
-

@@ -179,13 +179,15 @@ class WebAppStructureTests(unittest.TestCase):
         manifest = json.loads((PUBLIC / "manifest.webmanifest").read_text(encoding="utf-8"))
         self.assertEqual(manifest["start_url"], "/#meditacao")
         self.assertEqual(manifest["display"], "standalone")
+        self.assertNotIn("orientation", manifest)
+        self.assertEqual(manifest["icons"][1]["purpose"], "any")
         self.assertEqual(
             {shortcut["url"] for shortcut in manifest["shortcuts"]},
             {"/#meditacao", "/#jornada", "/#ajuda"},
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v54"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v55"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))

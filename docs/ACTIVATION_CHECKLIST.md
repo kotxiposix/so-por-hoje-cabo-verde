@@ -13,6 +13,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] PWA instalavel, base diaria offline e fallbacks separados para app, privacidade e exposicao.
 - [x] Atualizações de assets servidos da cache permanecem ligadas ao ciclo de vida do service worker; navegações só concluem depois de atualizar o fallback correspondente.
 - [x] Instalação orientada no contexto certo, com instruções específicas para iPhone/iPad, Android e desktop quando o navegador não oferece o prompt automático.
+- [x] O manifesto não força orientação e não anuncia como maskable um ícone sem área segura dedicada.
 - [x] Apoio diário local preserva dia e estado offline; atualizações da PWA exigem ação explícita.
 - [x] Navegação offline validada em Chromium local para a aplicação, `/expo` e `/privacidade`, com a meditação e as cinco áreas principais disponíveis.
 - [x] Arquivo anual permite reler meditacoes por data sem alterar leitura, check-in ou sequencia do dia atual.
