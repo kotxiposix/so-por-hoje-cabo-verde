@@ -5,10 +5,13 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 ## 1. Base tecnica
 
 - [x] Cinco areas principais com navegacao inferior responsiva.
+- [x] Navegação inferior verificada em viewport móvel e desktop, sem corte lateral e com espaço reservado para não tapar o conteúdo final.
 - [x] Meditacao, Jornada, Viver Saudavel, Ajuda e Sobre funcionais em modo local.
 - [x] PWA instalavel, base diaria offline e fallbacks separados para app, privacidade e exposicao.
 - [x] Apoio diário local preserva dia e estado offline; atualizações da PWA exigem ação explícita.
+- [x] Navegação offline validada em Chromium local para a aplicação, `/expo` e `/privacidade`, com a meditação e as cinco áreas principais disponíveis.
 - [x] Arquivo anual permite reler meditacoes por data sem alterar leitura, check-in ou sequencia do dia atual.
+- [x] Importação da planilha sincroniza a base canónica e a cópia pública; os testes recusam divergências nas meditações e no catálogo de apoio.
 - [x] Players de video e podcast usam incorporacao YouTube com privacidade reforcada, sem referencia da pagina e com CSP restrita.
 - [x] Exportacao local versionada e importacao da Jornada validada, limitada a 1 MB e confirmada antes da substituicao.
 - [x] Sincronizacao preparada para recusar versoes futuras, pausar quando outra copia remota for mais recente e excluir dados exclusivos do dispositivo.

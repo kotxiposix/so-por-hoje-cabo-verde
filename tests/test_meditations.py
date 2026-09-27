@@ -15,6 +15,8 @@ from sph.service import DailyMeditationService
 ROOT = Path(__file__).resolve().parents[1]
 DATA_PATH = ROOT / "data" / "meditations.json"
 SUPPORT_DATA_PATH = ROOT / "data" / "daily_support.json"
+PUBLIC_DATA_PATH = ROOT / "public" / "data" / "meditations.json"
+PUBLIC_SUPPORT_DATA_PATH = ROOT / "public" / "data" / "daily_support.json"
 
 
 class MeditationTests(unittest.TestCase):
@@ -27,6 +29,10 @@ class MeditationTests(unittest.TestCase):
         self.assertIn("02-29", keys)
         self.assertIn("01-01", keys)
         self.assertIn("12-31", keys)
+
+    def test_public_data_copies_match_the_canonical_files(self) -> None:
+        self.assertEqual(DATA_PATH.read_bytes(), PUBLIC_DATA_PATH.read_bytes())
+        self.assertEqual(SUPPORT_DATA_PATH.read_bytes(), PUBLIC_SUPPORT_DATA_PATH.read_bytes())
 
     def test_daily_service_uses_month_day_without_year(self) -> None:
         service = DailyMeditationService(MeditationRepository(DATA_PATH), "Atlantic/Cape_Verde")
@@ -86,9 +92,14 @@ class MeditationTests(unittest.TestCase):
     def test_support_catalog_has_four_states_per_day(self) -> None:
         records = json.loads(SUPPORT_DATA_PATH.read_text(encoding="utf-8"))
         pairs = {(record["month_day"], record["state"]) for record in records}
+        meditation_days = {
+            record["month_day"]
+            for record in json.loads(DATA_PATH.read_text(encoding="utf-8"))
+        }
 
         self.assertEqual(len(records), 366 * 4)
         self.assertEqual(len(pairs), 366 * 4)
+        self.assertEqual({month_day for month_day, _ in pairs}, meditation_days)
         self.assertEqual(
             {state for month_day, state in pairs if month_day == "01-01"},
             {"standard", "ansioso", "risco", "consumo"},

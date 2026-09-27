@@ -181,8 +181,11 @@ Não ativar o diretório sem rever os contactos, horários e fontes diretamente 
 
 ```bash
 python scripts/import_meditations.py "/Volumes/LENTiLHAS26/SPH Meditacões.xlsx"
+PYTHONPATH=src python scripts/generate_support_catalog.py
 python scripts/validate_meditations.py
 ```
+
+O importador atualiza a base canónica em `data/` e a cópia servida pela aplicação em `public/data/`. Regenera depois o catálogo de apoio diário para manter atividade, frase e desafio alinhados com a meditação atualizada. A suíte de testes recusa cópias divergentes.
 
 ## Timezone
 

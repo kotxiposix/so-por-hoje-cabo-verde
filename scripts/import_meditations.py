@@ -9,11 +9,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import pandas as pd
-
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = ROOT / "data"
+DEFAULT_PUBLIC_OUTPUT = ROOT / "public" / "data"
 REFLECTION_RE = re.compile(r"\bS[OÓ]\s+POR\s+HOJE\s*:", re.IGNORECASE)
 
 
@@ -43,7 +42,9 @@ def parse_month_day(value: Any) -> str:
     if re.fullmatch(r"\d{2}-\d{2}", raw):
         return raw
 
-    parsed = pd.to_datetime(raw)
+    from pandas import to_datetime
+
+    parsed = to_datetime(raw)
     return parsed.strftime("%m-%d")
 
 
@@ -66,6 +67,8 @@ def split_meditation(text: str) -> tuple[str, str, str]:
 
 
 def import_workbook(path: Path) -> list[dict[str, str]]:
+    import pandas as pd
+
     frame = pd.read_excel(path, sheet_name=0, header=None)
     records: list[dict[str, str]] = []
 
@@ -90,12 +93,21 @@ def import_workbook(path: Path) -> list[dict[str, str]]:
     return sorted(records, key=lambda item: item["month_day"])
 
 
-def write_outputs(records: list[dict[str, str]], output_dir: Path) -> None:
+def write_outputs(
+    records: list[dict[str, str]],
+    output_dir: Path,
+    public_output_dir: Path | None = DEFAULT_PUBLIC_OUTPUT,
+) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     json_path = output_dir / "meditations.json"
     csv_path = output_dir / "meditations.csv"
+    serialized = json.dumps(records, ensure_ascii=False, indent=2) + "\n"
 
-    json_path.write_text(json.dumps(records, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    json_path.write_text(serialized, encoding="utf-8")
+
+    if public_output_dir is not None:
+        public_output_dir.mkdir(parents=True, exist_ok=True)
+        (public_output_dir / "meditations.json").write_text(serialized, encoding="utf-8")
 
     with csv_path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(records[0].keys()))
@@ -107,13 +119,18 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Importa meditacoes SPH de uma planilha Excel.")
     parser.add_argument("workbook", type=Path)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--public-output-dir", type=Path, default=DEFAULT_PUBLIC_OUTPUT)
+    parser.add_argument("--skip-public-copy", action="store_true")
     args = parser.parse_args()
 
     records = import_workbook(args.workbook)
-    write_outputs(records, args.output_dir)
-    print(f"Imported {len(records)} meditations into {args.output_dir}")
+    public_output_dir = None if args.skip_public_copy else args.public_output_dir
+    write_outputs(records, args.output_dir, public_output_dir)
+    destinations = str(args.output_dir)
+    if public_output_dir is not None:
+        destinations += f" and {public_output_dir}"
+    print(f"Imported {len(records)} meditations into {destinations}")
 
 
 if __name__ == "__main__":
     main()
-
