@@ -79,9 +79,16 @@ class EditorialCatalogTests(unittest.TestCase):
         with self.assertRaises(EditorialInputError):
             normalize_item({**payload(), "url": "javascript:alert(1)"})
         with self.assertRaises(EditorialInputError):
+            normalize_item({**payload(), "image_url": "../private.png"})
+        with self.assertRaises(EditorialInputError):
+            normalize_item({**payload(), "image_url": "//tracker.example/image.png"})
+        with self.assertRaises(EditorialInputError):
             normalize_item({**payload(), "sort_order": 1000})
         with self.assertRaises(EditorialInputError):
             normalize_item({**payload(), "sort_order": True})
+
+        internal_image = normalize_item({**payload(), "image_url": "/expo/hero-banner.jpg"})
+        self.assertEqual(internal_image["image_url"], "/expo/hero-banner.jpg")
 
     def test_public_shape_excludes_status_authorship_and_sorting(self) -> None:
         visible = public_item({

@@ -81,6 +81,17 @@ def clean_url(value: object, label: str, *, required: bool = False) -> str | Non
     return cleaned
 
 
+def clean_image_url(value: object) -> str | None:
+    cleaned = clean_text(value, "Imagem", 500)
+    if not cleaned:
+        return None
+    if cleaned.startswith("/") and not cleaned.startswith("//") and ".." not in cleaned.split("/"):
+        return cleaned
+    if not cleaned.lower().startswith("https://"):
+        raise EditorialInputError("Imagem deve ser um caminho interno ou começar por https://.")
+    return cleaned
+
+
 def normalize_uuid(value: str) -> str:
     try:
         return str(UUID(value))
@@ -101,7 +112,7 @@ def normalize_item(payload: dict[str, object]) -> dict[str, object]:
         "title": clean_text(payload.get("title"), "Título", 160, required=True),
         "summary": clean_text(payload.get("summary"), "Resumo", 600, required=True),
         "url": clean_url(payload.get("url"), "Ligação"),
-        "image_url": clean_url(payload.get("image_url"), "Imagem"),
+        "image_url": clean_image_url(payload.get("image_url")),
         "display_date": display_date,
         "sort_order": sort_order,
     }
