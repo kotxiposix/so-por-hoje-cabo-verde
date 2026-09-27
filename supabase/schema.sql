@@ -585,6 +585,17 @@ alter table public.push_subscriptions enable row level security;
 alter table public.ai_daily_usage enable row level security;
 alter table public.community_daily_usage enable row level security;
 
+-- Supabase may install this event-trigger helper to enable RLS on new tables.
+-- Event triggers do not need browser roles to execute the helper directly.
+do $$
+begin
+  if to_regprocedure('public.rls_auto_enable()') is not null then
+    revoke all on function public.rls_auto_enable()
+      from public, anon, authenticated;
+  end if;
+end;
+$$;
+
 drop policy if exists "Users read their journey" on public.journey_state;
 create policy "Users read their journey"
   on public.journey_state for select
