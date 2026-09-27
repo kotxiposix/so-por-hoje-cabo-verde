@@ -187,7 +187,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v56"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v57"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -333,6 +333,9 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("function copyMeditationText", script)
         self.assertIn('text: composeGroupMessage(state.daily)', script)
         self.assertNotIn('url: "https://soporhoje.cv"', script)
+        self.assertIn('if (error?.name === "AbortError") return;', script)
+        self.assertIn('"Fonte oficial: Narcóticos Anónimos Portugal"', script)
+        self.assertIn('"© NA World Services, Inc. Reprinted by permission."', script)
         self.assertIn("item.dataset.historyDate = day", script)
         self.assertIn("gratitude.textContent = state.progress.gratitudes[day]", script)
         self.assertNotIn(".innerHTML", script)

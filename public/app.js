@@ -1607,11 +1607,16 @@ async function shareStoryImage() {
   const file = new File([blob], filename, { type: "image/png" });
 
   if (navigator.canShare?.({ files: [file] }) && navigator.share) {
-    await navigator.share({
-      title: "Só Por Hoje",
-      text: "Meditação diária Só Por Hoje",
-      files: [file],
-    });
+    try {
+      await navigator.share({
+        title: "Só Por Hoje",
+        text: "Meditação diária Só Por Hoje",
+        files: [file],
+      });
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+      throw error;
+    }
     flashStatus("Imagem pronta", "Escolhe onde queres partilhar.");
     return;
   }
@@ -1681,6 +1686,8 @@ async function buildStoryImage(daily) {
   ctx.shadowBlur = 0;
   ctx.fillStyle = "#ffffff";
   drawTextBlock(ctx, "soporhoje.cv", 540, 1705, 760, 30, 1.1, "900 30px system-ui", true);
+  drawTextBlock(ctx, "Fonte oficial: Narcóticos Anónimos Portugal", 540, 1780, 900, 20, 1.2, "700 20px system-ui", true);
+  drawTextBlock(ctx, "© NA World Services, Inc. Reprinted by permission.", 540, 1815, 900, 18, 1.2, "600 18px system-ui", true);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {

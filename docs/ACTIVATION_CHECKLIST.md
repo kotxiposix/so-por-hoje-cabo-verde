@@ -18,6 +18,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Navegação offline validada em Chromium local para a aplicação, `/expo` e `/privacidade`, com a meditação e as cinco áreas principais disponíveis.
 - [x] Arquivo anual permite reler meditacoes por data sem alterar leitura, check-in ou sequencia do dia atual.
 - [x] A partilha da meditação abre uma prévia e permite escolher a folha nativa ou copiar texto, sem anexar URL que possa duplicar a mensagem.
+- [x] A imagem 9:16 inclui a fonte e a autorização de reprodução; cancelar a folha nativa não é apresentado como erro.
 - [x] Importação da planilha sincroniza a base canónica e a cópia pública; os testes recusam divergências nas meditações e no catálogo de apoio.
 - [x] Players de video e podcast usam incorporacao YouTube com privacidade reforcada, sem referencia da pagina e com CSP restrita.
 - [x] Servidor local real e interface verificados sem segredos: conta, AI remota, comunidade pública, diretório gerido e push permanecem desativados por defeito.
