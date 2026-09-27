@@ -71,6 +71,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 
 ## 5. Conteudo e seguranca
 
+- [x] Modelo de decisões operacionais preparado em `docs/OPERATIONS_DECISIONS.md`, sem assumir responsáveis, prazos ou aprovação.
 - [ ] Rever atividade, frase e desafio com pessoas com experiencia clinica e comunitaria.
 - [ ] Aprovar a politica de privacidade com apoio juridico adequado a Cabo Verde.
 - [ ] Definir retencao, auditoria e resposta a incidentes.
@@ -106,6 +107,7 @@ Nao ativar antes de existirem moderadores identificados, horario e tempo de resp
 - [x] Saída pública revalidada e transições de moderação limitadas para impedir exposição de registos malformados ou republicação acidental.
 - [x] Telefones, emails e ligações são assinalados para revisão e bloqueados antes da publicação; a decisão continua humana.
 - [ ] Nomear pelo menos dois moderadores e definir escalas, permissões e substituição.
+- [ ] Preencher e aprovar as secções de comunidade, risco e retenção em `docs/OPERATIONS_DECISIONS.md`.
 - [ ] Aprovar regras de publicação, motivos de denúncia, retenção e auditoria.
 - [ ] Aprovar e ensaiar o protocolo para conteúdo de risco antes de receber uma única partilha pública.
 - [x] Preparar a interface administrativa separada em `/admin`, com acesso por código e permissões individuais para moderação e diretório.

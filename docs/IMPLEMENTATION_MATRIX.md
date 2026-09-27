@@ -96,4 +96,6 @@ Loja e doação não devem aparecer como botões inativos. Só entram na interfa
 
 4. Concluir todos os itens humanos e de dispositivo em `docs/ACTIVATION_CHECKLIST.md`.
 
+   As decisões de responsabilidade, moderação, retenção, incidentes e consentimento devem ser registadas em `docs/OPERATIONS_DECISIONS.md` sem incluir segredos ou dados pessoais.
+
 5. Ativar primeiro em Preview. Produção só recebe a mesma configuração depois de testes reais e aprovação da equipa.

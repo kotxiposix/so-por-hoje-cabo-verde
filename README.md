@@ -39,7 +39,7 @@ production -> branch de producao ligada a Vercel
 
 Na Vercel, configure a Production Branch como `production`. O workflow GitHub valida `dev`, `production` e pull requests; nao publica uma copia estatica no GitHub Pages, porque essa copia nao suportaria a API.
 
-As instrucoes para conta, sincronizacao e comunidade moderada estao em `docs/BACKEND_SETUP.md`. A matriz requisito a requisito está em `docs/IMPLEMENTATION_MATRIX.md`, a sequencia operacional em `docs/ACTIVATION_CHECKLIST.md` e o esquema inicial em `supabase/schema.sql`.
+As instrucoes para conta, sincronizacao e comunidade moderada estao em `docs/BACKEND_SETUP.md`. A matriz requisito a requisito está em `docs/IMPLEMENTATION_MATRIX.md`, as decisões humanas em `docs/OPERATIONS_DECISIONS.md`, a sequencia operacional em `docs/ACTIVATION_CHECKLIST.md` e o esquema inicial em `supabase/schema.sql`.
 
 ## PWA e dados locais
 
