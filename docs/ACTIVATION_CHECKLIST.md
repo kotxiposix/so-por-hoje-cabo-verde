@@ -136,6 +136,7 @@ Nao ativar antes de existirem moderadores identificados, horario e tempo de resp
 - [x] Preparar catálogo inicial validado e importador idempotente que mantém todos os conteúdos em rascunho.
 - [x] Importador editorial recusa rotas ou âncoras internas inexistentes antes de criar rascunhos.
 - [x] Revalidar no navegador as ligações editoriais e carregar os players da aplicação principal apenas depois da escolha da pessoa.
+- [x] Revalidar e deduplicar no navegador todo o contrato editorial público, limitando textos e mantendo imagens remotas bloqueadas.
 - [x] Preservar o diretório local de Ajuda perante falha ou resposta vazia e revalidar no navegador telefone, email e ligações HTTPS.
 - [ ] Importar o catálogo editorial inicial em Preview e rever cada título, resumo, ligação, imagem, autoria e consentimento.
 - [ ] Testar criação, edição, publicação e retirada de conteúdos editoriais com uma conta real em Preview.

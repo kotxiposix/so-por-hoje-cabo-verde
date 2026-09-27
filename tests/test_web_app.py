@@ -198,7 +198,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v77"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v78"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -564,7 +564,9 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("item.title || \"Conteúdo\"", script)
         self.assertIn("summary.textContent", script)
         self.assertIn("normalizeEditorialLink(item?.url", script)
+        self.assertIn("normalizePublishedEditorialItems(", script)
         self.assertIn('"/editorial-links.mjs"', (PUBLIC / "sw.js").read_text(encoding="utf-8"))
+        self.assertIn('"/editorial-content.mjs"', (PUBLIC / "sw.js").read_text(encoding="utf-8"))
         self.assertNotIn("editorialList.innerHTML", script)
 
     def test_privacy_page_matches_local_backup_behavior(self) -> None:

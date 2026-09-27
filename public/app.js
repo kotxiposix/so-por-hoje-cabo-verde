@@ -8,6 +8,7 @@ import {
 import { getPrivacyCopy } from "./privacy-copy.mjs";
 import { composeGroupMessage } from "./share-format.mjs";
 import { normalizeEditorialLink } from "./editorial-links.mjs";
+import { normalizePublishedEditorialItems } from "./editorial-content.mjs";
 import { normalizeHelpAction } from "./help-links.mjs";
 import { normalizePublishedHelpResources } from "./help-resources.mjs";
 import { normalizePublishedCommunityPosts } from "./community-posts.mjs";
@@ -519,8 +520,12 @@ async function loadEditorialContent() {
       headers: { Accept: "application/json" },
     });
     if (!response.ok) throw new Error("Catálogo indisponível");
-    const items = await response.json();
-    renderEditorialContent(Array.isArray(items) ? items : []);
+    const items = normalizePublishedEditorialItems(
+      await response.json(),
+      window.location.origin,
+      50,
+    );
+    renderEditorialContent(items);
   } catch {
     els.editorialFeed.hidden = true;
     els.editorialList.replaceChildren();
