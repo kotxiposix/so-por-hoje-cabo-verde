@@ -6,6 +6,7 @@ import unittest
 from collections import Counter
 from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import urljoin, urlparse
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,6 +37,21 @@ class AppMarkupParser(HTMLParser):
             self.checkin_buttons.append(values)
         if tag == "button" and values.get("data-tool"):
             self.tool_buttons.append(values)
+
+
+class DocumentReferenceParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.ids: set[str] = set()
+        self.references: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        values = dict(attrs)
+        if values.get("id"):
+            self.ids.add(values["id"] or "")
+        for name in ("href", "src"):
+            if values.get(name):
+                self.references.append(values[name] or "")
 
 
 class WebAppStructureTests(unittest.TestCase):
@@ -103,6 +119,50 @@ class WebAppStructureTests(unittest.TestCase):
         )
         self.assertTrue(all(button.get("aria-pressed") == "false" for button in self.parser.checkin_buttons))
 
+    def test_local_page_references_and_anchors_resolve(self) -> None:
+        documents: dict[str, tuple[Path, DocumentReferenceParser]] = {}
+        for html_path in PUBLIC.rglob("*.html"):
+            relative = html_path.relative_to(PUBLIC)
+            route = "/" if relative == Path("index.html") else f"/{relative.parent.as_posix()}/"
+            parser = DocumentReferenceParser()
+            parser.feed(html_path.read_text(encoding="utf-8"))
+            documents[route] = (html_path, parser)
+
+        route_files = {
+            "/": PUBLIC / "index.html",
+            "/expo": PUBLIC / "expo" / "index.html",
+            "/expo/": PUBLIC / "expo" / "index.html",
+            "/privacidade": PUBLIC / "privacidade" / "index.html",
+            "/privacidade/": PUBLIC / "privacidade" / "index.html",
+            "/admin": PUBLIC / "admin" / "index.html",
+            "/admin/": PUBLIC / "admin" / "index.html",
+        }
+        virtual_app_hashes = {"meditacao", "jornada", "viver-saudavel", "ajuda", "sobre"}
+
+        for route, (html_path, parser) in documents.items():
+            base_url = f"https://local.test{route}"
+            for reference in parser.references:
+                parsed_reference = urlparse(reference)
+                if parsed_reference.scheme in {"http", "https", "mailto", "tel", "data"}:
+                    continue
+
+                resolved = urlparse(urljoin(base_url, reference))
+                target_path = resolved.path or "/"
+                target_file = route_files.get(target_path, PUBLIC / target_path.lstrip("/"))
+                self.assertTrue(target_file.is_file(), f"{html_path}: {reference}")
+
+                if not resolved.fragment:
+                    continue
+                if target_path == "/" and resolved.fragment in virtual_app_hashes:
+                    continue
+
+                target_route = target_path
+                if target_route not in documents and not target_route.endswith("/"):
+                    target_route = f"{target_route}/"
+                target_document = documents.get(target_route)
+                self.assertIsNotNone(target_document, f"{html_path}: {reference}")
+                self.assertIn(resolved.fragment, target_document[1].ids, f"{html_path}: {reference}")
+
     def test_manifest_and_service_worker_assets_exist(self) -> None:
         manifest = json.loads((PUBLIC / "manifest.webmanifest").read_text(encoding="utf-8"))
         self.assertEqual(manifest["start_url"], "/#meditacao")
@@ -113,7 +173,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v43"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v44"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
