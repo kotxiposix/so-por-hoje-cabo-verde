@@ -401,22 +401,26 @@ Transformar a pagina `/expo` numa pagina viva da exposicao, com catalogo, coleco
 
 Permitir que a equipa mantenha conteudos sem depender sempre de programador.
 
+### Estado atual
+
+- Login individual por código para contas previamente autorizadas.
+- Papéis separados para moderação, diretório de ajuda e administração.
+- Edição, verificação e retirada de reuniões e centros.
+- Fila de moderação para partilhas da comunidade.
+- Resumo sanitizado do histórico de envios, sem destinos nem conteúdo privado.
+
 ### Funcionalidades futuras
 
-- Login de administrador.
-- Editar reunioes e centros.
-- Importar meditacoes.
-- Validar conteudo antes de publicar.
-- Ver historico de envios.
-- Testar envio para canais.
-- Gerir videos, podcast e eventos.
+- Importar meditações pelo painel com validação restrita.
+- Gerir vídeos, podcast, exposições e eventos.
+- Criar auditoria operacional durável antes da ativação pública dos serviços.
 
 ### Sugestao de prioridade
 
-1. Painel simples para Ajuda/reunioes.
-2. Painel para conteudos da expo.
-3. Painel para logs de envio.
-4. Painel completo de meditacoes, com permissao restrita.
+1. Testar o painel de Ajuda/reuniões e moderação com contas reais.
+2. Painel para conteúdos da exposição.
+3. Auditoria durável das decisões editoriais.
+4. Painel completo de meditações, com permissão restrita.
 
 ## 15. Dados e privacidade
 

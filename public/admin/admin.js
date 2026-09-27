@@ -1,14 +1,15 @@
-import { SupabaseAccountClient } from "../account-client.mjs?staff=1";
+import { SupabaseAccountClient } from "../account-client.mjs?staff=2";
 
 const SESSION_KEY = "sph-staff-session";
 const state = { client: null, session: loadSession(), roles: new Set(), resources: [] };
 const els = Object.fromEntries([
   "auth-panel", "auth-summary", "auth-status", "email-form", "staff-email", "code-form", "staff-code",
-  "workspace", "workspace-status", "signout", "role-list", "community-tab", "directory-tab",
-  "community-view", "directory-view", "refresh-community", "community-list", "new-resource", "resource-list",
+  "workspace", "workspace-status", "signout", "role-list", "community-tab", "directory-tab", "operations-tab",
+  "community-view", "directory-view", "operations-view", "refresh-community", "community-list", "new-resource", "resource-list",
   "resource-form", "resource-id", "resource-name", "resource-category", "resource-island", "resource-municipality",
   "resource-description", "resource-phone", "resource-email", "resource-website", "resource-source",
   "resource-schedule", "resource-emergency", "review-days", "verify-resource", "retire-resource",
+  "refresh-operations", "operations-summary", "operations-list",
 ].map((id) => [id.replaceAll("-", "_"), document.getElementById(id)]));
 
 let pendingEmail = "";
@@ -69,20 +70,31 @@ async function authenticate() {
   }));
   const canModerate = state.roles.has("admin") || state.roles.has("moderator");
   const canEditHelp = state.roles.has("admin") || state.roles.has("help_editor");
+  const canOperate = state.roles.has("admin");
   els.community_tab.hidden = !canModerate;
   els.directory_tab.hidden = !canEditHelp;
-  if (canModerate) await showView("community");
-  else if (canEditHelp) await showView("directory");
+  els.operations_tab.hidden = !canOperate;
+  const initialView = canOperate ? "operations" : canEditHelp ? "directory" : "community";
+  try {
+    await showView(initialView);
+  } catch (error) {
+    setStatus(error.message || "Não foi possível carregar esta área.", true);
+  }
 }
 
 async function showView(view) {
-  const community = view === "community";
-  els.community_view.hidden = !community;
-  els.directory_view.hidden = community;
-  els.community_tab.setAttribute("aria-selected", String(community));
-  els.directory_tab.setAttribute("aria-selected", String(!community));
-  if (community) await loadCommunity();
-  else await loadResources();
+  const views = {
+    community: [els.community_tab, els.community_view, loadCommunity],
+    directory: [els.directory_tab, els.directory_view, loadResources],
+    operations: [els.operations_tab, els.operations_view, loadOperations],
+  };
+  if (!views[view] || views[view][0].hidden) return;
+  Object.entries(views).forEach(([name, [tab, section]]) => {
+    const active = name === view;
+    tab.setAttribute("aria-selected", String(active));
+    section.hidden = !active;
+  });
+  await views[view][2]();
 }
 
 function emptyState(message) {
@@ -256,6 +268,47 @@ async function retireResource() {
   } catch (error) { setStatus(error.message, true); }
 }
 
+function summaryMetric(label, value) {
+  const article = document.createElement("article");
+  const caption = document.createElement("span");
+  caption.textContent = label;
+  const total = document.createElement("strong");
+  total.textContent = String(value ?? 0);
+  article.append(caption, total);
+  return article;
+}
+
+async function loadOperations() {
+  setStatus("A atualizar os envios...");
+  const payload = await platformRequest("/api/v1/admin/operations/send-logs?limit=100");
+  const summary = payload?.summary || {};
+  const entries = Array.isArray(payload?.entries) ? payload.entries : [];
+  els.operations_summary.replaceChildren(
+    summaryMetric("Registos", summary.total),
+    summaryMetric("Enviados", summary.sent),
+    summaryMetric("Falharam", summary.failed),
+  );
+  els.operations_list.replaceChildren();
+  if (!entries.length) els.operations_list.append(emptyState("Ainda não existem registos de envio."));
+  entries.slice().reverse().forEach((entry) => {
+    const article = document.createElement("article");
+    article.className = "operation-record";
+    const date = document.createElement("strong");
+    date.textContent = entry.send_date || "Data indisponível";
+    const channel = document.createElement("span");
+    channel.textContent = entry.channel || "Canal indisponível";
+    const status = document.createElement("span");
+    status.className = `operation-status${entry.status === "failed" ? " failed" : ""}`;
+    status.textContent = entry.status === "sent" ? "Enviado" : "Falhou";
+    const time = document.createElement("time");
+    time.dateTime = entry.sent_at || "";
+    time.textContent = entry.sent_at ? new Date(entry.sent_at).toLocaleString("pt-CV") : "Hora indisponível";
+    article.append(date, channel, status, time);
+    els.operations_list.append(article);
+  });
+  setStatus(`${entries.length} registo(s) operacional(is).`);
+}
+
 async function initialize() {
   try {
     const response = await fetch("/api/v1/config", { cache: "no-store" });
@@ -300,7 +353,9 @@ els.signout.addEventListener("click", async () => {
 });
 els.community_tab.addEventListener("click", () => showView("community").catch((error) => setStatus(error.message, true)));
 els.directory_tab.addEventListener("click", () => showView("directory").catch((error) => setStatus(error.message, true)));
+els.operations_tab.addEventListener("click", () => showView("operations").catch((error) => setStatus(error.message, true)));
 els.refresh_community.addEventListener("click", () => loadCommunity().catch((error) => setStatus(error.message, true)));
+els.refresh_operations.addEventListener("click", () => loadOperations().catch((error) => setStatus(error.message, true)));
 els.new_resource.addEventListener("click", () => fillResource());
 els.resource_form.addEventListener("submit", saveResource);
 els.verify_resource.addEventListener("click", verifyResource);

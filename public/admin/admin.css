@@ -84,6 +84,16 @@ button { min-height: 42px; padding: 0 15px; border: 1px solid var(--navy); borde
 .review-days { display: flex; gap: 7px; align-items: center; }
 .review-days input { width: 80px; }
 .empty-state { padding: 28px; border: 1px dashed #afbfcb; border-radius: 8px; color: var(--muted); text-align: center; }
+.privacy-note { max-width: 760px; color: var(--muted); line-height: 1.55; }
+.operations-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 20px 0; }
+.operations-summary article { padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); }
+.operations-summary strong { display: block; margin-top: 3px; color: var(--navy); font-size: 27px; }
+.operations-summary span { color: var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; }
+.operations-list { display: grid; gap: 8px; }
+.operation-record { display: grid; grid-template-columns: minmax(140px, 1.2fr) minmax(100px, 1fr) minmax(90px, .7fr) minmax(170px, 1fr); gap: 14px; align-items: center; padding: 14px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); }
+.operation-record span, .operation-record time { min-width: 0; overflow-wrap: anywhere; }
+.operation-status { width: fit-content; padding: 4px 7px; border-radius: 999px; color: #fff; background: var(--green); font-size: 12px; font-weight: 800; }
+.operation-status.failed { background: var(--coral); }
 
 :focus-visible { outline: 3px solid #f4aa29; outline-offset: 2px; }
 
@@ -97,4 +107,6 @@ button { min-height: 42px; padding: 0 15px; border: 1px solid var(--navy); borde
   .inline-form { grid-template-columns: 1fr; }
   .admin-tabs { overflow-x: auto; }
   .admin-tabs button { flex: 1 0 auto; }
+  .operations-summary { grid-template-columns: 1fr; }
+  .operation-record { grid-template-columns: 1fr 1fr; }
 }

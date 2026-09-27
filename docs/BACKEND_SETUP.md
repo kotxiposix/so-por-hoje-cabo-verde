@@ -124,7 +124,7 @@ Os endpoints `/api/v1/admin/community/*` exigem uma conta autenticada com papel 
 
 Os papéis são atribuídos diretamente no Supabase por uma pessoa administradora autorizada. A tabela não tem políticas para o browser: a aplicação resolve a sessão e consulta apenas os papéis ativos com a chave de serviço no servidor. Suspender um registo remove o acesso no pedido seguinte. Antes de ligar `STAFF_ACCESS_READY`, criar pelo menos duas contas de equipa, atribuir apenas os papéis necessários e testar que uma conta sem papel recebe `403`.
 
-A interface da equipa está em `/admin` e não aparece na navegação pública. O login envia um código apenas para contas já existentes (`should_create_user=false`); depois, o servidor devolve somente os papéis ativos necessários para construir o espaço de trabalho. A página e os seus pedidos usam `no-store` e não entram na cache offline.
+A interface da equipa está em `/admin` e não aparece na navegação pública. O login envia um código apenas para contas já existentes (`should_create_user=false`); depois, o servidor devolve somente os papéis ativos necessários para construir o espaço de trabalho. A página e os seus pedidos usam `no-store` e não entram na cache offline. O papel `admin` pode consultar um resumo sanitizado dos envios, sem destinos, conteúdo, hashes nem detalhes do fornecedor; os endpoints técnicos completos continuam protegidos por `ADMIN_API_SECRET` e não são chamados pelo browser.
 
 ## 7. Checklist antes de producao
 

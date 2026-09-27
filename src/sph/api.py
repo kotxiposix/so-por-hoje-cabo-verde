@@ -413,6 +413,33 @@ def send_logs(
     return [entry.__dict__ for entry in send_log.list(limit=limit)]
 
 
+@app.get("/api/v1/admin/operations/send-logs")
+def staff_send_logs(
+    limit: int = Query(default=100, ge=1, le=500),
+    authorization: str | None = Header(default=None),
+) -> dict[str, object]:
+    require_staff_access(authorization, {"admin"})
+    entries = send_log.list(limit=limit)
+    public_entries = [
+        {
+            "send_date": entry.send_date,
+            "month_day": entry.month_day,
+            "channel": entry.channel,
+            "status": entry.status,
+            "sent_at": entry.sent_at,
+        }
+        for entry in entries
+    ]
+    return {
+        "summary": {
+            "total": len(entries),
+            "sent": sum(entry.status == "sent" for entry in entries),
+            "failed": sum(entry.status == "failed" for entry in entries),
+        },
+        "entries": public_entries,
+    }
+
+
 @app.post("/api/v1/admin/send-test")
 async def send_test(
     force: bool = True,

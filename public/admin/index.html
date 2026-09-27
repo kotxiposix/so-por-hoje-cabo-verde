@@ -8,7 +8,7 @@
     <meta name="description" content="Área reservada da equipa Só Por Hoje Cabo Verde." />
     <title>Equipa · Só Por Hoje Cabo Verde</title>
     <link rel="icon" type="image/png" href="../favicon-32.png" />
-    <link rel="stylesheet" href="admin.css?v=1" />
+    <link rel="stylesheet" href="admin.css?v=2" />
   </head>
   <body>
     <header class="admin-header">
@@ -53,6 +53,7 @@
         <nav class="admin-tabs" aria-label="Áreas administrativas">
           <button id="community-tab" type="button" data-admin-view="community">Moderação</button>
           <button id="directory-tab" type="button" data-admin-view="directory">Diretório de ajuda</button>
+          <button id="operations-tab" type="button" data-admin-view="operations">Operação</button>
         </nav>
 
         <p id="workspace-status" class="status" role="status" aria-live="polite"></p>
@@ -108,9 +109,19 @@
             </form>
           </div>
         </section>
+
+        <section id="operations-view" class="admin-view" aria-labelledby="operations-title" hidden>
+          <div class="section-heading">
+            <div><span class="eyebrow">Entregas técnicas</span><h2 id="operations-title">Estado dos envios</h2></div>
+            <button id="refresh-operations" class="quiet-button" type="button">Atualizar</button>
+          </div>
+          <p class="privacy-note">Esta vista mostra apenas metadados operacionais. Destinos, conteúdo, hashes e detalhes do fornecedor não são enviados para o browser.</p>
+          <div id="operations-summary" class="operations-summary" aria-label="Resumo dos envios"></div>
+          <div id="operations-list" class="operations-list"></div>
+        </section>
       </section>
     </main>
 
-    <script type="module" src="admin.js?v=1"></script>
+    <script type="module" src="admin.js?v=2"></script>
   </body>
 </html>

@@ -7,6 +7,7 @@ from fastapi import HTTPException
 
 from sph import api
 from sph.security import admin_access_allowed
+from sph.send_log import SendLogEntry
 from sph.staff_access import (
     StaffAccessServiceError,
     StaffAuthenticationError,
@@ -65,6 +66,31 @@ class AdminApiTests(unittest.TestCase):
 
         self.assertEqual(result, {"roles": ["help_editor"]})
         self.assertNotIn("user_id", result)
+
+    def test_staff_delivery_logs_require_admin_and_hide_sensitive_fields(self) -> None:
+        entry = SendLogEntry(
+            send_date="2026-09-27",
+            month_day="09-27",
+            channel="messenger",
+            destination_id="private-destination",
+            status="failed",
+            message_hash="private-message-hash",
+            error_message="provider detail",
+            sent_at="2026-09-27T08:00:00-01:00",
+        )
+        with patch("sph.api.require_staff_access") as require_access, patch.object(
+            api.send_log, "list", return_value=[entry]
+        ):
+            result = api.staff_send_logs(limit=10, authorization="Bearer token")
+
+        require_access.assert_called_once_with("Bearer token", {"admin"})
+        self.assertEqual(result["summary"], {"total": 1, "sent": 0, "failed": 1})
+        self.assertEqual(
+            set(result["entries"][0]),
+            {"send_date", "month_day", "channel", "status", "sent_at"},
+        )
+        self.assertNotIn("private-destination", str(result))
+        self.assertNotIn("provider detail", str(result))
 
 
 if __name__ == "__main__":
