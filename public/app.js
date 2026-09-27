@@ -91,6 +91,8 @@ const els = {
   nextMeeting: document.querySelector("#next-meeting"),
   recoveryReason: document.querySelector("#recovery-reason"),
   supportPlanStatus: document.querySelector("#support-plan-status"),
+  editorialFeed: document.querySelector("#editorial-feed"),
+  editorialList: document.querySelector("#editorial-list"),
   installApp: document.querySelector("#install-app"),
   pwaStatus: document.querySelector("#pwa-status"),
   moreButton: document.querySelector("#more-button"),
@@ -155,6 +157,7 @@ const accountState = {
   aiEnabled: false,
   pushEnabled: false,
   helpDirectoryEnabled: false,
+  editorialContentEnabled: false,
   vapidPublicKey: "",
   pushRegistered: localStorage.getItem("sph-push-enabled") === "on",
 };
@@ -307,8 +310,12 @@ async function setupAccount() {
     if (!response.ok) throw new Error("Configuração indisponível");
     const config = await response.json();
     accountState.helpDirectoryEnabled = Boolean(config.features?.helpDirectory);
+    accountState.editorialContentEnabled = Boolean(config.features?.editorialContent);
     if (accountState.helpDirectoryEnabled) {
       await loadVerifiedHelpResources();
+    }
+    if (accountState.editorialContentEnabled) {
+      await loadEditorialContent();
     }
     if (!config.features?.account || !config.supabase) {
       renderAccount();
@@ -333,6 +340,77 @@ async function setupAccount() {
     renderAccount();
   } catch {
     renderAccount();
+  }
+}
+
+function editorialKindLabel(kind) {
+  return {
+    podcast: "Podcast",
+    video: "Vídeo",
+    story: "História",
+    resource: "Recurso",
+    exhibition: "Exposição",
+    event: "Evento",
+  }[kind] || "Conteúdo";
+}
+
+function safeSameOriginImage(value) {
+  try {
+    const url = new URL(value, window.location.origin);
+    return url.origin === window.location.origin ? url.href : "";
+  } catch {
+    return "";
+  }
+}
+
+function renderEditorialContent(items) {
+  els.editorialList.replaceChildren();
+  items.forEach((item) => {
+    const link = document.createElement("a");
+    link.className = "editorial-item";
+    link.href = item.url;
+    link.target = "_blank";
+    link.rel = "noreferrer";
+    const imageUrl = safeSameOriginImage(item.image_url);
+    if (imageUrl) {
+      const image = document.createElement("img");
+      image.src = imageUrl;
+      image.alt = "";
+      image.loading = "lazy";
+      link.classList.add("has-image");
+      link.append(image);
+    }
+    const copy = document.createElement("div");
+    const kind = document.createElement("span");
+    kind.textContent = editorialKindLabel(item.kind);
+    const title = document.createElement("h4");
+    title.textContent = item.title || "Conteúdo";
+    const summary = document.createElement("p");
+    summary.textContent = item.summary || "";
+    copy.append(kind, title, summary);
+    if (item.display_date) {
+      const date = document.createElement("time");
+      date.textContent = item.display_date;
+      copy.append(date);
+    }
+    link.append(copy);
+    els.editorialList.append(link);
+  });
+  els.editorialFeed.hidden = !items.length;
+}
+
+async function loadEditorialContent() {
+  try {
+    const response = await fetch("/api/v1/content?limit=50", {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) throw new Error("Catálogo indisponível");
+    const items = await response.json();
+    renderEditorialContent(Array.isArray(items) ? items : []);
+  } catch {
+    els.editorialFeed.hidden = true;
+    els.editorialList.replaceChildren();
   }
 }
 

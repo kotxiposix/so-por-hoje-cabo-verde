@@ -5,7 +5,7 @@ create extension if not exists pgcrypto;
 
 create table if not exists public.staff_roles (
   user_id uuid not null references auth.users(id) on delete cascade,
-  role text not null check (role in ('admin', 'moderator', 'help_editor')),
+  role text not null check (role in ('admin', 'moderator', 'help_editor', 'content_editor')),
   status text not null default 'active' check (status in ('active', 'suspended')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -15,6 +15,11 @@ create table if not exists public.staff_roles (
 create index if not exists staff_roles_active_idx
   on public.staff_roles (status, role, user_id)
   where status = 'active';
+
+alter table public.staff_roles drop constraint if exists staff_roles_role_check;
+alter table public.staff_roles
+  add constraint staff_roles_role_check
+  check (role in ('admin', 'moderator', 'help_editor', 'content_editor')) not valid;
 
 create table if not exists public.journey_state (
   user_id uuid primary key references auth.users(id) on delete cascade,
@@ -172,20 +177,51 @@ $$;
 create index if not exists help_resources_public_idx
   on public.help_resources (is_verified, verification_status, review_due_at, is_emergency, name);
 
+create table if not exists public.editorial_content (
+  id uuid primary key default gen_random_uuid(),
+  kind text not null check (kind in ('podcast', 'video', 'story', 'resource', 'exhibition', 'event')),
+  title text not null,
+  summary text not null,
+  url text,
+  image_url text,
+  display_date text,
+  sort_order integer not null default 0 check (sort_order between -999 and 999),
+  status text not null default 'draft' check (status in ('draft', 'published', 'retired')),
+  published_at timestamptz,
+  last_edited_by uuid references auth.users(id) on delete set null,
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists editorial_content_public_idx
+  on public.editorial_content (status, sort_order, published_at desc);
+
 create table if not exists public.staff_audit_events (
   id bigint generated always as identity primary key,
   actor_id uuid references auth.users(id) on delete set null,
   action text not null check (action in (
     'community.published', 'community.hidden', 'community.rejected',
-    'help.created', 'help.updated', 'help.verified', 'help.retired', 'help.stale'
+    'help.created', 'help.updated', 'help.verified', 'help.retired', 'help.stale',
+    'content.created', 'content.updated', 'content.published', 'content.retired'
   )),
-  target_type text not null check (target_type in ('community_post', 'help_resource')),
+  target_type text not null check (target_type in ('community_post', 'help_resource', 'editorial_content')),
   target_id uuid not null,
   created_at timestamptz not null default now()
 );
 
 create index if not exists staff_audit_events_created_idx
   on public.staff_audit_events (created_at desc, id desc);
+
+alter table public.staff_audit_events drop constraint if exists staff_audit_events_action_check;
+alter table public.staff_audit_events
+  add constraint staff_audit_events_action_check check (action in (
+    'community.published', 'community.hidden', 'community.rejected',
+    'help.created', 'help.updated', 'help.verified', 'help.retired', 'help.stale',
+    'content.created', 'content.updated', 'content.published', 'content.retired'
+  )) not valid;
+alter table public.staff_audit_events drop constraint if exists staff_audit_events_target_type_check;
+alter table public.staff_audit_events
+  add constraint staff_audit_events_target_type_check
+  check (target_type in ('community_post', 'help_resource', 'editorial_content')) not valid;
 
 create or replace function public.audit_community_moderation()
 returns trigger
@@ -252,6 +288,47 @@ after insert or update on public.help_resources
 for each row execute function public.audit_help_resource_change();
 
 revoke all on function public.audit_help_resource_change()
+  from public, anon, authenticated;
+
+create or replace function public.audit_editorial_content_change()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  event_action text;
+begin
+  if new.last_edited_by is null then
+    return new;
+  end if;
+
+  if tg_op = 'INSERT' then
+    event_action := 'content.created';
+  elsif new.status is distinct from old.status then
+    event_action := case new.status
+      when 'published' then 'content.published'
+      when 'retired' then 'content.retired'
+      else 'content.updated'
+    end;
+  elsif new.updated_at is distinct from old.updated_at then
+    event_action := 'content.updated';
+  end if;
+
+  if event_action is not null then
+    insert into public.staff_audit_events (actor_id, action, target_type, target_id)
+    values (new.last_edited_by, event_action, 'editorial_content', new.id);
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists editorial_content_audit_trigger on public.editorial_content;
+create trigger editorial_content_audit_trigger
+after insert or update on public.editorial_content
+for each row execute function public.audit_editorial_content_change();
+
+revoke all on function public.audit_editorial_content_change()
   from public, anon, authenticated;
 
 create table if not exists public.notification_preferences (
@@ -483,6 +560,7 @@ alter table public.staff_audit_events enable row level security;
 alter table public.anonymous_posts enable row level security;
 alter table public.anonymous_reports enable row level security;
 alter table public.help_resources enable row level security;
+alter table public.editorial_content enable row level security;
 alter table public.notification_preferences enable row level security;
 alter table public.push_subscriptions enable row level security;
 alter table public.ai_daily_usage enable row level security;
@@ -520,6 +598,7 @@ drop policy if exists "Users read staff roles" on public.staff_roles;
 drop policy if exists "Users read staff audit events" on public.staff_audit_events;
 
 drop policy if exists "Public reads verified help resources" on public.help_resources;
+drop policy if exists "Public reads editorial content" on public.editorial_content;
 
 drop policy if exists "Users manage notification preferences" on public.notification_preferences;
 create policy "Users manage notification preferences"

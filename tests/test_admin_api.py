@@ -56,6 +56,13 @@ class AdminApiTests(unittest.TestCase):
             api.help_resources_for_review(limit=10, authorization="Bearer token")
             require_access.assert_called_once_with("Bearer token", {"help_editor"})
 
+        with patch("sph.api.require_staff_access") as require_access, patch(
+            "sph.api.editorial_catalog_service"
+        ) as editorial_service:
+            editorial_service.return_value.list_for_review.return_value = []
+            api.editorial_content_for_review(limit=10, authorization="Bearer token")
+            require_access.assert_called_once_with("Bearer token", {"content_editor"})
+
     def test_staff_profile_exposes_roles_without_user_identity(self) -> None:
         identity = StaffIdentity(
             user_id="7d40d2bb-6202-4e1f-9231-724d15fc8e02",

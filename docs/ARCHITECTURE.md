@@ -89,6 +89,10 @@ Com conta ativa, o cliente usa Supabase Email OTP. A sincronizacao e explicita: 
 
 O catalogo estatico continua disponivel enquanto `HELP_DIRECTORY_READY=false`. O diretorio gerido aceita importacao administrativa de rascunhos, mas so publica recursos verificados e dentro do prazo de revisao.
 
+### Conteúdo editorial
+
+`EDITORIAL_CONTENT_READY=false` mantém o catálogo gerido invisível e preserva os conteúdos estáticos de Viver Saudável. O papel `content_editor` pode preparar rascunhos no painel; título, resumo e ligação HTTPS são obrigatórios antes da publicação. Editar um item publicado devolve-o automaticamente a rascunho, e publicação ou retirada fica registada na auditoria privada.
+
 ### Comunidade
 
 `COMMUNITY_READY=false` mantem a Sala Anonima publica indisponivel. O prototipo local nao simula conversa real. O backend preparado recebe partilhas como pendentes e exige moderacao antes de qualquer publicacao.
@@ -109,7 +113,10 @@ ACCOUNT_READY
     +--> COMMUNITY_READY + STAFF_ACCESS_READY
 
 HELP_DIRECTORY_READY + STAFF_ACCESS_READY
-    +--> independente da conta pública, mas exige equipa autenticada
+    +--> diretório verificado, independente da conta pública
+
+EDITORIAL_CONTENT_READY + STAFF_ACCESS_READY
+    +--> catálogo editorial, independente da conta pública
 ```
 
 As flags nao substituem as credenciais nem os testes operacionais. A API publica so anuncia uma funcionalidade quando a flag, as dependencias e todas as variaveis obrigatorias estao presentes.

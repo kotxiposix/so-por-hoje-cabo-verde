@@ -404,22 +404,23 @@ Permitir que a equipa mantenha conteudos sem depender sempre de programador.
 ### Estado atual
 
 - Login individual por código para contas previamente autorizadas.
-- Papéis separados para moderação, diretório de ajuda e administração.
+- Papéis separados para moderação, diretório de ajuda, conteúdo e administração.
 - Edição, verificação e retirada de reuniões e centros.
 - Fila de moderação para partilhas da comunidade.
 - Resumo sanitizado do histórico de envios, sem destinos nem conteúdo privado.
 - Auditoria atómica das decisões editoriais, sem copiar conteúdo privado.
+- Catálogo de Viver Saudável com rascunho, publicação, retirada e fallback para o conteúdo estático.
 
 ### Funcionalidades futuras
 
 - Importar meditações pelo painel com validação restrita.
-- Gerir vídeos, podcast, exposições e eventos.
+- Importar e organizar coleções completas da exposição.
 
 ### Sugestao de prioridade
 
 1. Testar o painel de Ajuda/reuniões e moderação com contas reais.
-2. Painel para conteúdos da exposição.
-3. Auditoria durável das decisões editoriais.
+2. Testar e ativar o catálogo editorial de vídeos, podcast, exposições e eventos.
+3. Painel para coleções completas da exposição.
 4. Painel completo de meditações, com permissão restrita.
 
 ## 15. Dados e privacidade
@@ -566,6 +567,7 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 | Meditacao | Funcional, com gratidao diaria | Rever conteudo complementar com equipa clinica/comunitaria |
 | Jornada | Funcional no dispositivo, com historico, plano pessoal, marcos, exportacao e preferencias | Ativar e validar sincronizacao opcional no Supabase |
 | Viver Saudavel | Podcast, documentario, historia do projeto, exposicao e recursos educativos | Adicionar novos testemunhos apenas com consentimento |
+| Catálogo editorial | Gestão por rascunho/publicação preparada e fechada por flag | Testar o papel `content_editor` em Preview e rever autoria/consentimento |
 | Ajuda | Fluxo SOS, contactos oficiais acionaveis e estado de verificacao por recurso | Confirmar horarios e restantes respostas diretamente com cada entidade |
 | Sala anonima | Prototipo apenas local | Nao publicar como sala real sem backend e moderacao |
 | Sobre | Missao, visao, historia, coordenacao, privacidade, contactos e FAQ | Identificar parceiros apenas depois de confirmacao |

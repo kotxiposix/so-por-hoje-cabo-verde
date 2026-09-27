@@ -31,6 +31,7 @@ AI_DELIVERY_READY=false        # ativar so depois de validar conta e quota
 COMMUNITY_READY=false          # manter fechada ate existir operacao de moderacao
 COMMUNITY_DAILY_POST_LIMIT=3   # limite por conta e dia, entre 1 e 20
 HELP_DIRECTORY_READY=false     # usar a lista estática até validar e importar os recursos
+EDITORIAL_CONTENT_READY=false  # usar os conteúdos estáticos até rever o catálogo editorial
 ```
 
 A URL e a chave publica só são enviadas ao cliente quando `ACCOUNT_READY=true`, depois de as regras RLS, Email OTP, SMTP e CAPTCHA estarem validados. A `SERVICE_ROLE_KEY` ignora RLS e fica exclusivamente no ambiente seguro da Vercel.
@@ -120,7 +121,9 @@ Nunca colocar a chave OpenAI nem a service role do Supabase em `public/`, no Git
 
 O endpoint de apoio diário usa sempre o catálogo local por defeito. Só reserva e envia um pedido à OpenAI quando `AI_DELIVERY_READY=true`, a sessão da própria pessoa é validada no Supabase e a função atómica `claim_ai_daily_request` confirma que a quota diária ainda não foi atingida. A meditação é resolvida novamente pela data na base canónica do servidor, por isso texto alterado no browser não entra no contexto do modelo. A identidade da conta não é enviada à OpenAI. A resposta usa esquema estrito, limites de tamanho e validação adicional para rejeitar alegações inseguras ou falta de encaminhamento humano em estados de risco. Falhas de autenticação, quota, validação, rede ou fornecedor regressam silenciosamente ao catálogo local.
 
-Os endpoints `/api/v1/admin/community/*` exigem uma conta autenticada com papel `moderator` ou `admin`; `/api/v1/admin/help/*` exige `help_editor` ou `admin`. A flag `STAFF_ACCESS_READY=false` mantém ambos fechados mesmo quando existem contas. Os endpoints estritamente técnicos `/api/v1/admin/send-logs` e `/api/v1/admin/send-test` continuam a exigir `Authorization: Bearer $ADMIN_API_SECRET` e esse segredo não deve ser usado por pessoas no browser.
+Os endpoints `/api/v1/admin/community/*` exigem uma conta autenticada com papel `moderator` ou `admin`; `/api/v1/admin/help/*` exige `help_editor` ou `admin`; `/api/v1/admin/content/*` exige `content_editor` ou `admin`. A flag `STAFF_ACCESS_READY=false` mantém todos fechados mesmo quando existem contas. Os endpoints estritamente técnicos `/api/v1/admin/send-logs` e `/api/v1/admin/send-test` continuam a exigir `Authorization: Bearer $ADMIN_API_SECRET` e esse segredo não deve ser usado por pessoas no browser.
+
+O catálogo editorial pode ser preparado em rascunho sem abrir a área pública. Depois de rever autoria, consentimento, resumo e ligações HTTPS, ativar `EDITORIAL_CONTENT_READY=true` primeiro em Preview. Qualquer edição posterior devolve o item publicado a rascunho.
 
 Os papéis são atribuídos diretamente no Supabase por uma pessoa administradora autorizada. A tabela não tem políticas para o browser: a aplicação resolve a sessão e consulta apenas os papéis ativos com a chave de serviço no servidor. Suspender um registo remove o acesso no pedido seguinte. Antes de ligar `STAFF_ACCESS_READY`, criar pelo menos duas contas de equipa, atribuir apenas os papéis necessários e testar que uma conta sem papel recebe `403`.
 

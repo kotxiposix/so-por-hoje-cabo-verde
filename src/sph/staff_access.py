@@ -53,7 +53,7 @@ class StaffIdentity:
 
 
 class SupabaseStaffAccess:
-    VALID_ROLES = {"admin", "moderator", "help_editor"}
+    VALID_ROLES = {"admin", "moderator", "help_editor", "content_editor"}
 
     def __init__(self, config: StaffAccessConfig) -> None:
         config.validate()

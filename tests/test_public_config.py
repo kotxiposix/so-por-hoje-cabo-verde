@@ -149,6 +149,22 @@ class PublicConfigTests(unittest.TestCase):
         self.assertTrue(config["features"]["helpDirectory"])
         self.assertNotIn("service-role", repr(config))
 
+    def test_editorial_content_requires_staff_service_role_and_explicit_readiness(self) -> None:
+        environment = {
+            "SUPABASE_URL": "https://project.supabase.co",
+            "SUPABASE_SERVICE_ROLE_KEY": "service-role",
+        }
+
+        self.assertFalse(public_runtime_config(environment)["features"]["editorialContent"])
+        environment["EDITORIAL_CONTENT_READY"] = "true"
+        self.assertFalse(public_runtime_config(environment)["features"]["editorialContent"])
+        environment["STAFF_ACCESS_READY"] = "true"
+
+        config = public_runtime_config(environment)
+
+        self.assertTrue(config["features"]["editorialContent"])
+        self.assertNotIn("service-role", repr(config))
+
 
 if __name__ == "__main__":
     unittest.main()

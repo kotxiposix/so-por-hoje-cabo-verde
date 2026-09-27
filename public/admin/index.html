@@ -8,7 +8,7 @@
     <meta name="description" content="Área reservada da equipa Só Por Hoje Cabo Verde." />
     <title>Equipa · Só Por Hoje Cabo Verde</title>
     <link rel="icon" type="image/png" href="../favicon-32.png" />
-    <link rel="stylesheet" href="admin.css?v=3" />
+    <link rel="stylesheet" href="admin.css?v=4" />
   </head>
   <body>
     <header class="admin-header">
@@ -53,6 +53,7 @@
         <nav class="admin-tabs" aria-label="Áreas administrativas">
           <button id="community-tab" type="button" data-admin-view="community">Moderação</button>
           <button id="directory-tab" type="button" data-admin-view="directory">Diretório de ajuda</button>
+          <button id="content-tab" type="button" data-admin-view="content">Conteúdos</button>
           <button id="operations-tab" type="button" data-admin-view="operations">Operação</button>
         </nav>
 
@@ -64,6 +65,45 @@
             <button id="refresh-community" class="quiet-button" type="button">Atualizar</button>
           </div>
           <div id="community-list" class="record-list"></div>
+        </section>
+
+        <section id="content-view" class="admin-view" aria-labelledby="content-title" hidden>
+          <div class="section-heading">
+            <div><span class="eyebrow">Viver Saudável</span><h2 id="content-title">Catálogo editorial</h2></div>
+            <button id="new-content" class="quiet-button" type="button">Novo conteúdo</button>
+          </div>
+          <p class="privacy-note">Apenas itens publicados aparecem na plataforma. Qualquer alteração devolve o item a rascunho.</p>
+          <div class="directory-layout">
+            <div id="content-list" class="resource-list" aria-label="Conteúdos existentes"></div>
+            <form id="content-form" class="resource-form">
+              <input id="content-id" type="hidden" />
+              <div class="field-grid">
+                <label>Título<input id="content-name" maxlength="160" required /></label>
+                <label>Tipo
+                  <select id="content-kind" required>
+                    <option value="podcast">Podcast</option>
+                    <option value="video">Vídeo</option>
+                    <option value="story">História</option>
+                    <option value="resource">Recurso</option>
+                    <option value="exhibition">Exposição</option>
+                    <option value="event">Evento</option>
+                  </select>
+                </label>
+              </div>
+              <label>Resumo<textarea id="content-summary" rows="5" maxlength="600" required></textarea></label>
+              <div class="field-grid">
+                <label>Ligação HTTPS<input id="content-url" type="url" maxlength="500" /></label>
+                <label>Imagem HTTPS<input id="content-image" type="url" maxlength="500" /></label>
+                <label>Data apresentada<input id="content-date" maxlength="80" placeholder="Ex.: Outubro de 2026" /></label>
+                <label>Ordem<input id="content-order" type="number" min="-999" max="999" value="0" /></label>
+              </div>
+              <div class="form-actions">
+                <button type="submit">Guardar rascunho</button>
+                <button id="publish-content" class="success-button" type="button" disabled>Publicar</button>
+                <button id="retire-content" class="danger-button" type="button" disabled>Retirar</button>
+              </div>
+            </form>
+          </div>
         </section>
 
         <section id="directory-view" class="admin-view" aria-labelledby="directory-title" hidden>
@@ -129,6 +169,6 @@
       </section>
     </main>
 
-    <script type="module" src="admin.js?v=3"></script>
+    <script type="module" src="admin.js?v=4"></script>
   </body>
 </html>

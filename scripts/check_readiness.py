@@ -62,12 +62,16 @@ def readiness_report(environment: Mapping[str, str] | None = None) -> dict[str, 
             "HELP_DIRECTORY_READY",
             ("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "STAFF_ACCESS_READY"),
         ),
+        "editorialContent": (
+            "EDITORIAL_CONTENT_READY",
+            ("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "STAFF_ACCESS_READY"),
+        ),
     }
     report: dict[str, dict[str, object]] = {}
     account_flag = is_enabled(env, "ACCOUNT_READY")
     for feature, (flag, required) in definitions.items():
         missing = missing_values(env, required)
-        dependencies_ready = feature in {"account", "staffAdmin", "helpDirectory"} or account_flag
+        dependencies_ready = feature in {"account", "staffAdmin", "helpDirectory", "editorialContent"} or account_flag
         report[feature] = {
             "flag": flag,
             "enabled": is_enabled(env, flag),
@@ -88,6 +92,7 @@ def main() -> int:
         "push": "Push",
         "community": "Comunidade",
         "helpDirectory": "Diretório de ajuda",
+        "editorialContent": "Conteúdo editorial",
     }
     print("Prontidão das integrações (nenhum valor secreto é mostrado):")
     for feature, status in report.items():

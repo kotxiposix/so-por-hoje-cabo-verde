@@ -75,6 +75,16 @@ class StaffAccessTests(unittest.TestCase):
 
         self.assertEqual(identity.roles, ("admin",))
 
+    def test_content_editor_is_a_valid_minimum_role(self) -> None:
+        responses = [FakeResponse({"id": USER_ID}), FakeResponse([{"role": "content_editor"}])]
+        with patch("sph.staff_access.urlopen", side_effect=responses):
+            identity = SupabaseStaffAccess(config()).authorize(
+                "Bearer user-access-token",
+                {"content_editor"},
+            )
+
+        self.assertEqual(identity.roles, ("content_editor",))
+
     def test_wrong_or_suspended_role_is_forbidden(self) -> None:
         for records in ([{"role": "help_editor"}], []):
             responses = [FakeResponse({"id": USER_ID}), FakeResponse(records)]

@@ -23,8 +23,12 @@ ALLOWED_ACTIONS = {
     "help.verified",
     "help.retired",
     "help.stale",
+    "content.created",
+    "content.updated",
+    "content.published",
+    "content.retired",
 }
-ALLOWED_TARGETS = {"community_post", "help_resource"}
+ALLOWED_TARGETS = {"community_post", "help_resource", "editorial_content"}
 
 
 def short_reference(value: object, prefix: str) -> str:

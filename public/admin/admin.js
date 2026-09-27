@@ -1,15 +1,17 @@
 import { SupabaseAccountClient } from "../account-client.mjs?staff=3";
 
 const SESSION_KEY = "sph-staff-session";
-const state = { client: null, session: loadSession(), roles: new Set(), resources: [] };
+const state = { client: null, session: loadSession(), roles: new Set(), resources: [], content: [] };
 const els = Object.fromEntries([
   "auth-panel", "auth-summary", "auth-status", "email-form", "staff-email", "code-form", "staff-code",
-  "workspace", "workspace-status", "signout", "role-list", "community-tab", "directory-tab", "operations-tab",
-  "community-view", "directory-view", "operations-view", "refresh-community", "community-list", "new-resource", "resource-list",
+  "workspace", "workspace-status", "signout", "role-list", "community-tab", "directory-tab", "content-tab", "operations-tab",
+  "community-view", "directory-view", "content-view", "operations-view", "refresh-community", "community-list", "new-resource", "resource-list",
   "resource-form", "resource-id", "resource-name", "resource-category", "resource-island", "resource-municipality",
   "resource-description", "resource-phone", "resource-email", "resource-website", "resource-source",
   "resource-schedule", "resource-emergency", "review-days", "verify-resource", "retire-resource",
   "refresh-operations", "operations-summary", "operations-list", "audit-list",
+  "new-content", "content-list", "content-form", "content-id", "content-name", "content-kind", "content-summary",
+  "content-url", "content-image", "content-date", "content-order", "publish-content", "retire-content",
 ].map((id) => [id.replaceAll("-", "_"), document.getElementById(id)]));
 
 let pendingEmail = "";
@@ -70,11 +72,13 @@ async function authenticate() {
   }));
   const canModerate = state.roles.has("admin") || state.roles.has("moderator");
   const canEditHelp = state.roles.has("admin") || state.roles.has("help_editor");
+  const canEditContent = state.roles.has("admin") || state.roles.has("content_editor");
   const canOperate = state.roles.has("admin");
   els.community_tab.hidden = !canModerate;
   els.directory_tab.hidden = !canEditHelp;
+  els.content_tab.hidden = !canEditContent;
   els.operations_tab.hidden = !canOperate;
-  const initialView = canOperate ? "operations" : canEditHelp ? "directory" : "community";
+  const initialView = canOperate ? "operations" : canEditContent ? "content" : canEditHelp ? "directory" : "community";
   try {
     await showView(initialView);
   } catch (error) {
@@ -86,6 +90,7 @@ async function showView(view) {
   const views = {
     community: [els.community_tab, els.community_view, loadCommunity],
     directory: [els.directory_tab, els.directory_view, loadResources],
+    content: [els.content_tab, els.content_view, loadContent],
     operations: [els.operations_tab, els.operations_view, loadOperations],
   };
   if (!views[view] || views[view][0].hidden) return;
@@ -268,6 +273,98 @@ async function retireResource() {
   } catch (error) { setStatus(error.message, true); }
 }
 
+async function loadContent() {
+  setStatus("A atualizar o catálogo editorial...");
+  state.content = await platformRequest("/api/v1/admin/content?limit=500");
+  renderContentList();
+  setStatus(`${state.content.length} conteúdo(s) no catálogo.`);
+}
+
+function renderContentList() {
+  const selectedId = els.content_id.value;
+  els.content_list.replaceChildren();
+  if (!state.content.length) els.content_list.append(emptyState("Ainda não existem conteúdos editoriais."));
+  state.content.forEach((item) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "resource-item";
+    button.setAttribute("aria-current", String(item.id === selectedId));
+    const title = document.createElement("strong");
+    title.textContent = item.title || "Sem título";
+    const status = document.createElement("small");
+    status.textContent = `${item.status || "draft"} · ${item.kind || "resource"}`;
+    button.append(title, status);
+    button.addEventListener("click", () => fillContent(item));
+    els.content_list.append(button);
+  });
+}
+
+function fillContent(item = null) {
+  const value = item || {};
+  els.content_id.value = value.id || "";
+  els.content_name.value = value.title || "";
+  els.content_kind.value = value.kind || "podcast";
+  els.content_summary.value = value.summary || "";
+  els.content_url.value = value.url || "";
+  els.content_image.value = value.image_url || "";
+  els.content_date.value = value.display_date || "";
+  els.content_order.value = Number.isInteger(value.sort_order) ? value.sort_order : 0;
+  els.publish_content.disabled = !value.id;
+  els.retire_content.disabled = !value.id;
+  renderContentList();
+  els.content_name.focus();
+}
+
+function contentPayload() {
+  return {
+    kind: els.content_kind.value,
+    title: els.content_name.value.trim(),
+    summary: els.content_summary.value.trim(),
+    url: els.content_url.value.trim() || null,
+    image_url: els.content_image.value.trim() || null,
+    display_date: els.content_date.value.trim() || null,
+    sort_order: Number(els.content_order.value || 0),
+  };
+}
+
+async function saveContent(event) {
+  event.preventDefault();
+  const id = els.content_id.value;
+  const path = id ? `/api/v1/admin/content/${encodeURIComponent(id)}` : "/api/v1/admin/content";
+  setStatus("A guardar o rascunho...");
+  try {
+    const saved = await platformRequest(path, {
+      method: id ? "PUT" : "POST",
+      body: JSON.stringify(contentPayload()),
+    });
+    await loadContent();
+    fillContent(saved);
+    setStatus("Rascunho guardado. Revê a ligação antes de publicar.");
+  } catch (error) { setStatus(error.message, true); }
+}
+
+async function publishContent() {
+  const id = els.content_id.value;
+  if (!id || !window.confirm("Publicar este conteúdo em Viver Saudável?")) return;
+  try {
+    const saved = await platformRequest(`/api/v1/admin/content/${encodeURIComponent(id)}/publish`, { method: "POST" });
+    await loadContent();
+    fillContent(saved);
+    setStatus("Conteúdo publicado.");
+  } catch (error) { setStatus(error.message, true); }
+}
+
+async function retireContent() {
+  const id = els.content_id.value;
+  if (!id || !window.confirm("Retirar este conteúdo da plataforma?")) return;
+  try {
+    await platformRequest(`/api/v1/admin/content/${encodeURIComponent(id)}/retire`, { method: "POST" });
+    await loadContent();
+    fillContent();
+    setStatus("Conteúdo retirado.");
+  } catch (error) { setStatus(error.message, true); }
+}
+
 function summaryMetric(label, value) {
   const article = document.createElement("article");
   const caption = document.createElement("span");
@@ -324,6 +421,10 @@ function renderAuditEvents(events) {
     "help.verified": "Recurso verificado",
     "help.retired": "Recurso retirado",
     "help.stale": "Recurso expirado",
+    "content.created": "Conteúdo criado",
+    "content.updated": "Conteúdo atualizado",
+    "content.published": "Conteúdo publicado",
+    "content.retired": "Conteúdo retirado",
   };
   els.audit_list.replaceChildren();
   if (!events.length) els.audit_list.append(emptyState("Ainda não existem eventos editoriais."));
@@ -388,6 +489,7 @@ els.signout.addEventListener("click", async () => {
 });
 els.community_tab.addEventListener("click", () => showView("community").catch((error) => setStatus(error.message, true)));
 els.directory_tab.addEventListener("click", () => showView("directory").catch((error) => setStatus(error.message, true)));
+els.content_tab.addEventListener("click", () => showView("content").catch((error) => setStatus(error.message, true)));
 els.operations_tab.addEventListener("click", () => showView("operations").catch((error) => setStatus(error.message, true)));
 els.refresh_community.addEventListener("click", () => loadCommunity().catch((error) => setStatus(error.message, true)));
 els.refresh_operations.addEventListener("click", () => loadOperations().catch((error) => setStatus(error.message, true)));
@@ -395,5 +497,9 @@ els.new_resource.addEventListener("click", () => fillResource());
 els.resource_form.addEventListener("submit", saveResource);
 els.verify_resource.addEventListener("click", verifyResource);
 els.retire_resource.addEventListener("click", retireResource);
+els.new_content.addEventListener("click", () => fillContent());
+els.content_form.addEventListener("submit", saveContent);
+els.publish_content.addEventListener("click", publishContent);
+els.retire_content.addEventListener("click", retireContent);
 
 initialize();

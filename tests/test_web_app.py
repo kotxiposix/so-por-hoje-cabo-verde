@@ -260,6 +260,7 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn('id="community-view"', admin_html)
         self.assertIn('id="directory-view"', admin_html)
         self.assertIn('id="operations-view"', admin_html)
+        self.assertIn('id="content-view"', admin_html)
         self.assertIn('sendOtp(pendingEmail, { createUser: false })', admin_script)
         self.assertIn('platformRequest("/api/v1/admin/me")', admin_script)
         self.assertIn('from "../account-client.mjs?staff=3"', admin_script)
@@ -267,6 +268,7 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn('platformRequest("/api/v1/admin/operations/audit-events?limit=100")', admin_script)
         self.assertIn('id="audit-list"', admin_html)
         self.assertIn('const initialView = canOperate ? "operations"', admin_script)
+        self.assertIn('platformRequest("/api/v1/admin/content?limit=500")', admin_script)
         self.assertIn('setStatus(error.message || "Não foi possível carregar esta área."', admin_script)
         self.assertIn("sessionStorage.getItem(SESSION_KEY)", admin_script)
         self.assertNotIn("localStorage", admin_script)
@@ -277,6 +279,16 @@ class WebAppStructureTests(unittest.TestCase):
         core_assets = service_worker.split("const CORE_ASSETS = [", 1)[1].split("];", 1)[0]
         self.assertNotIn("/admin", core_assets)
         self.assertNotIn('href="/admin', self.index_text)
+
+    def test_editorial_feed_is_optional_and_uses_safe_dom_rendering(self) -> None:
+        script = (PUBLIC / "app.js").read_text(encoding="utf-8")
+
+        self.assertIn('id="editorial-feed"', self.index_text)
+        self.assertIn('id="editorial-list"', self.index_text)
+        self.assertIn('fetch("/api/v1/content?limit=50"', script)
+        self.assertIn("item.title || \"Conteúdo\"", script)
+        self.assertIn("summary.textContent", script)
+        self.assertNotIn("editorialList.innerHTML", script)
 
     def test_privacy_page_matches_local_backup_behavior(self) -> None:
         privacy = (PUBLIC / "privacidade" / "index.html").read_text(encoding="utf-8")

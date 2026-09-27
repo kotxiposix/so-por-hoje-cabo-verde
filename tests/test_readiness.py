@@ -34,6 +34,7 @@ class ReadinessTests(unittest.TestCase):
             "PUSH_CRON_SECRET": "cron-secret",
             "COMMUNITY_READY": "true",
             "HELP_DIRECTORY_READY": "true",
+            "EDITORIAL_CONTENT_READY": "true",
         }
 
         report = readiness_report(environment)

@@ -52,6 +52,13 @@ def public_runtime_config(environment: Mapping[str, str] | None = None) -> dict[
         and supabase_url
         and env.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
     )
+    editorial_ready = env.get("EDITORIAL_CONTENT_READY", "").strip().lower() in {"1", "true", "yes"}
+    editorial_enabled = bool(
+        editorial_ready
+        and staff_access_ready
+        and supabase_url
+        and env.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    )
 
     payload: dict[str, object] = {
         "features": {
@@ -59,6 +66,7 @@ def public_runtime_config(environment: Mapping[str, str] | None = None) -> dict[
             "staffAdmin": staff_admin_enabled,
             "community": community_enabled,
             "helpDirectory": help_directory_enabled,
+            "editorialContent": editorial_enabled,
             "push": push_enabled,
             "ai": ai_enabled,
         }

@@ -24,6 +24,12 @@ from sph.community import (
     SupabaseCommunity,
 )
 from sph.config import settings
+from sph.editorial_catalog import (
+    EditorialConfig,
+    EditorialInputError,
+    EditorialServiceError,
+    SupabaseEditorialCatalog,
+)
 from sph.help_directory import (
     HelpDirectoryConfig,
     HelpDirectoryInputError,
@@ -108,6 +114,16 @@ class HelpVerificationPayload(BaseModel):
     review_days: int = Field(default=90, ge=1, le=365)
 
 
+class EditorialContentPayload(BaseModel):
+    kind: str = Field(min_length=1, max_length=30)
+    title: str = Field(min_length=1, max_length=160)
+    summary: str = Field(min_length=1, max_length=600)
+    url: str | None = Field(default=None, max_length=500)
+    image_url: str | None = Field(default=None, max_length=500)
+    display_date: str | None = Field(default=None, max_length=80)
+    sort_order: int = Field(default=0, ge=-999, le=999)
+
+
 def require_technical_admin_access(authorization: str | None) -> None:
     if not admin_access_allowed(authorization):
         raise HTTPException(status_code=401, detail="Não autorizado")
@@ -159,6 +175,13 @@ def staff_audit_service() -> SupabaseStaffAudit:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
+def editorial_catalog_service() -> SupabaseEditorialCatalog:
+    try:
+        return SupabaseEditorialCatalog(EditorialConfig.from_environment())
+    except EditorialServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
 @app.get("/api/v1/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "timezone": settings.timezone}
@@ -173,7 +196,7 @@ def runtime_config() -> dict[str, object]:
 def staff_profile(authorization: str | None = Header(default=None)) -> dict[str, list[str]]:
     identity = require_staff_access(
         authorization,
-        {"admin", "moderator", "help_editor"},
+        {"admin", "moderator", "help_editor", "content_editor"},
     )
     return {"roles": list(identity.roles)}
 
@@ -387,6 +410,87 @@ def retire_help_resource(
     except HelpDirectoryInputError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except HelpDirectoryServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.get("/api/v1/content")
+def published_editorial_content(limit: int = Query(default=50, ge=1, le=100)) -> list[dict[str, object]]:
+    try:
+        return editorial_catalog_service().list_published(limit)
+    except EditorialServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.get("/api/v1/admin/content")
+def editorial_content_for_review(
+    limit: int = Query(default=200, ge=1, le=500),
+    authorization: str | None = Header(default=None),
+) -> list[dict[str, object]]:
+    require_staff_access(authorization, {"content_editor"})
+    try:
+        return editorial_catalog_service().list_for_review(limit)
+    except EditorialServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/admin/content")
+def create_editorial_content(
+    payload: EditorialContentPayload,
+    authorization: str | None = Header(default=None),
+) -> dict[str, object]:
+    identity = require_staff_access(authorization, {"content_editor"})
+    try:
+        return editorial_catalog_service().create_draft(payload.model_dump(), actor_id=identity.user_id)
+    except EditorialInputError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except EditorialServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.put("/api/v1/admin/content/{item_id}")
+def update_editorial_content(
+    item_id: str,
+    payload: EditorialContentPayload,
+    authorization: str | None = Header(default=None),
+) -> dict[str, object]:
+    identity = require_staff_access(authorization, {"content_editor"})
+    try:
+        return editorial_catalog_service().update_draft(
+            item_id,
+            payload.model_dump(),
+            actor_id=identity.user_id,
+        )
+    except EditorialInputError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except EditorialServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/admin/content/{item_id}/publish")
+def publish_editorial_content(
+    item_id: str,
+    authorization: str | None = Header(default=None),
+) -> dict[str, object]:
+    identity = require_staff_access(authorization, {"content_editor"})
+    try:
+        return editorial_catalog_service().publish(item_id, actor_id=identity.user_id)
+    except EditorialInputError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except EditorialServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/admin/content/{item_id}/retire")
+def retire_editorial_content(
+    item_id: str,
+    authorization: str | None = Header(default=None),
+) -> dict[str, object]:
+    identity = require_staff_access(authorization, {"content_editor"})
+    try:
+        return editorial_catalog_service().retire(item_id, actor_id=identity.user_id)
+    except EditorialInputError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except EditorialServiceError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
