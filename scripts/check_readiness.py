@@ -18,17 +18,19 @@ def readiness_report(environment: Mapping[str, str] | None = None) -> dict[str, 
     env = os.environ if environment is None else environment
     public = public_runtime_config(env)["features"]
     definitions = {
-        "account": (
-            "ACCOUNT_READY",
-            ("SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY", "SUPABASE_SERVICE_ROLE_KEY"),
-        ),
-        "staffAdmin": (
-            "STAFF_ACCESS_READY",
-            ("SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY", "SUPABASE_SERVICE_ROLE_KEY"),
-        ),
-        "ai": (
-            "AI_DELIVERY_READY",
-            (
+        "account": {
+            "flag": "ACCOUNT_READY",
+            "values": ("SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY", "SUPABASE_SERVICE_ROLE_KEY"),
+            "dependencies": (),
+        },
+        "staffAdmin": {
+            "flag": "STAFF_ACCESS_READY",
+            "values": ("SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY", "SUPABASE_SERVICE_ROLE_KEY"),
+            "dependencies": (),
+        },
+        "ai": {
+            "flag": "AI_DELIVERY_READY",
+            "values": (
                 "SUPABASE_URL",
                 "SUPABASE_PUBLISHABLE_KEY",
                 "SUPABASE_SERVICE_ROLE_KEY",
@@ -36,10 +38,11 @@ def readiness_report(environment: Mapping[str, str] | None = None) -> dict[str, 
                 "OPENAI_MODEL",
                 "AI_DAILY_LIMIT",
             ),
-        ),
-        "push": (
-            "PUSH_DELIVERY_READY",
-            (
+            "dependencies": ("ACCOUNT_READY",),
+        },
+        "push": {
+            "flag": "PUSH_DELIVERY_READY",
+            "values": (
                 "SUPABASE_URL",
                 "SUPABASE_PUBLISHABLE_KEY",
                 "SUPABASE_SERVICE_ROLE_KEY",
@@ -48,35 +51,42 @@ def readiness_report(environment: Mapping[str, str] | None = None) -> dict[str, 
                 "VAPID_SUBJECT",
                 "PUSH_CRON_SECRET",
             ),
-        ),
-        "community": (
-            "COMMUNITY_READY",
-            (
+            "dependencies": ("ACCOUNT_READY",),
+        },
+        "community": {
+            "flag": "COMMUNITY_READY",
+            "values": (
                 "SUPABASE_URL",
                 "SUPABASE_PUBLISHABLE_KEY",
                 "SUPABASE_SERVICE_ROLE_KEY",
-                "STAFF_ACCESS_READY",
             ),
-        ),
-        "helpDirectory": (
-            "HELP_DIRECTORY_READY",
-            ("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "STAFF_ACCESS_READY"),
-        ),
-        "editorialContent": (
-            "EDITORIAL_CONTENT_READY",
-            ("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "STAFF_ACCESS_READY"),
-        ),
+            "dependencies": ("ACCOUNT_READY", "STAFF_ACCESS_READY"),
+        },
+        "helpDirectory": {
+            "flag": "HELP_DIRECTORY_READY",
+            "values": ("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"),
+            "dependencies": ("STAFF_ACCESS_READY",),
+        },
+        "editorialContent": {
+            "flag": "EDITORIAL_CONTENT_READY",
+            "values": ("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"),
+            "dependencies": ("STAFF_ACCESS_READY",),
+        },
     }
     report: dict[str, dict[str, object]] = {}
-    account_flag = is_enabled(env, "ACCOUNT_READY")
-    for feature, (flag, required) in definitions.items():
-        missing = missing_values(env, required)
-        dependencies_ready = feature in {"account", "staffAdmin", "helpDirectory", "editorialContent"} or account_flag
+    for feature, definition in definitions.items():
+        flag = str(definition["flag"])
+        missing = missing_values(env, definition["values"])
+        disabled_dependencies = [
+            name for name in definition["dependencies"] if not is_enabled(env, name)
+        ]
+        dependencies_ready = not disabled_dependencies
         report[feature] = {
             "flag": flag,
             "enabled": is_enabled(env, flag),
-            "configured": not missing,
+            "configured": not missing and dependencies_ready,
             "dependenciesReady": dependencies_ready,
+            "disabledDependencies": disabled_dependencies,
             "public": bool(public.get(feature, False)),
             "missing": missing,
         }
@@ -98,7 +108,9 @@ def main() -> int:
     for feature, status in report.items():
         state = "ATIVA" if status["public"] else "FECHADA"
         missing = ", ".join(status["missing"]) or "nenhuma variável em falta"
-        print(f"- {labels[feature]}: {state}; {missing}")
+        dependencies = ", ".join(status["disabledDependencies"])
+        dependency_note = f"; dependências fechadas: {dependencies}" if dependencies else ""
+        print(f"- {labels[feature]}: {state}; {missing}{dependency_note}")
     print("\nAs flags só devem ser ativadas depois dos testes operacionais da checklist.")
     return 0
 

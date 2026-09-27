@@ -14,6 +14,32 @@ class ReadinessTests(unittest.TestCase):
         self.assertIn("SUPABASE_URL", report["staffAdmin"]["missing"])
         self.assertIn("OPENAI_API_KEY", report["ai"]["missing"])
         self.assertIn("VAPID_PRIVATE_KEY", report["push"]["missing"])
+        self.assertEqual(report["ai"]["disabledDependencies"], ["ACCOUNT_READY"])
+        self.assertEqual(
+            report["community"]["disabledDependencies"],
+            ["ACCOUNT_READY", "STAFF_ACCESS_READY"],
+        )
+        self.assertFalse(report["helpDirectory"]["dependenciesReady"])
+
+    def test_false_dependency_flag_is_not_treated_as_ready(self) -> None:
+        environment = {
+            "SUPABASE_URL": "https://project.supabase.co",
+            "SUPABASE_PUBLISHABLE_KEY": "public-key",
+            "SUPABASE_SERVICE_ROLE_KEY": "service-secret",
+            "STAFF_ACCESS_READY": "false",
+            "HELP_DIRECTORY_READY": "true",
+            "EDITORIAL_CONTENT_READY": "true",
+        }
+
+        report = readiness_report(environment)
+
+        self.assertFalse(report["helpDirectory"]["configured"])
+        self.assertFalse(report["helpDirectory"]["public"])
+        self.assertEqual(
+            report["helpDirectory"]["disabledDependencies"],
+            ["STAFF_ACCESS_READY"],
+        )
+        self.assertFalse(report["editorialContent"]["configured"])
 
     def test_complete_environment_reports_active_features_without_values(self) -> None:
         environment = {
