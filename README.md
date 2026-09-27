@@ -62,6 +62,8 @@ Abrir `public/index.html` diretamente com `file://` serve apenas para inspecao v
 PYTHONPATH=src python3 -m sph.simple_server --port 8000
 ```
 
+O servidor simples cobre a experiência local essencial, o catálogo diário e o diretório de ajuda. Para testar todas as rotas de conta, comunidade, administração e conteúdo editorial, usar a aplicação FastAPI abaixo ou a suite automatizada; essas rotas são as mesmas usadas pela Vercel.
+
 Com FastAPI:
 
 ```bash
