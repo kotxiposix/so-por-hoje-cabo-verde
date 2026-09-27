@@ -75,7 +75,7 @@ Com conta ativa, o cliente usa Supabase Email OTP. A sincronizacao e explicita: 
 
 ### Conta e Supabase
 
-`ACCOUNT_READY=true` so expoe a conta quando URL e chave publica tambem existem. Operacoes privilegiadas usam `SUPABASE_SERVICE_ROLE_KEY` apenas no servidor. As politicas RLS continuam a ser a defesa principal para acesso por utilizador.
+`ACCOUNT_READY=true` so expoe a conta quando URL, chave publica e `TURNSTILE_SITE_KEY` tambem existem. O mesmo bloqueio protege o login da equipa. O token Turnstile de uso unico segue para o endpoint OTP do Supabase, que valida o desafio com a chave secreta configurada no painel. Operacoes privilegiadas usam `SUPABASE_SERVICE_ROLE_KEY` apenas no servidor. As politicas RLS continuam a ser a defesa principal para acesso por utilizador.
 
 ### Apoio diario com AI
 

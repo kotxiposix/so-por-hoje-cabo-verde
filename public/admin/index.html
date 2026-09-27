@@ -8,7 +8,7 @@
     <meta name="description" content="Área reservada da equipa Só Por Hoje Cabo Verde." />
     <title>Equipa · Só Por Hoje Cabo Verde</title>
     <link rel="icon" type="image/png" href="../favicon-32.png" />
-    <link rel="stylesheet" href="/admin/admin.css?v=7" />
+    <link rel="stylesheet" href="/admin/admin.css?v=8" />
   </head>
   <body>
     <a class="skip-link" href="#admin-main">Ir para o conteúdo principal</a>
@@ -31,6 +31,7 @@
             <input id="staff-email" name="email" type="email" autocomplete="email" required />
             <button type="submit">Enviar código</button>
           </div>
+          <div class="turnstile-slot" id="staff-captcha" aria-label="Verificação de segurança" hidden></div>
         </form>
         <form id="code-form" hidden>
           <label for="staff-code">Código recebido</label>
@@ -170,6 +171,6 @@
       </section>
     </main>
 
-    <script type="module" src="/admin/admin.js?v=7"></script>
+    <script type="module" src="/admin/admin.js?v=8"></script>
   </body>
 </html>

@@ -26,6 +26,13 @@ function normalizePublishableKey(value) {
   return key;
 }
 
+function normalizeCaptchaToken(value) {
+  if (typeof value !== "string") return "";
+  const token = value.trim();
+  if (!token || token.length > 4096 || /[\u0000-\u001f\u007f\s]/.test(token)) return "";
+  return token;
+}
+
 export class SupabaseAccountClient {
   constructor({ url, publishableKey, fetchImpl = fetch, platformFetchImpl = fetch }) {
     this.url = normalizeSupabaseOrigin(url);
@@ -37,10 +44,17 @@ export class SupabaseAccountClient {
     }
   }
 
-  async sendOtp(email, { createUser = true } = {}) {
+  async sendOtp(email, { createUser = true, captchaToken = "" } = {}) {
+    const normalizedCaptchaToken = normalizeCaptchaToken(captchaToken);
     return this.request("/auth/v1/otp", {
       method: "POST",
-      body: { email, create_user: Boolean(createUser) },
+      body: {
+        email,
+        create_user: Boolean(createUser),
+        ...(normalizedCaptchaToken
+          ? { gotrue_meta_security: { captcha_token: normalizedCaptchaToken } }
+          : {}),
+      },
     });
   }
 

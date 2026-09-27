@@ -42,9 +42,12 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Criar o projeto Supabase na regiao escolhida pela equipa (`Só Por Hoje Dev`, West Europe/London).
 - [x] Rever e executar `supabase/schema.sql`; 11 tabelas confirmadas com RLS ativo e Security Advisor sem erros ou avisos.
 - [ ] Executar `PYTHONPATH=src python scripts/check_supabase_schema.py` e corrigir qualquer tabela ou RPC em falta.
-- [ ] Configurar Email OTP, SMTP proprio, remetente e CAPTCHA.
+- [x] Integrar Cloudflare Turnstile no pedido OTP público e da equipa; token de uso único e bloqueio seguro validados localmente com a chave oficial de teste.
+- [ ] Configurar SMTP próprio e remetente no Supabase; validar entrega, limite e conteúdo do código OTP.
+- [ ] Criar o widget Turnstile para os domínios autorizados, guardar a secret key em `Authentication > Attack Protection` no Supabase e `TURNSTILE_SITE_KEY` na Vercel.
 - [x] Configurar Site URL `https://soporhoje.cv` e Redirect URLs para produção, Vercel e preview local autorizado.
-- [ ] Guardar na Vercel Preview: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` e `SUPABASE_SERVICE_ROLE_KEY`.
+- [x] Guardar na Vercel Production, Preview e Development: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` e `SUPABASE_SERVICE_ROLE_KEY`.
+- [ ] Guardar `TURNSTILE_SITE_KEY` nos três ambientes da Vercel depois de criar o widget definitivo.
 - [x] `ACCOUNT_READY=false` mantém conta, sincronização, AI, push e comunidade ocultos enquanto o Supabase está em configuração.
 - [ ] Mudar `ACCOUNT_READY=true` apenas depois de validar RLS, Email OTP, SMTP, CAPTCHA e os fluxos com duas contas.
 - [ ] Gerar e guardar `ADMIN_API_SECRET` para os endpoints tecnicos; nao o reutilizar noutros servicos.

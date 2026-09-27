@@ -1,9 +1,11 @@
-import { SupabaseAccountClient } from "../account-client.mjs?staff=3";
+import { SupabaseAccountClient } from "../account-client.mjs?staff=4";
+import { TurnstileWidget } from "../turnstile.mjs?staff=3";
 
 const SESSION_KEY = "sph-staff-session";
 const VALID_STAFF_ROLES = new Set(["admin", "moderator", "help_editor", "content_editor"]);
 const state = {
   client: null,
+  captcha: null,
   session: loadSession(),
   roles: new Set(),
   resources: [],
@@ -11,7 +13,7 @@ const state = {
   actionPending: false,
 };
 const els = Object.fromEntries([
-  "auth-panel", "auth-summary", "auth-status", "email-form", "staff-email", "code-form", "staff-code",
+  "auth-panel", "auth-summary", "auth-status", "email-form", "staff-email", "staff-captcha", "code-form", "staff-code",
   "workspace", "workspace-status", "signout", "role-list", "community-tab", "directory-tab", "content-tab", "operations-tab",
   "community-view", "directory-view", "content-view", "operations-view", "refresh-community", "community-list", "new-resource", "resource-list",
   "resource-form", "resource-id", "resource-name", "resource-category", "resource-island", "resource-municipality",
@@ -517,6 +519,10 @@ async function initialize() {
       return;
     }
     state.client = new SupabaseAccountClient(config.supabase);
+    state.captcha = await new TurnstileWidget({
+      container: els.staff_captcha,
+      siteKey: config.turnstile?.siteKey,
+    }).mount();
     if (state.session) {
       try {
         await authenticate();
@@ -540,8 +546,14 @@ els.email_form.addEventListener("submit", async (event) => {
   event.preventDefault();
   pendingEmail = els.staff_email.value.trim().toLowerCase();
   try {
+    const captchaToken = state.captcha?.getToken() || "";
+    if (!captchaToken) throw new Error("Conclui a verificação de segurança antes de pedir o código.");
     setStatus("A enviar o código...");
-    await state.client.sendOtp(pendingEmail, { createUser: false });
+    try {
+      await state.client.sendOtp(pendingEmail, { createUser: false, captchaToken });
+    } finally {
+      state.captcha.reset();
+    }
     els.code_form.hidden = false;
     els.staff_code.focus();
     setStatus("Código enviado para a conta autorizada.");

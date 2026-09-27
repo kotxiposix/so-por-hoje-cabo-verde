@@ -19,12 +19,14 @@ class PublicConfigTests(unittest.TestCase):
                 "SUPABASE_URL": "https://project.supabase.co/",
                 "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_example",
                 "SUPABASE_SERVICE_ROLE_KEY": "must-not-leak",
+                "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
             }
         )
 
         self.assertTrue(config["features"]["account"])
         self.assertEqual(config["supabase"]["url"], "https://project.supabase.co")
         self.assertEqual(config["supabase"]["publishableKey"], "sb_publishable_example")
+        self.assertEqual(config["turnstile"]["siteKey"], "1x00000000000000000000AA")
         self.assertNotIn("must-not-leak", repr(config))
 
     def test_account_stays_hidden_while_supabase_is_being_configured(self) -> None:
@@ -38,6 +40,17 @@ class PublicConfigTests(unittest.TestCase):
         self.assertFalse(config["features"]["account"])
         self.assertNotIn("supabase", config)
 
+    def test_account_stays_hidden_without_a_valid_turnstile_site_key(self) -> None:
+        environment = {
+            "ACCOUNT_READY": "true",
+            "SUPABASE_URL": "https://project.supabase.co",
+            "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_example",
+        }
+
+        self.assertFalse(public_runtime_config(environment)["features"]["account"])
+        environment["TURNSTILE_SITE_KEY"] = "bad site key"
+        self.assertFalse(public_runtime_config(environment)["features"]["account"])
+
     def test_unsafe_supabase_origin_keeps_every_integration_closed(self) -> None:
         environment = {
             "ACCOUNT_READY": "true",
@@ -48,6 +61,7 @@ class PublicConfigTests(unittest.TestCase):
             "SUPABASE_URL": "http://project.supabase.co",
             "SUPABASE_PUBLISHABLE_KEY": "public-key",
             "SUPABASE_SERVICE_ROLE_KEY": "service-role",
+            "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
         }
 
         config = public_runtime_config(environment)
@@ -61,6 +75,7 @@ class PublicConfigTests(unittest.TestCase):
             "SUPABASE_URL": "https://project.supabase.co",
             "SUPABASE_PUBLISHABLE_KEY": "public-key",
             "SUPABASE_SERVICE_ROLE_KEY": "service-role",
+            "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
         }
 
         config = public_runtime_config(environment)
@@ -76,6 +91,7 @@ class PublicConfigTests(unittest.TestCase):
             "SUPABASE_URL": "https://project.supabase.co",
             "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_example",
             "SUPABASE_SERVICE_ROLE_KEY": "service-role",
+            "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
             "VAPID_PUBLIC_KEY": "public-vapid-key",
             "VAPID_PRIVATE_KEY": "private-vapid-key",
             "VAPID_SUBJECT": "mailto:team@example.cv",
@@ -101,6 +117,7 @@ class PublicConfigTests(unittest.TestCase):
             "SUPABASE_URL": "https://project.supabase.co",
             "SUPABASE_PUBLISHABLE_KEY": "public-key",
             "SUPABASE_SERVICE_ROLE_KEY": "service-role",
+            "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
             "PUSH_DELIVERY_READY": "true",
             "VAPID_PUBLIC_KEY": "public-vapid-key",
             "VAPID_PRIVATE_KEY": "private-vapid-key",
@@ -118,6 +135,7 @@ class PublicConfigTests(unittest.TestCase):
             "SUPABASE_URL": "https://project.supabase.co",
             "SUPABASE_PUBLISHABLE_KEY": "public-key",
             "SUPABASE_SERVICE_ROLE_KEY": "service-role",
+            "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
             "OPENAI_API_KEY": "openai-secret",
         }
 
@@ -136,6 +154,7 @@ class PublicConfigTests(unittest.TestCase):
             "SUPABASE_URL": "https://project.supabase.co",
             "SUPABASE_PUBLISHABLE_KEY": "public-key",
             "SUPABASE_SERVICE_ROLE_KEY": "service-role",
+            "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
         }
 
         self.assertFalse(public_runtime_config(environment)["features"]["community"])
@@ -153,6 +172,8 @@ class PublicConfigTests(unittest.TestCase):
         environment = {
             "SUPABASE_URL": "https://project.supabase.co",
             "SUPABASE_SERVICE_ROLE_KEY": "service-role",
+            "SUPABASE_PUBLISHABLE_KEY": "public-key",
+            "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
         }
 
         self.assertFalse(public_runtime_config(environment)["features"]["helpDirectory"])
@@ -169,7 +190,9 @@ class PublicConfigTests(unittest.TestCase):
     def test_editorial_content_requires_staff_service_role_and_explicit_readiness(self) -> None:
         environment = {
             "SUPABASE_URL": "https://project.supabase.co",
+            "SUPABASE_PUBLISHABLE_KEY": "public-key",
             "SUPABASE_SERVICE_ROLE_KEY": "service-role",
+            "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
         }
 
         self.assertFalse(public_runtime_config(environment)["features"]["editorialContent"])

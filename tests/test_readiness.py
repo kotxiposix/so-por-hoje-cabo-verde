@@ -12,6 +12,7 @@ class ReadinessTests(unittest.TestCase):
         self.assertTrue(all(not item["public"] for item in report.values()))
         self.assertIn("SUPABASE_URL", report["account"]["missing"])
         self.assertIn("SUPABASE_URL", report["staffAdmin"]["missing"])
+        self.assertIn("TURNSTILE_SITE_KEY", report["account"]["missing"])
         self.assertIn("OPENAI_API_KEY", report["ai"]["missing"])
         self.assertIn("VAPID_PRIVATE_KEY", report["push"]["missing"])
         self.assertEqual(report["ai"]["disabledDependencies"], ["ACCOUNT_READY"])
@@ -26,6 +27,7 @@ class ReadinessTests(unittest.TestCase):
             "SUPABASE_URL": "https://project.supabase.co",
             "SUPABASE_PUBLISHABLE_KEY": "public-key",
             "SUPABASE_SERVICE_ROLE_KEY": "service-secret",
+            "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
             "STAFF_ACCESS_READY": "false",
             "HELP_DIRECTORY_READY": "true",
             "EDITORIAL_CONTENT_READY": "true",
@@ -47,6 +49,7 @@ class ReadinessTests(unittest.TestCase):
             "SUPABASE_URL": "https://secret-project.supabase.co",
             "SUPABASE_PUBLISHABLE_KEY": "public-but-not-for-report",
             "SUPABASE_SERVICE_ROLE_KEY": "service-secret",
+            "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
             "ADMIN_API_SECRET": "admin-secret",
             "STAFF_ACCESS_READY": "true",
             "AI_DELIVERY_READY": "true",

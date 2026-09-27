@@ -78,6 +78,41 @@ test("staff OTP can refuse automatic account creation", async () => {
   assert.equal(JSON.parse(request.options.body).create_user, false);
 });
 
+test("sendOtp forwards a valid one-time CAPTCHA token in the official Supabase shape", async () => {
+  let request;
+  const client = new SupabaseAccountClient({
+    url: "https://project.supabase.co",
+    publishableKey: "public-key",
+    fetchImpl: async (url, options) => {
+      request = { url, options };
+      return jsonResponse({});
+    },
+  });
+
+  await client.sendOtp("person@example.com", { captchaToken: "turnstile.valid-token_123" });
+
+  assert.deepEqual(JSON.parse(request.options.body), {
+    email: "person@example.com",
+    create_user: true,
+    gotrue_meta_security: { captcha_token: "turnstile.valid-token_123" },
+  });
+});
+
+test("sendOtp never forwards malformed CAPTCHA tokens", async () => {
+  let request;
+  const client = new SupabaseAccountClient({
+    url: "https://project.supabase.co",
+    publishableKey: "public-key",
+    fetchImpl: async (url, options) => {
+      request = { url, options };
+      return jsonResponse({});
+    },
+  });
+
+  await client.sendOtp("person@example.com", { captchaToken: "bad token\nvalue" });
+  assert.equal("gotrue_meta_security" in JSON.parse(request.options.body), false);
+});
+
 test("verifyOtp requests an email session", async () => {
   const client = new SupabaseAccountClient({
     url: "https://project.supabase.co",

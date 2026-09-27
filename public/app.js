@@ -155,6 +155,7 @@ const els = {
   accountAuth: document.querySelector("#account-auth"),
   accountEmailForm: document.querySelector("#account-email-form"),
   accountEmail: document.querySelector("#account-email"),
+  accountCaptcha: document.querySelector("#account-captcha"),
   accountCodeForm: document.querySelector("#account-code-form"),
   accountCode: document.querySelector("#account-code"),
   accountSession: document.querySelector("#account-session"),
@@ -199,6 +200,7 @@ const trackedServiceWorkers = new WeakSet();
 const initialAccountSession = loadAccountSession();
 const accountState = {
   client: null,
+  captcha: null,
   enabled: false,
   pendingEmail: "",
   session: initialAccountSession,
@@ -417,8 +419,15 @@ async function setupAccount() {
       return;
     }
 
-    const { SupabaseAccountClient } = await import("./account-client.mjs");
+    const [{ SupabaseAccountClient }, { TurnstileWidget }] = await Promise.all([
+      import("./account-client.mjs"),
+      import("./turnstile.mjs"),
+    ]);
     accountState.client = new SupabaseAccountClient(config.supabase);
+    accountState.captcha = await new TurnstileWidget({
+      container: els.accountCaptcha,
+      siteKey: config.turnstile?.siteKey,
+    }).mount();
     accountState.enabled = true;
     accountState.aiEnabled = Boolean(config.features?.ai);
     accountState.pushEnabled = Boolean(config.features?.push && config.push?.vapidPublicKey);
@@ -771,8 +780,14 @@ async function loadVerifiedHelpResources() {
 async function requestAccountCode(email) {
   const normalizedEmail = email.trim().toLowerCase();
   if (!accountState.client || !normalizedEmail) return;
+  const captchaToken = accountState.captcha?.getToken() || "";
+  if (!captchaToken) throw new Error("Conclui a verificação de segurança antes de pedir o código.");
   els.accountStatus.textContent = "A enviar código...";
-  await accountState.client.sendOtp(normalizedEmail);
+  try {
+    await accountState.client.sendOtp(normalizedEmail, { captchaToken });
+  } finally {
+    accountState.captcha.reset();
+  }
   accountState.pendingEmail = normalizedEmail;
   els.accountCodeForm.hidden = false;
   els.accountStatus.textContent = "Código enviado. Verifica o email e introduz o código recebido.";

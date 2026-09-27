@@ -31,15 +31,15 @@ PUBLIC_DIR = settings.data_path.parents[1] / "public"
 MAX_JSON_BODY_BYTES = 64 * 1024
 CONTENT_SECURITY_POLICY = (
     "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; "
-    "script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; "
+    "script-src 'self' https://challenges.cloudflare.com; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; "
     "connect-src 'self' https://*.supabase.co; "
-    "frame-src https://www.youtube-nocookie.com; worker-src 'self'; manifest-src 'self'; "
+    "frame-src https://www.youtube-nocookie.com https://challenges.cloudflare.com; worker-src 'self'; manifest-src 'self'; "
     "form-action 'self' mailto:"
 )
 SECURITY_HEADERS = {
     "Content-Security-Policy": CONTENT_SECURITY_POLICY,
     "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
-    "Referrer-Policy": "no-referrer",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
 }

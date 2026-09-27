@@ -16,6 +16,7 @@ Valores necessarios para a integracao:
 SUPABASE_URL=https://PROJECT_REF.supabase.co
 SUPABASE_PUBLISHABLE_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...  # apenas servidor, nunca no browser
+TURNSTILE_SITE_KEY=...         # chave publica do widget Cloudflare Turnstile
 ACCOUNT_READY=false            # manter a conta escondida durante a configuracao
 VAPID_PUBLIC_KEY=...           # pode ser enviada ao browser
 VAPID_PRIVATE_KEY=...          # apenas no emissor seguro
@@ -34,7 +35,7 @@ HELP_DIRECTORY_READY=false     # usar a lista estática até validar e importar 
 EDITORIAL_CONTENT_READY=false  # usar os conteúdos estáticos até rever o catálogo editorial
 ```
 
-A URL e a chave publica só são enviadas ao cliente quando `ACCOUNT_READY=true`, depois de as regras RLS, Email OTP, SMTP e CAPTCHA estarem validados. A `SERVICE_ROLE_KEY` ignora RLS e fica exclusivamente no ambiente seguro da Vercel.
+A URL, a chave pública do Supabase e a site key do Turnstile só são enviadas ao cliente quando `ACCOUNT_READY=true` e todas estão presentes. A `SERVICE_ROLE_KEY` ignora RLS e fica exclusivamente no ambiente seguro da Vercel. A secret key do Turnstile é configurada apenas no Supabase e nunca entra no código ou na configuração pública da plataforma.
 
 Para rever a configuração sem imprimir qualquer valor secreto, executar `PYTHONPATH=src python scripts/check_readiness.py`. O relatório mostra apenas se cada integração está fechada ou ativa e os nomes das variáveis ainda em falta.
 

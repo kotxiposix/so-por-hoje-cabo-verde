@@ -572,6 +572,12 @@ button {
   font-weight: 900;
 }
 
+.turnstile-slot {
+  width: 100%;
+  min-height: 65px;
+  overflow: hidden;
+}
+
 .inline-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

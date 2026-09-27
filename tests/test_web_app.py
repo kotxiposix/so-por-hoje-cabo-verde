@@ -198,8 +198,9 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v80"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v83"', worker)
         self.assertIn('"/push-subscription.mjs"', worker)
+        self.assertIn('"/turnstile.mjs"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -321,10 +322,13 @@ class WebAppStructureTests(unittest.TestCase):
         security = rules["/(.*)"]
         self.assertIn("frame-ancestors 'none'", security["Content-Security-Policy"])
         self.assertIn("https://*.supabase.co", security["Content-Security-Policy"])
+        self.assertIn("script-src 'self' https://challenges.cloudflare.com", security["Content-Security-Policy"])
+        self.assertIn("https://challenges.cloudflare.com", security["Content-Security-Policy"])
         self.assertIn("frame-src https://www.youtube-nocookie.com", security["Content-Security-Policy"])
         self.assertNotIn("frame-src https://www.youtube.com", security["Content-Security-Policy"])
         self.assertEqual(security["X-Content-Type-Options"], "nosniff")
         self.assertEqual(security["X-Frame-Options"], "DENY")
+        self.assertEqual(security["Referrer-Policy"], "strict-origin-when-cross-origin")
 
     def test_server_secrets_are_not_shipped_in_public_files(self) -> None:
         public_text = "\n".join(
@@ -523,13 +527,14 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn('<main id="admin-main" tabindex="-1">', admin_html)
         self.assertIn('role="tab" aria-selected="false" aria-controls="community-view" tabindex="-1"', admin_html)
         self.assertIn('role="tabpanel" aria-labelledby="community-tab community-title"', admin_html)
-        self.assertIn('href="/admin/admin.css?v=7"', admin_html)
-        self.assertIn('src="/admin/admin.js?v=7"', admin_html)
+        self.assertIn('href="/admin/admin.css?v=8"', admin_html)
+        self.assertIn('src="/admin/admin.js?v=8"', admin_html)
         self.assertNotIn('href="admin.css', admin_html)
         self.assertNotIn('src="admin.js', admin_html)
-        self.assertIn('sendOtp(pendingEmail, { createUser: false })', admin_script)
+        self.assertIn('sendOtp(pendingEmail, { createUser: false, captchaToken })', admin_script)
+        self.assertIn('from "../turnstile.mjs?staff=3"', admin_script)
         self.assertIn('platformRequest("/api/v1/admin/me")', admin_script)
-        self.assertIn('from "../account-client.mjs?staff=3"', admin_script)
+        self.assertIn('from "../account-client.mjs?staff=4"', admin_script)
         self.assertIn('platformRequest("/api/v1/admin/operations/send-logs?limit=100")', admin_script)
         self.assertIn('platformRequest("/api/v1/admin/operations/audit-events?limit=100")', admin_script)
         self.assertIn('id="audit-list"', admin_html)
@@ -585,6 +590,8 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("nunca o caminho da página ou a meditação consultada", privacy)
         self.assertIn("ignora qualquer texto de meditação enviado pelo navegador", privacy)
         self.assertIn("Nenhum outro campo entra nessa cópia", privacy)
+        self.assertIn("Cloudflare Turnstile", privacy)
+        self.assertIn("não envia ao Turnstile a meditação, a Jornada, o email introduzido", privacy)
         self.assertIn("não integra publicidade nem ferramentas próprias de análise", privacy)
 
     def test_import_stays_local_until_sync_is_chosen_again(self) -> None:
