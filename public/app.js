@@ -2363,7 +2363,7 @@ function getViewFromHash() {
 function showView(view, options = {}) {
   if (!viewHashes[view]) return;
 
-  const { updateHistory = false, scroll = true } = options;
+  const { updateHistory = false, replaceHistory = false, scroll = true } = options;
   state.view = view;
   document.querySelectorAll(".bottom-nav button").forEach((button) => {
     const isActive = button.dataset.view === view;
@@ -2379,9 +2379,11 @@ function showView(view, options = {}) {
   });
   els.viewAnnouncement.textContent = `Área ${viewLabels[view]} aberta.`;
 
-  if (updateHistory) {
-    const nextHash = `#${viewHashes[view]}`;
-    if (window.location.hash !== nextHash) {
+  const nextHash = `#${viewHashes[view]}`;
+  if (window.location.hash !== nextHash) {
+    if (replaceHistory) {
+      window.history.replaceState({ view }, "", nextHash);
+    } else if (updateHistory) {
       window.history.pushState({ view }, "", nextHash);
     }
   }
@@ -2583,7 +2585,7 @@ document.querySelectorAll(".bottom-nav button").forEach((button) => {
   button.addEventListener("keydown", handleBottomNavigationKeydown);
 });
 
-window.addEventListener("popstate", () => showView(getViewFromHash()));
+window.addEventListener("popstate", () => showView(getViewFromHash(), { replaceHistory: true }));
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();
   installPrompt = event;
@@ -2616,7 +2618,7 @@ document.addEventListener("keydown", (event) => {
 });
 
 clearLegacySupportCache();
-showView(getViewFromHash(), { scroll: false });
+showView(getViewFromHash(), { replaceHistory: true, scroll: false });
 renderAccount();
 setupAccount();
 setupPwa();
