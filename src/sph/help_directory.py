@@ -34,10 +34,18 @@ class HelpDirectoryConfig:
         )
 
     @property
+    def management_ready(self) -> bool:
+        return bool(self.supabase_url and self.service_role_key)
+
+    @property
     def ready(self) -> bool:
-        return bool(self.enabled and self.supabase_url and self.service_role_key)
+        return bool(self.enabled and self.management_ready)
 
     def validate(self) -> None:
+        if not self.management_ready:
+            raise HelpDirectoryServiceError("A gestão do diretório ainda não está configurada.")
+
+    def validate_public(self) -> None:
         if not self.ready:
             raise HelpDirectoryServiceError("O diretório verificado ainda não está ativo.")
 
@@ -137,6 +145,7 @@ class SupabaseHelpDirectory:
         self.config = config
 
     def list_verified(self, limit: int = 100) -> list[dict[str, object]]:
+        self.config.validate_public()
         safe_limit = max(1, min(limit, 200))
         today = datetime.now(ZoneInfo("Atlantic/Cape_Verde")).date().isoformat()
         fields = ",".join(PUBLIC_FIELDS)

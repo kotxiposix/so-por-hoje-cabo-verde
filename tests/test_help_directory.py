@@ -9,6 +9,7 @@ from unittest.mock import patch
 from sph.help_directory import (
     HelpDirectoryConfig,
     HelpDirectoryInputError,
+    HelpDirectoryServiceError,
     SupabaseHelpDirectory,
     normalize_resource,
     public_resource,
@@ -60,9 +61,24 @@ class HelpDirectoryTests(unittest.TestCase):
             "SUPABASE_SERVICE_ROLE_KEY": "service-role",
         }
         with patch.dict(os.environ, environment, clear=True):
-            self.assertFalse(HelpDirectoryConfig.from_environment().ready)
+            config_value = HelpDirectoryConfig.from_environment()
+            self.assertTrue(config_value.management_ready)
+            self.assertFalse(config_value.ready)
         with patch.dict(os.environ, {**environment, "HELP_DIRECTORY_READY": "true"}, clear=True):
             self.assertTrue(HelpDirectoryConfig.from_environment().ready)
+
+    def test_drafts_can_be_managed_without_opening_the_public_directory(self) -> None:
+        management_config = HelpDirectoryConfig(False, "https://project.supabase.co", "service-role")
+        directory = SupabaseHelpDirectory(management_config)
+
+        with self.assertRaises(HelpDirectoryServiceError):
+            directory.list_verified()
+
+        returned = [payload() | {"id": RESOURCE_ID, "verification_status": "draft"}]
+        with patch("sph.help_directory.urlopen", return_value=FakeResponse(returned)):
+            created = directory.create_draft(payload())
+
+        self.assertEqual(created["verification_status"], "draft")
 
     def test_resource_validation_rejects_untrusted_urls_and_categories(self) -> None:
         unsafe = payload() | {"website": "javascript:alert(1)"}

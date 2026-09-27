@@ -85,6 +85,8 @@ Manter `COMMUNITY_READY=false` em todos os ambientes até a checklist operaciona
 
 O diretório gerido permanece desligado por `HELP_DIRECTORY_READY=false`; nesse estado, a página mostra a lista estática existente. Quando ativado, `GET /api/v1/help/resources` substitui na interface reuniões e recursos por registos verificados cuja data de revisão ainda não venceu.
 
+A gestão de rascunhos exige `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY`, mas não exige ligar `HELP_DIRECTORY_READY`. Assim, a equipa pode importar e rever recursos sem anunciar o diretório ao browser. O catálogo inicial fica em `data/help_resources_drafts.json`; `PYTHONPATH=src python scripts/import_help_resources.py` valida-o localmente e a opção explícita `--apply` cria ou atualiza os rascunhos de forma idempotente.
+
 Criação e atualização administrativas colocam sempre o recurso em `draft`. A verificação é uma ação separada, exige `source_url` e define `review_due_at`. Uma alteração posterior retira imediatamente o recurso da listagem pública até nova verificação. A retirada usa o estado `retired` em vez de apagar o histórico.
 
 Antes de ativar:

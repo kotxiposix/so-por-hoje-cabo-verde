@@ -1,0 +1,177 @@
+[
+  {
+    "name": "CCAD",
+    "island": "Santiago",
+    "municipality": "Praia",
+    "category": "information",
+    "description": "Comissão de Coordenação do Álcool e outras Drogas, Edifício Santo António, Achada Santo António, Praia.",
+    "phone": "+238 262 31 29 / +238 333 72 43",
+    "email": "ccad@ms.gov.cv",
+    "website": "https://www.ccad.cv/",
+    "schedule": [],
+    "is_emergency": false,
+    "source_url": "https://www.ccad.cv/"
+  },
+  {
+    "name": "Linha SOS Álcool",
+    "category": "emergency",
+    "description": "Serviço nacional, gratuito, anónimo e confidencial de informação, aconselhamento e encaminhamento.",
+    "phone": "800 25 27",
+    "schedule": [],
+    "is_emergency": true,
+    "source_url": "https://www.ccad.cv/site/index.php/tratamento/12-servicos-respostas-de-tratamento-das-dependencias-disponiveis-em-cabo-verde"
+  },
+  {
+    "name": "ERID Achadinha",
+    "island": "Santiago",
+    "municipality": "Praia",
+    "category": "treatment",
+    "description": "Espaço de Respostas Integradas às Dependências no Centro de Saúde de Achadinha. Confirmar atendimento diretamente com o serviço.",
+    "schedule": [],
+    "is_emergency": false,
+    "source_url": "https://www.ccad.cv/site/index.php/tratamento/12-servicos-respostas-de-tratamento-das-dependencias-disponiveis-em-cabo-verde"
+  },
+  {
+    "name": "Comunidade Terapêutica Granja São Filipe",
+    "island": "Santiago",
+    "municipality": "Praia",
+    "category": "treatment",
+    "description": "Comunidade terapêutica em Achada São Filipe para tratamento e reinserção social. Contactos por confirmar.",
+    "phone": "+238 264 80 84 / +238 264 80 85 / +238 264 80 87",
+    "website": "https://www.facebook.com/profile.php?id=100069313025498",
+    "schedule": [],
+    "is_emergency": false,
+    "source_url": "https://www.facebook.com/profile.php?id=100069313025498"
+  },
+  {
+    "name": "Centro Saúde de Tira Chapéu",
+    "island": "Santiago",
+    "municipality": "Praia",
+    "category": "health",
+    "description": "Centro de saúde na Praia. Confirmar o atendimento antes da deslocação.",
+    "phone": "+238 262 06 99 / +238 262 01 22 / +238 595 80 38",
+    "email": "centrosaude21@gmail.com",
+    "website": "https://www.facebook.com/profile.php?id=100071860967343",
+    "schedule": [],
+    "is_emergency": false,
+    "source_url": "https://minsaude.gov.cv/download/166/outros/5886/hospitais-e-centros-de-saude.pdf"
+  },
+  {
+    "name": "Centro Saúde de Tira Chapéu",
+    "island": "Santiago",
+    "municipality": "Praia",
+    "category": "meeting",
+    "description": "Grupos presenciais indicados pela comunidade. Confirmar horários diretamente com o centro.",
+    "phone": "+238 262 06 99",
+    "website": "https://www.facebook.com/profile.php?id=100071860967343",
+    "schedule": [
+      "Segunda · 11h · grupo família (confirmar)",
+      "Terça · acompanhamento confirmado; 9h30 indicado pela comunidade",
+      "Quinta · acompanhamento confirmado; 9h30 indicado pela comunidade"
+    ],
+    "is_emergency": false,
+    "source_url": "https://www.inforpress.cv/fr/centro-de-saude-de-tira-chapeu-assinala-dia-internacional-contra-o-abuso-de-drogas-com-feira-de-saude"
+  },
+  {
+    "name": "Grupo Praia",
+    "island": "Santiago",
+    "municipality": "Praia",
+    "category": "meeting",
+    "description": "Grupo NA/AA referido pela CCAD. Validar local, horário e contacto.",
+    "schedule": [],
+    "is_emergency": false,
+    "source_url": "https://www.ccad.cv/site/index.php/tratamento/12-servicos-respostas-de-tratamento-das-dependencias-disponiveis-em-cabo-verde"
+  },
+  {
+    "name": "Grupo Ribeira Grande de Santiago",
+    "island": "Santiago",
+    "municipality": "Ribeira Grande de Santiago",
+    "category": "meeting",
+    "description": "Grupo referido pela CCAD. Validar se continua ativo.",
+    "schedule": [],
+    "is_emergency": false,
+    "source_url": "https://www.ccad.cv/site/index.php/tratamento/12-servicos-respostas-de-tratamento-das-dependencias-disponiveis-em-cabo-verde"
+  },
+  {
+    "name": "Grupo Santa Catarina",
+    "island": "Santiago",
+    "municipality": "Santa Catarina",
+    "category": "meeting",
+    "description": "Grupo referido pela CCAD. Validar local e dias.",
+    "schedule": [],
+    "is_emergency": false,
+    "source_url": "https://www.ccad.cv/site/index.php/tratamento/12-servicos-respostas-de-tratamento-das-dependencias-disponiveis-em-cabo-verde"
+  },
+  {
+    "name": "Grupo Santa Cruz",
+    "island": "Santiago",
+    "municipality": "Santa Cruz",
+    "category": "meeting",
+    "description": "Grupo referido pela CCAD. Validar local e dias.",
+    "schedule": [],
+    "is_emergency": false,
+    "source_url": "https://www.ccad.cv/site/index.php/tratamento/12-servicos-respostas-de-tratamento-das-dependencias-disponiveis-em-cabo-verde"
+  },
+  {
+    "name": "Grupo Tarrafal",
+    "island": "Santiago",
+    "municipality": "Tarrafal",
+    "category": "meeting",
+    "description": "Grupo referido pela CCAD. Validar local e contacto.",
+    "schedule": [],
+    "is_emergency": false,
+    "source_url": "https://www.ccad.cv/site/index.php/tratamento/12-servicos-respostas-de-tratamento-das-dependencias-disponiveis-em-cabo-verde"
+  },
+  {
+    "name": "Grupo Espargos",
+    "island": "Sal",
+    "municipality": "Espargos",
+    "category": "meeting",
+    "description": "Grupo referido pela CCAD. Validar horário atual.",
+    "schedule": [],
+    "is_emergency": false,
+    "source_url": "https://www.ccad.cv/site/index.php/tratamento/12-servicos-respostas-de-tratamento-das-dependencias-disponiveis-em-cabo-verde"
+  },
+  {
+    "name": "Grupo Ribeira Bote",
+    "island": "São Vicente",
+    "municipality": "Mindelo",
+    "category": "meeting",
+    "description": "Grupo referido pela CCAD. Validar local, horário e contacto.",
+    "schedule": [],
+    "is_emergency": false,
+    "source_url": "https://www.ccad.cv/site/index.php/tratamento/12-servicos-respostas-de-tratamento-das-dependencias-disponiveis-em-cabo-verde"
+  },
+  {
+    "name": "Tendas do El Shaddai",
+    "category": "treatment",
+    "description": "ONG e centro de resgate e restauração para homens, referido pela CCAD. Confirmar contacto e condições de acesso.",
+    "schedule": [],
+    "is_emergency": false,
+    "source_url": "https://www.ccad.cv/site/index.php/tratamento/12-servicos-respostas-de-tratamento-das-dependencias-disponiveis-em-cabo-verde"
+  },
+  {
+    "name": "Remar Cabo Verde",
+    "category": "treatment",
+    "description": "ONG com resposta de reabilitação para álcool e outras drogas, referida pela CCAD. Confirmar contacto e condições de acesso.",
+    "schedule": [],
+    "is_emergency": false,
+    "source_url": "https://www.ccad.cv/site/index.php/tratamento/12-servicos-respostas-de-tratamento-das-dependencias-disponiveis-em-cabo-verde"
+  },
+  {
+    "name": "Fazenda da Esperança",
+    "category": "treatment",
+    "description": "Centro residencial iniciado em Cabo Verde em 2018, referido pela CCAD. Confirmar contacto e condições de acesso.",
+    "schedule": [],
+    "is_emergency": false,
+    "source_url": "https://www.ccad.cv/site/index.php/tratamento/12-servicos-respostas-de-tratamento-das-dependencias-disponiveis-em-cabo-verde"
+  },
+  {
+    "name": "Serviços de Psiquiatria",
+    "category": "health",
+    "description": "Internamentos curtos para desabituação física e atendimento ambulatório. Confirmar encaminhamento e disponibilidade no serviço de saúde responsável.",
+    "schedule": [],
+    "is_emergency": false,
+    "source_url": "https://www.ccad.cv/site/index.php/tratamento/12-servicos-respostas-de-tratamento-das-dependencias-disponiveis-em-cabo-verde"
+  }
+]
