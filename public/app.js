@@ -200,6 +200,7 @@ const accountState = {
   communityLoaded: false,
   communityReportsPending: new Set(),
   communityReportsSent: new Set(),
+  operationPending: false,
   vapidPublicKey: "",
   pushRegistered: localStorage.getItem("sph-push-enabled") === "on",
 };
@@ -539,6 +540,31 @@ function renderAccount() {
   els.accountStatus.textContent = accountState.syncEnabled ? "Sincronização ativa." : "Sincronização à espera da tua decisão.";
 }
 
+function setAccountOperationPending(pending) {
+  accountState.operationPending = pending;
+  [els.accountAuth, els.accountSession, els.deleteLocalData]
+    .filter(Boolean)
+    .forEach((container) => {
+      container.setAttribute("aria-busy", String(pending));
+      const controls = container.matches?.("button, input")
+        ? [container]
+        : [...container.querySelectorAll("button, input")];
+      controls.forEach((control) => {
+        control.disabled = pending;
+      });
+    });
+}
+
+async function runAccountOperation(operation) {
+  if (accountState.operationPending) return;
+  setAccountOperationPending(true);
+  try {
+    await operation();
+  } finally {
+    setAccountOperationPending(false);
+  }
+}
+
 function renderPrivacyState() {
   const copy = getPrivacyCopy({
     accountEnabled: accountState.enabled,
@@ -704,7 +730,6 @@ async function requestAccountCode(email) {
   await accountState.client.sendOtp(normalizedEmail);
   accountState.pendingEmail = normalizedEmail;
   els.accountCodeForm.hidden = false;
-  els.accountCode.focus();
   els.accountStatus.textContent = "Código enviado. Verifica o email e introduz o código recebido.";
 }
 
@@ -733,6 +758,7 @@ function pauseJourneySync(message) {
 
 async function uploadLocalJourney({ silent = false } = {}) {
   if (!accountState.client || !accountState.session) return;
+  if (silent && accountState.operationPending) return;
   if (!silent) els.accountStatus.textContent = "A guardar a Jornada na conta...";
   const {
     selectSyncableProgress,
@@ -2458,36 +2484,57 @@ els.installAppSecondary.addEventListener("click", () => installApp());
 els.pwaUpdate.addEventListener("click", activateAppUpdate);
 els.notificationsSecondary.addEventListener("click", () => activateNotifications());
 els.disableNotifications.addEventListener("click", () => disableNotifications());
-els.accountEmailForm.addEventListener("submit", (event) => {
+els.accountEmailForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  requestAccountCode(els.accountEmail.value).catch((error) => {
-    els.accountStatus.textContent = error.message || "Não foi possível enviar o código agora.";
+  await runAccountOperation(async () => {
+    try {
+      await requestAccountCode(els.accountEmail.value);
+    } catch (error) {
+      els.accountStatus.textContent = error.message || "Não foi possível enviar o código agora.";
+    }
   });
+  if (accountState.pendingEmail && !els.accountCodeForm.hidden) els.accountCode.focus();
 });
 els.accountCodeForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  verifyAccountCode(els.accountCode.value).catch((error) => {
-    els.accountStatus.textContent = error.message || "O código não pôde ser confirmado.";
+  runAccountOperation(async () => {
+    try {
+      await verifyAccountCode(els.accountCode.value);
+    } catch (error) {
+      els.accountStatus.textContent = error.message || "O código não pôde ser confirmado.";
+    }
   });
 });
 els.syncLocalData.addEventListener("click", () => {
-  uploadLocalJourney().catch((error) => {
-    els.accountStatus.textContent = error.message || "Não foi possível guardar os dados na conta.";
+  runAccountOperation(async () => {
+    try {
+      await uploadLocalJourney();
+    } catch (error) {
+      els.accountStatus.textContent = error.message || "Não foi possível guardar os dados na conta.";
+    }
   });
 });
 els.syncAccountData.addEventListener("click", () => {
-  useAccountJourney().catch((error) => {
-    els.accountStatus.textContent = error.message || "Não foi possível obter os dados da conta.";
+  runAccountOperation(async () => {
+    try {
+      await useAccountJourney();
+    } catch (error) {
+      els.accountStatus.textContent = error.message || "Não foi possível obter os dados da conta.";
+    }
   });
 });
 els.deleteAccountData.addEventListener("click", () => {
-  deleteAccountJourney().catch((error) => {
-    els.accountStatus.textContent = error.message || "Não foi possível apagar a cópia da conta.";
+  runAccountOperation(async () => {
+    try {
+      await deleteAccountJourney();
+    } catch (error) {
+      els.accountStatus.textContent = error.message || "Não foi possível apagar a cópia da conta.";
+    }
   });
 });
-els.deleteAccount.addEventListener("click", () => deleteCurrentAccount());
-els.accountSignout.addEventListener("click", () => signOutAccount());
-els.deleteLocalData.addEventListener("click", () => deleteDeviceData());
+els.deleteAccount.addEventListener("click", () => runAccountOperation(deleteCurrentAccount));
+els.accountSignout.addEventListener("click", () => runAccountOperation(signOutAccount));
+els.deleteLocalData.addEventListener("click", () => runAccountOperation(deleteDeviceData));
 els.sosButton.addEventListener("click", openSos);
 els.sosClose.addEventListener("click", closeSos);
 els.sosModal.addEventListener("click", (event) => {
