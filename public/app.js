@@ -2,6 +2,7 @@ import {
   addIsoDays,
   differenceInCalendarDays,
   getBestStreak,
+  getCalendarDayInTimeZone,
   getCurrentStreak,
 } from "./date-utils.mjs";
 
@@ -124,6 +125,7 @@ const els = {
 let currentSupport = null;
 let installPrompt = null;
 let reminderTimer = null;
+let dayRefreshTimer = null;
 let journeySyncTimer = null;
 let activeModal = null;
 let activeModalClose = null;
@@ -810,22 +812,23 @@ function moveArchiveDate(offset) {
 }
 
 function getCapeVerdeToday() {
-  const parts = new Intl.DateTimeFormat("pt-PT", {
-    timeZone: "Atlantic/Cape_Verde",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    weekday: "long",
-  }).formatToParts(new Date());
-  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  const weekday = values.weekday.charAt(0).toUpperCase() + values.weekday.slice(1);
-  return {
-    year: Number(values.year),
-    month: Number(values.month),
-    day: Number(values.day),
-    iso: `${values.year}-${values.month}-${values.day}`,
-    weekday,
-  };
+  return getCalendarDayInTimeZone();
+}
+
+function refreshForNewDay() {
+  const today = getCapeVerdeToday().iso;
+  if (!state.daily || state.daily.date === today) return;
+  currentSupport = null;
+  loadToday();
+}
+
+function scheduleDayRefreshCheck() {
+  if (dayRefreshTimer) window.clearTimeout(dayRefreshTimer);
+  const nextMinute = 60_000 - (Date.now() % 60_000) + 100;
+  dayRefreshTimer = window.setTimeout(() => {
+    refreshForNewDay();
+    scheduleDayRefreshCheck();
+  }, nextMinute);
 }
 
 function renderMeditation() {
@@ -2035,7 +2038,10 @@ window.addEventListener("appinstalled", () => {
 window.addEventListener("online", updateConnectivityStatus);
 window.addEventListener("offline", updateConnectivityStatus);
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") scheduleSessionReminder();
+  if (document.visibilityState === "visible") {
+    refreshForNewDay();
+    scheduleSessionReminder();
+  }
 });
 
 document.addEventListener("keydown", (event) => {
@@ -2052,4 +2058,5 @@ renderAccount();
 setupAccount();
 setupPwa();
 scheduleSessionReminder();
+scheduleDayRefreshCheck();
 loadToday();

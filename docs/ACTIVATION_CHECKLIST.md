@@ -8,6 +8,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Navegação inferior verificada em viewport móvel e desktop, sem corte lateral e com espaço reservado para não tapar o conteúdo final.
 - [x] Meditacao, Jornada, Viver Saudavel, Ajuda e Sobre funcionais em modo local.
 - [x] Dias limpos, sequência atual, melhor sequência e arquivo usam aritmética UTC para datas civis, verificada em mudanças de mês, ano e 29 de fevereiro.
+- [x] Uma PWA deixada aberta deteta a mudança de dia ao regressar ao ecrã ou durante a utilização e carrega a nova meditação, inclusive pelo catálogo offline.
 - [x] PWA instalavel, base diaria offline e fallbacks separados para app, privacidade e exposicao.
 - [x] Apoio diário local preserva dia e estado offline; atualizações da PWA exigem ação explícita.
 - [x] Navegação offline validada em Chromium local para a aplicação, `/expo` e `/privacidade`, com a meditação e as cinco áreas principais disponíveis.

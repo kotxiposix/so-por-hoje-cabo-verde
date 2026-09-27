@@ -24,6 +24,28 @@ export function differenceInCalendarDays(startIso, endIso) {
   return Math.round((isoDateToUtc(endIso) - isoDateToUtc(startIso)) / DAY_MS);
 }
 
+export function getCalendarDayInTimeZone(
+  instant = new Date(),
+  timeZone = "Atlantic/Cape_Verde",
+) {
+  const parts = new Intl.DateTimeFormat("pt-PT", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    weekday: "long",
+  }).formatToParts(instant);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const weekday = values.weekday.charAt(0).toUpperCase() + values.weekday.slice(1);
+  return {
+    year: Number(values.year),
+    month: Number(values.month),
+    day: Number(values.day),
+    iso: `${values.year}-${values.month}-${values.day}`,
+    weekday,
+  };
+}
+
 export function getCurrentStreak(completedDays, todayIso) {
   if (!todayIso) return 0;
   const completed = completedDays instanceof Set ? completedDays : new Set(completedDays);

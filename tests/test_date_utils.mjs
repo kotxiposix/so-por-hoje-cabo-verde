@@ -5,6 +5,7 @@ import {
   addIsoDays,
   differenceInCalendarDays,
   getBestStreak,
+  getCalendarDayInTimeZone,
   getCurrentStreak,
 } from "../public/date-utils.mjs";
 
@@ -32,4 +33,15 @@ test("best streak ignores duplicates and separates gaps", () => {
 test("invalid calendar dates are rejected", () => {
   assert.throws(() => addIsoDays("2026-02-30", 1), /inválida/);
   assert.throws(() => differenceInCalendarDays("not-a-date", "2026-01-01"), /inválida/);
+});
+
+test("Cape Verde changes calendar day at 01:00 UTC", () => {
+  assert.equal(
+    getCalendarDayInTimeZone(new Date("2026-09-27T00:59:59Z")).iso,
+    "2026-09-26",
+  );
+  assert.equal(
+    getCalendarDayInTimeZone(new Date("2026-09-27T01:00:00Z")).iso,
+    "2026-09-27",
+  );
 });
