@@ -185,7 +185,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v52"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v53"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -234,6 +234,18 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("body: PUSH_BODY", service_worker)
         self.assertNotIn("payload.title ||", service_worker)
         self.assertNotIn("payload.body ||", service_worker)
+
+    def test_push_badge_is_reconciled_with_the_browser_subscription(self) -> None:
+        script = (PUBLIC / "app.js").read_text(encoding="utf-8")
+        reconciliation = script.split("async function reconcilePushRegistration", 1)[1].split(
+            "async function removeRemotePushRegistration", 1
+        )[0]
+
+        self.assertIn("registration.pushManager.getSubscription()", reconciliation)
+        self.assertIn("await subscription.unsubscribe()", reconciliation)
+        self.assertIn("accountState.pushRegistered = pushAllowed && Boolean(subscription)", reconciliation)
+        self.assertIn('localStorage.removeItem("sph-push-enabled")', reconciliation)
+        self.assertIn("transient configuration outage", script)
 
     def test_vercel_routes_dynamic_api_before_static_files(self) -> None:
         config = json.loads((ROOT / "vercel.json").read_text(encoding="utf-8"))

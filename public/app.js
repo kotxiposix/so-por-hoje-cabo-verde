@@ -349,6 +349,7 @@ async function setupAccount() {
     }
     if (!config.features?.account || !config.supabase) {
       renderAccount();
+      await reconcilePushRegistration();
       return;
     }
 
@@ -368,7 +369,9 @@ async function setupAccount() {
       }
     }
     renderAccount();
+    await reconcilePushRegistration();
   } catch {
+    // Keep the last known local state during a transient configuration outage.
     renderAccount();
   }
 }
@@ -1968,6 +1971,36 @@ async function registerPushNotifications() {
   localStorage.setItem("sph-push-enabled", "on");
   renderReminderStatus();
   return true;
+}
+
+async function reconcilePushRegistration() {
+  const notificationAllowed = "Notification" in window && Notification.permission === "granted";
+  const pushAllowed = Boolean(
+    notificationAllowed
+    && accountState.pushEnabled
+    && accountState.client
+    && accountState.session
+    && "serviceWorker" in navigator
+    && "PushManager" in window
+  );
+  const registration = "serviceWorker" in navigator
+    ? await navigator.serviceWorker.getRegistration()
+    : null;
+  const subscription = registration && "PushManager" in window
+    ? await registration.pushManager.getSubscription()
+    : null;
+
+  if (!pushAllowed && subscription) {
+    await subscription.unsubscribe();
+  }
+
+  accountState.pushRegistered = pushAllowed && Boolean(subscription);
+  if (accountState.pushRegistered) {
+    localStorage.setItem("sph-push-enabled", "on");
+  } else {
+    localStorage.removeItem("sph-push-enabled");
+  }
+  renderReminderStatus();
 }
 
 async function removeRemotePushRegistration() {

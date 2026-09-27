@@ -51,6 +51,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [ ] Manter `PUSH_DELIVERY_READY=false` durante os primeiros testes.
 - [x] `PUSH_DELIVERY_READY=false` bloqueia o emissor no servidor, mesmo com Supabase, VAPID e segredo do cron configurados.
 - [x] O browser só recebe a funcionalidade push quando todas as credenciais de subscrição e entrega estão presentes no servidor.
+- [x] O estado mostrado é reconciliado com a permissão e a subscrição reais do navegador; uma subscrição órfã é removida sem reagir destrutivamente a uma falha transitória de configuração.
 - [ ] Guardar o endpoint e o segredo do cron no Supabase Vault.
 - [ ] Agendar `POST /api/v1/internal/push/deliver` a cada minuto com `Authorization: Bearer $PUSH_CRON_SECRET`.
 - [ ] Testar subscricao, hora/fuso, entrega com app fechada, cancelamento e endpoint expirado em dois dispositivos.
