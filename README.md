@@ -71,6 +71,8 @@ pip install -e ".[import,test]"
 uvicorn sph.api:app --reload
 ```
 
+Para preparar variáveis locais, usar `.env.example` apenas como referência e manter todos os valores reais fora do Git. As flags vêm fechadas por defeito; o servidor não carrega este ficheiro automaticamente.
+
 Endpoints principais:
 
 ```text
