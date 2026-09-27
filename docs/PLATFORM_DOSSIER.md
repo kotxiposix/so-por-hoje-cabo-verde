@@ -569,7 +569,7 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 | Viver Saudavel | Podcast, documentario, historia do projeto, exposicao e recursos educativos | Adicionar novos testemunhos apenas com consentimento |
 | Catálogo editorial | Gestão por rascunho/publicação preparada e fechada por flag | Testar o papel `content_editor` em Preview e rever autoria/consentimento |
 | Ajuda | Fluxo SOS, contactos oficiais acionaveis e estado de verificacao por recurso | Confirmar horarios e restantes respostas diretamente com cada entidade |
-| Sala anonima | Prototipo apenas local | Nao publicar como sala real sem backend e moderacao |
+| Sala anonima | Diário local ativo; backend e cliente público moderado preparados atrás de `COMMUNITY_READY=false` | Não ativar sem equipa, regras, retenção e protocolo de crise |
 | Sobre | Missao, visao, historia, coordenacao, privacidade, contactos e FAQ | Identificar parceiros apenas depois de confirmacao |
 | Conta/login | Cliente Email OTP e escolha de sincronizacao implementados, ocultos sem configuracao | Criar projeto Supabase, SMTP e CAPTCHA; testar com duas contas |
 | Notificacoes push | Cliente, emissor protegido, fusos horarios, cancelamento e service worker preparados atras de feature flag | Configurar VAPID e Supabase Cron; testar em dois dispositivos antes de ativar a flag |

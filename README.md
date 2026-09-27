@@ -155,6 +155,12 @@ O estado das integrações pode ser auditado sem revelar valores com:
 PYTHONPATH=src python scripts/check_readiness.py
 ```
 
+Depois de aplicar o esquema no Supabase, verificar as tabelas e RPCs esperadas, sem escrever dados, com:
+
+```bash
+PYTHONPATH=src python scripts/check_supabase_schema.py
+```
+
 Implicacoes:
 
 - A chave OpenAI fica apenas no servidor. Nunca colocar a chave no `public/app.js` ou no browser.
@@ -169,7 +175,7 @@ O conteudo gerado e complementar: nao altera a meditacao oficial e nao substitui
 
 ## Sala Anónima moderada
 
-O backend da futura comunidade está preparado, mas permanece fechado por defeito. Quando `COMMUNITY_READY=false`, os endpoints devolvem indisponível e a interface mantém a Sala Anónima apenas no dispositivo.
+O backend e o cliente da comunidade moderada estão preparados, mas permanecem fechados por defeito. Quando `COMMUNITY_READY=false`, os endpoints devolvem indisponível e a interface mantém a Sala Anónima apenas no dispositivo.
 
 Quando a equipa concluir as decisões operacionais e ativar a flag, o servidor:
 

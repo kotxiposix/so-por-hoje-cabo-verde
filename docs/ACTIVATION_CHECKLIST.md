@@ -28,6 +28,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 
 - [ ] Criar o projeto Supabase na regiao escolhida pela equipa.
 - [ ] Rever e executar `supabase/schema.sql`.
+- [ ] Executar `PYTHONPATH=src python scripts/check_supabase_schema.py` e corrigir qualquer tabela ou RPC em falta.
 - [ ] Configurar Email OTP, SMTP proprio, remetente e CAPTCHA.
 - [ ] Configurar Site URL e Redirect URLs apenas para os dominios `dev` autorizados.
 - [ ] Guardar na Vercel Preview: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` e `SUPABASE_SERVICE_ROLE_KEY`.

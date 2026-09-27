@@ -38,6 +38,14 @@ A URL e a chave publica só são enviadas ao cliente quando `ACCOUNT_READY=true`
 
 Para rever a configuração sem imprimir qualquer valor secreto, executar `PYTHONPATH=src python scripts/check_readiness.py`. O relatório mostra apenas se cada integração está fechada ou ativa e os nomes das variáveis ainda em falta.
 
+Depois de executar `supabase/schema.sql`, confirmar por leitura que as tabelas e funções RPC esperadas estão expostas à chave de serviço:
+
+```bash
+PYTHONPATH=src python scripts/check_supabase_schema.py
+```
+
+O diagnóstico consulta apenas o documento OpenAPI do PostgREST, não executa funções nem altera dados. Uma aprovação neste teste não valida políticas RLS, triggers, SMTP, CAPTCHA ou isolamento entre contas; esses passos continuam a exigir os testes operacionais abaixo.
+
 O endpoint `DELETE /api/v1/account` valida o token de acesso no Supabase antes de eliminar a conta resolvida pelo servidor. Nunca aceita um `user_id` indicado pelo browser. As tabelas pessoais usam `ON DELETE CASCADE` para eliminar Jornada, preferencias e subscricoes associadas.
 
 ## 2. Modelo minimo
