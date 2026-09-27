@@ -45,6 +45,17 @@ class ImportHelpResourcesTests(unittest.TestCase):
         self.assertEqual(len(drafts), len({MODULE.resource_key(item) for item in drafts}))
         self.assertTrue(all(item["name"] and item["category"] for item in drafts))
 
+    def test_every_draft_has_a_visible_local_fallback(self) -> None:
+        drafts = MODULE.load_drafts(MODULE.DEFAULT_DATA_PATH)
+        index_text = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
+
+        for resource in drafts:
+            display_name = str(resource["name"])
+            if resource["category"] == "meeting" and display_name.startswith("Grupo "):
+                display_name = display_name.removeprefix("Grupo ")
+            with self.subTest(resource=resource["name"]):
+                self.assertIn(display_name, index_text)
+
     def test_import_updates_matches_and_creates_missing_drafts(self) -> None:
         directory = FakeDirectory()
         drafts = [

@@ -1887,6 +1887,17 @@ button {
   background: rgba(255, 255, 255, 0.92);
 }
 
+.directory-status:not(:empty) {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid rgba(7, 52, 87, 0.16);
+  border-radius: 6px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 .support-now span,
 .about-grid span {
   display: block;

@@ -86,6 +86,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 
 - [x] Backend e interface preparados para mostrar apenas recursos verificados e dentro do prazo de revisão.
 - [x] Catálogo inicial de rascunhos e importador idempotente preparados sem exigir a ativação pública do diretório.
+- [x] Todos os 17 rascunhos têm representação no fallback local; indisponibilidade do serviço gerido preserva essa lista e anuncia o estado.
 - [x] Recursos novos ou alterados regressam automaticamente a rascunho.
 - [x] A verificação recusa reuniões sem horário/contacto, emergências sem telefone e ligações que não usem HTTPS.
 - [x] Acesso direto pelo browser removido; gestão exige endpoint administrativo protegido.

@@ -185,7 +185,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v49"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v50"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -320,6 +320,9 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("function getInstallGuidance", script)
         self.assertIn("function updateInstallAction", script)
         self.assertIn("function removeAnonymousShare", script)
+        self.assertEqual(self.parser.attributes_by_id["help-directory-status"].get("aria-live"), "polite")
+        self.assertIn("O diretório atualizado está temporariamente indisponível", script)
+        self.assertNotIn('renderHelpResourceGroup(meetingList, [], "Reuniões temporariamente indisponíveis"', script)
         self.assertIn('const SUPPORT_CACHE_VERSION = "v2"', script)
         self.assertIn("function clearLegacySupportCache", script)
         self.assertIn("clearLegacySupportCache();", script)

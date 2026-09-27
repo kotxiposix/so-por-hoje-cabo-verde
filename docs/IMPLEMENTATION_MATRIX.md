@@ -16,7 +16,7 @@ Esta matriz traduz o mapa funcional da plataforma em estado técnico, porta de a
 | Meditação | Ativa localmente | Meditação canónica diária, reflexão, atividade, frase, desafio, gratidão, histórico e partilha; funciona offline | Rever periodicamente conteúdo complementar e permissão da fonte oficial |
 | Jornada | Ativa localmente | Dias limpos, check-in, histórico, marcos, plano pessoal e backup JSON ficam no dispositivo | Testar a sincronização opcional com duas contas antes de ativar `ACCOUNT_READY` |
 | Viver Saudável | Ativa localmente | Podcast, vídeos, história, exposição e recursos estáticos | Rever e publicar o catálogo gerido antes de ativar `EDITORIAL_CONTENT_READY` |
-| Ajuda | Ativa localmente | SOS, orientação de risco, contactos estáticos e acesso acionável | Confirmar contactos/horários e testar o diretório gerido antes de ativar `HELP_DIRECTORY_READY` |
+| Ajuda | Ativa localmente | SOS, orientação de risco, 17 recursos locais e acesso acionável; falha do diretório gerido preserva o fallback identificado | Confirmar contactos/horários e testar o diretório gerido antes de ativar `HELP_DIRECTORY_READY` |
 | Sobre | Ativa localmente | Missão, visão, história, equipa, privacidade, contacto e FAQ | Concluir revisão jurídica e confirmar parceiros antes de os identificar publicamente |
 
 A navegação principal é fixa no fundo em ecrãs pequenos. O conteúdo reserva espaço para que a barra não cubra ações ou texto. Setas, Home e End percorrem o menu sem ativação acidental; Enter abre a área e uma região viva anuncia a mudança. Um atalho de teclado permite saltar diretamente para o conteúdo. Um contrato automatizado confirma as cinco áreas, os controlos essenciais, os três apoios diários e os quatro estados de check-in previstos neste mapa.

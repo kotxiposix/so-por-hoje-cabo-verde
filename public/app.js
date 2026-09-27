@@ -138,6 +138,7 @@ const els = {
   sosClose: document.querySelector("#sos-close"),
   copySupportMessage: document.querySelector("#copy-support-message"),
   supportMessageStatus: document.querySelector("#support-message-status"),
+  helpDirectoryStatus: document.querySelector("#help-directory-status"),
   privacyPrincipleCopy: document.querySelector("#privacy-principle-copy"),
   privacyStorageSummary: document.querySelector("#privacy-storage-summary"),
   privacyStorageDetail: document.querySelector("#privacy-storage-detail"),
@@ -582,6 +583,7 @@ function renderVerifiedHelpResources(resources) {
   const helpList = document.querySelector("#verified-help-list");
   const source = document.querySelector("#help-directory-source");
   if (!meetingList || !helpList || !source) return;
+  els.helpDirectoryStatus.textContent = "";
 
   const meetings = resources.filter((resource) => ["meeting", "family"].includes(resource.category));
   const support = resources.filter((resource) => !["meeting", "family"].includes(resource.category));
@@ -605,13 +607,7 @@ function renderVerifiedHelpResources(resources) {
 }
 
 function renderHelpDirectoryUnavailable() {
-  const meetingList = document.querySelector("#verified-meeting-list");
-  const helpList = document.querySelector("#verified-help-list");
-  const source = document.querySelector("#help-directory-source");
-  if (!meetingList || !helpList || !source) return;
-  renderHelpResourceGroup(meetingList, [], "Reuniões temporariamente indisponíveis", "Confirma diretamente com os grupos antes de te deslocares.");
-  renderHelpResourceGroup(helpList, [], "Diretório temporariamente indisponível", "Usa as opções de apoio imediato acima ou procura um serviço de saúde próximo.");
-  source.replaceChildren();
+  els.helpDirectoryStatus.textContent = "O diretório atualizado está temporariamente indisponível. Mostramos abaixo a lista local, com o estado e a fonte de cada recurso; confirma sempre antes de te deslocares.";
 }
 
 async function loadVerifiedHelpResources() {
