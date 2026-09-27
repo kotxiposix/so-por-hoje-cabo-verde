@@ -71,8 +71,8 @@ class PushDeliveryTests(unittest.TestCase):
                 return [{
                     "id": "subscription-one",
                     "endpoint": "https://push.example/one",
-                    "p256dh": "client-key",
-                    "auth_secret": "auth-secret",
+                    "p256dh": "client-key-material-123",
+                    "auth_secret": "auth-secret-123",
                 }]
             return None
 
@@ -139,8 +139,8 @@ class PushDeliveryTests(unittest.TestCase):
                 return [{
                     "id": "subscription-one",
                     "endpoint": "https://push.example/expired",
-                    "p256dh": "client-key",
-                    "auth_secret": "auth-secret",
+                    "p256dh": "client-key-material-123",
+                    "auth_secret": "auth-secret-123",
                 }]
             return None
 
@@ -218,8 +218,8 @@ class PushDeliveryTests(unittest.TestCase):
                 return [{
                     "id": "subscription-one",
                     "endpoint": "https://push.example/temporary-failure",
-                    "p256dh": "client-key",
-                    "auth_secret": "auth-secret",
+                    "p256dh": "client-key-material-123",
+                    "auth_secret": "auth-secret-123",
                 }]
             return None
 
@@ -270,6 +270,43 @@ class PushDeliveryTests(unittest.TestCase):
         self.assertTrue(any("rpc/release_push_delivery" in path for _, path, _ in calls))
         self.assertFalse(any(
             method == "PATCH" and "notification_preferences" in path
+            for method, path, _ in calls
+        ))
+
+    def test_malformed_subscription_is_deactivated_without_contacting_endpoint(self) -> None:
+        calls: list[tuple[str, str, object | None]] = []
+
+        def transport(method: str, path: str, payload: object | None = None) -> object:
+            calls.append((method, path, payload))
+            if "notification_preferences?select" in path:
+                return [{
+                    "user_id": "user-one",
+                    "local_time": "07:00:00",
+                    "timezone": "Atlantic/Cape_Verde",
+                    "last_sent_on": None,
+                }]
+            if "rpc/claim_push_delivery" in path:
+                return True
+            if "push_subscriptions?select" in path:
+                return [{
+                    "id": "subscription-one",
+                    "endpoint": "http://internal.example/push",
+                    "p256dh": "client-key-material-123",
+                    "auth_secret": "auth-secret-123",
+                }]
+            return None
+
+        result = deliver_due_notifications(
+            self.config,
+            now_utc=datetime(2026, 9, 26, 8, 0, tzinfo=timezone.utc),
+            transport=transport,
+            send_push=lambda *_: self.fail("Malformed endpoint must not be contacted"),
+        )
+
+        self.assertEqual(result["expired"], 1)
+        self.assertEqual(result["sent"], 0)
+        self.assertTrue(any(
+            method == "PATCH" and "push_subscriptions?id=eq.subscription-one" in path
             for method, path, _ in calls
         ))
 

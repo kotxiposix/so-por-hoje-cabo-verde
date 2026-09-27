@@ -45,6 +45,14 @@ class JourneySyncSchemaTests(unittest.TestCase):
             )
             self.assertIn(f"grant execute on function {signature}\n  to service_role;", self.schema)
 
+    def test_push_subscriptions_reject_unsafe_endpoints_and_key_material(self) -> None:
+        self.assertIn("push_subscriptions_endpoint_safe", self.schema)
+        self.assertIn("endpoint ~ '^https://[^[:space:]@/]+'", self.schema)
+        self.assertIn("lower(endpoint) !~ '^https://(localhost", self.schema)
+        self.assertIn("push_subscriptions_key_material_safe", self.schema)
+        self.assertIn("p256dh ~ '^[A-Za-z0-9_-]+={0,2}$'", self.schema)
+        self.assertIn("auth_secret ~ '^[A-Za-z0-9_-]+={0,2}$'", self.schema)
+
 
 if __name__ == "__main__":
     unittest.main()

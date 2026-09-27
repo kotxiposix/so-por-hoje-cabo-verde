@@ -223,6 +223,34 @@ test("push subscription stores only the signed-in user's endpoint and keys", asy
   assert.equal(body[0].active, true);
 });
 
+test("push subscription refuses unsafe endpoints and malformed keys before transport", async () => {
+  let requests = 0;
+  const client = new SupabaseAccountClient({
+    url: "https://project.supabase.co",
+    publishableKey: "public-key",
+    fetchImpl: async () => {
+      requests += 1;
+      return new Response(null, { status: 204 });
+    },
+  });
+  const session = normalizeSession({
+    access_token: "access",
+    refresh_token: "refresh",
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    user: { id: "user-id", email: "person@example.com" },
+  });
+
+  await assert.rejects(client.savePushSubscription(session, {
+    endpoint: "http://internal.example/push",
+    keys: { p256dh: "validKeyMaterial_123456", auth: "validAuth_123" },
+  }), /Subscrição push inválida/);
+  await assert.rejects(client.savePushSubscription(session, {
+    endpoint: "https://push.example/one",
+    keys: { p256dh: "short", auth: "validAuth_123" },
+  }), /Subscrição push inválida/);
+  assert.equal(requests, 0);
+});
+
 test("notification preference is scoped to the signed-in user", async () => {
   let request;
   const client = new SupabaseAccountClient({

@@ -464,6 +464,25 @@ create table if not exists public.push_subscriptions (
   updated_at timestamptz not null default now()
 );
 
+alter table public.push_subscriptions
+  drop constraint if exists push_subscriptions_endpoint_safe;
+alter table public.push_subscriptions
+  add constraint push_subscriptions_endpoint_safe check (
+    length(endpoint) between 12 and 2048
+    and endpoint ~ '^https://[^[:space:]@/]+'
+    and lower(endpoint) !~ '^https://(localhost|[^/]+\.(localhost|local|internal)|127\.|10\.|169\.254\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)'
+  ) not valid;
+alter table public.push_subscriptions
+  drop constraint if exists push_subscriptions_key_material_safe;
+alter table public.push_subscriptions
+  add constraint push_subscriptions_key_material_safe check (
+    length(p256dh) between 16 and 512
+    and p256dh ~ '^[A-Za-z0-9_-]+={0,2}$'
+    and length(auth_secret) between 8 and 256
+    and auth_secret ~ '^[A-Za-z0-9_-]+={0,2}$'
+    and (user_agent is null or length(user_agent) <= 500)
+  ) not valid;
+
 create table if not exists public.ai_daily_usage (
   user_id uuid not null references auth.users(id) on delete cascade,
   usage_date date not null,

@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import json
 import os
+from ipaddress import ip_address
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Protocol
 from urllib.error import HTTPError
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -24,6 +25,10 @@ class HttpTransport(Protocol):
 
 class PushSender(Protocol):
     def __call__(self, subscription: dict[str, object], payload: str) -> None: ...
+
+
+class PushSubscriptionError(ValueError):
+    pass
 
 
 @dataclass(frozen=True)
@@ -85,12 +90,49 @@ def _local_due(preference: dict[str, object], now_utc: datetime) -> tuple[bool, 
     )
 
 
+def _clean_push_key(value: object, minimum: int, maximum: int) -> str:
+    cleaned = value.strip() if isinstance(value, str) else ""
+    if not minimum <= len(cleaned) <= maximum:
+        raise PushSubscriptionError("Chave push inválida")
+    if any(character not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-=" for character in cleaned):
+        raise PushSubscriptionError("Chave push inválida")
+    if "=" in cleaned.rstrip("=") or len(cleaned) - len(cleaned.rstrip("=")) > 2:
+        raise PushSubscriptionError("Chave push inválida")
+    return cleaned
+
+
 def _subscription_payload(row: dict[str, object]) -> dict[str, object]:
+    endpoint = row.get("endpoint")
+    if not isinstance(endpoint, str) or not endpoint.strip() or len(endpoint.strip()) > 2048:
+        raise PushSubscriptionError("Endpoint push inválido")
+    try:
+        parsed = urlsplit(endpoint.strip())
+        _ = parsed.port
+    except ValueError as exc:
+        raise PushSubscriptionError("Endpoint push inválido") from exc
+    hostname = (parsed.hostname or "").lower()
+    private_hostname = (
+        hostname == "localhost"
+        or hostname.endswith((".localhost", ".local", ".internal"))
+    )
+    try:
+        private_address = ip_address(hostname).is_private or ip_address(hostname).is_loopback
+    except ValueError:
+        private_address = False
+    if (
+        parsed.scheme.lower() != "https"
+        or not hostname
+        or parsed.username
+        or parsed.password
+        or private_hostname
+        or private_address
+    ):
+        raise PushSubscriptionError("Endpoint push inválido")
     return {
-        "endpoint": row["endpoint"],
+        "endpoint": endpoint.strip(),
         "keys": {
-            "p256dh": row["p256dh"],
-            "auth": row["auth_secret"],
+            "p256dh": _clean_push_key(row.get("p256dh"), 16, 512),
+            "auth": _clean_push_key(row.get("auth_secret"), 8, 256),
         },
     }
 
@@ -181,14 +223,16 @@ def deliver_due_notifications(
                 stats["sent"] += 1
                 sent_for_user = True
             except Exception as exc:  # The push library exposes status through response.status_code.
+                malformed = isinstance(exc, PushSubscriptionError)
                 status_code = getattr(getattr(exc, "response", None), "status_code", None)
-                if status_code in {404, 410}:
+                if malformed or status_code in {404, 410}:
                     subscription_id = quote(str(subscription.get("id") or ""), safe="")
-                    request(
-                        "PATCH",
-                        f"/rest/v1/push_subscriptions?id=eq.{subscription_id}",
-                        {"active": False, "updated_at": current_time.isoformat()},
-                    )
+                    if subscription_id:
+                        request(
+                            "PATCH",
+                            f"/rest/v1/push_subscriptions?id=eq.{subscription_id}",
+                            {"active": False, "updated_at": current_time.isoformat()},
+                        )
                     stats["expired"] += 1
                 else:
                     stats["failed"] += 1

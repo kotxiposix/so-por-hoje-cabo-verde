@@ -1,4 +1,5 @@
 import { JOURNEY_SCHEMA_VERSION } from "./journey-sync.mjs";
+import { normalizePushEndpoint, normalizePushSubscription } from "./push-subscription.mjs";
 
 function normalizeSupabaseOrigin(value) {
   if (typeof value !== "string" || !value.trim()) return "";
@@ -126,7 +127,8 @@ export class SupabaseAccountClient {
   async savePushSubscription(session, subscription) {
     const activeSession = await this.ensureSession(session);
     const serialized = typeof subscription.toJSON === "function" ? subscription.toJSON() : subscription;
-    if (!serialized?.endpoint || !serialized?.keys?.p256dh || !serialized?.keys?.auth) {
+    const normalized = normalizePushSubscription(serialized);
+    if (!normalized) {
       throw new Error("Subscrição push inválida.");
     }
     await this.request("/rest/v1/push_subscriptions?on_conflict=endpoint", {
@@ -135,9 +137,9 @@ export class SupabaseAccountClient {
       headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
       body: [{
         user_id: activeSession.user.id,
-        endpoint: serialized.endpoint,
-        p256dh: serialized.keys.p256dh,
-        auth_secret: serialized.keys.auth,
+        endpoint: normalized.endpoint,
+        p256dh: normalized.keys.p256dh,
+        auth_secret: normalized.keys.auth,
         user_agent: globalThis.navigator?.userAgent?.slice(0, 500) || "",
         active: true,
         updated_at: new Date().toISOString(),
@@ -148,7 +150,9 @@ export class SupabaseAccountClient {
 
   async disablePushSubscription(session, endpoint) {
     const activeSession = await this.ensureSession(session);
-    await this.request(`/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(endpoint)}`, {
+    const normalizedEndpoint = normalizePushEndpoint(endpoint);
+    if (!normalizedEndpoint) throw new Error("Subscrição push inválida.");
+    await this.request(`/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(normalizedEndpoint)}`, {
       method: "PATCH",
       session: activeSession,
       headers: { Prefer: "return=minimal" },
