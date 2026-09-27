@@ -65,15 +65,15 @@
           <h2>Coleções</h2>
         </div>
         <div class="collection-tabs" role="tablist" aria-label="Coleções da exposição">
-          <button class="active" type="button" role="tab" aria-selected="true" data-collection="sobriu">
+          <button class="active" id="collection-tab-sobriu" type="button" role="tab" aria-selected="true" aria-controls="collection-sobriu" tabindex="0" data-collection="sobriu">
             2024
           </button>
-          <button type="button" role="tab" aria-selected="false" data-collection="spirit">
+          <button id="collection-tab-spirit" type="button" role="tab" aria-selected="false" aria-controls="collection-spirit" tabindex="-1" data-collection="spirit">
             2026
           </button>
         </div>
 
-        <div class="collection-panel" id="collection-sobriu">
+        <div class="collection-panel" id="collection-sobriu" role="tabpanel" aria-labelledby="collection-tab-sobriu">
           <div class="collection-heading">
             <span>2024</span>
             <h3>Sobriu, un kaminhada de rekuperasãu</h3>
@@ -134,7 +134,7 @@
           </div>
         </div>
 
-        <div class="collection-panel spirit-preview" id="collection-spirit" hidden>
+        <div class="collection-panel spirit-preview" id="collection-spirit" role="tabpanel" aria-labelledby="collection-tab-spirit" hidden>
           <img src="/expo/spirit-dluz-preview.jpg" alt="Preview da coleção Spirit D'Luz" loading="lazy" />
           <div>
             <span>2026 · Coming soon</span>
@@ -163,11 +163,11 @@
 
         <div class="media-gallery" data-media-gallery="videos">
           <div class="media-carousel" aria-label="Vídeos de experiência">
-            <button class="media-card active" type="button" data-video="aIOWjU87KyE">
+            <button class="media-card active" type="button" aria-pressed="true" data-video="aIOWjU87KyE">
               <span>Conversa aberta</span>
               <strong>Só Por Hoje: dependência e recuperação</strong>
             </button>
-            <button class="media-card" type="button" data-video="Ba1wMazi4Tg">
+            <button class="media-card" type="button" aria-pressed="false" data-video="Ba1wMazi4Tg">
               <span>Documentário</span>
               <strong>A evidência é clara: investir na prevenção</strong>
             </button>
@@ -198,7 +198,7 @@
           </div>
           <div class="media-gallery" data-media-gallery="podcast">
             <div class="media-carousel" aria-label="Podcast Só Por Hoje">
-              <button class="media-card active" type="button" data-podcast="videoseries?list=PL0OE86edjnSn8OtYM5ypta80L_dye1p58">
+              <button class="media-card active" type="button" aria-pressed="true" data-podcast="videoseries?list=PL0OE86edjnSn8OtYM5ypta80L_dye1p58">
                 <span>Playlist</span>
                 <strong>Todos os episódios disponíveis</strong>
               </button>

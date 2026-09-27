@@ -13,6 +13,15 @@
   box-sizing: border-box;
 }
 
+:focus-visible {
+  outline: 3px solid var(--aqua);
+  outline-offset: 4px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
 html {
   scroll-behavior: smooth;
 }

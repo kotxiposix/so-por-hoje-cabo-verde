@@ -185,7 +185,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v44"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v45"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -322,6 +322,24 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("prefers-reduced-motion: reduce", script)
         self.assertIn(":focus-visible", styles)
         self.assertIn("@media (prefers-reduced-motion: reduce)", styles)
+
+    def test_exhibition_keyboard_and_selection_contracts(self) -> None:
+        expo = (PUBLIC / "expo" / "index.html").read_text(encoding="utf-8")
+        script = (PUBLIC / "expo" / "page.js").read_text(encoding="utf-8")
+        styles = (PUBLIC / "expo" / "styles.css").read_text(encoding="utf-8")
+
+        self.assertIn('role="tab" aria-selected="true" aria-controls="collection-sobriu" tabindex="0"', expo)
+        self.assertIn('role="tabpanel" aria-labelledby="collection-tab-sobriu"', expo)
+        self.assertIn('aria-pressed="true" data-video=', expo)
+        self.assertIn('aria-pressed="false" data-video=', expo)
+        self.assertIn("siteMenu.inert = mobileMenuMedia.matches && !isOpen", script)
+        self.assertIn('event.key === "Escape"', script)
+        self.assertIn('["ArrowLeft", "ArrowRight", "Home", "End"]', script)
+        self.assertIn('item.setAttribute("aria-pressed", String(isActive))', script)
+        self.assertIn("iframe.title = button.textContent", script)
+        self.assertIn(":focus-visible", styles)
+        self.assertIn("[hidden]", styles)
+        self.assertIn("display: none !important", styles)
 
     def test_community_client_is_gated_authenticated_and_text_safe(self) -> None:
         script = (PUBLIC / "app.js").read_text(encoding="utf-8")
