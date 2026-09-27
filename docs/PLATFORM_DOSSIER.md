@@ -189,6 +189,7 @@ Reunir conteudos de inspiracao, exposicao, podcast, testemunhos e partilhas que 
 
 - Existe secao da exposicao dentro da app.
 - A pagina `/expo` apresenta catalogo, videos, podcast, exposicoes, bio e contacto.
+- Na aplicação principal, podcast e vídeos só contactam o YouTube depois da escolha explícita da pessoa; a referência técnica limita-se à origem do site.
 - Existe uma Sala Anonima local, apresentada explicitamente como diario privado no dispositivo.
 - O catálogo editorial gerido está preparado, mas fechado por `EDITORIAL_CONTENT_READY=false`.
 

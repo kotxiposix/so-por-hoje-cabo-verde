@@ -7,6 +7,7 @@ import {
 } from "./date-utils.mjs";
 import { getPrivacyCopy } from "./privacy-copy.mjs";
 import { composeGroupMessage } from "./share-format.mjs";
+import { normalizeEditorialLink } from "./editorial-links.mjs";
 import {
   createJourneyBackup,
   MAX_JOURNEY_BACKUP_BYTES,
@@ -412,11 +413,15 @@ function safeSameOriginImage(value) {
 function renderEditorialContent(items) {
   els.editorialList.replaceChildren();
   items.forEach((item) => {
+    const destination = normalizeEditorialLink(item?.url, window.location.origin);
+    if (!destination) return;
     const link = document.createElement("a");
     link.className = "editorial-item";
-    link.href = item.url;
-    link.target = "_blank";
-    link.rel = "noreferrer";
+    link.href = destination.href;
+    if (destination.external) {
+      link.target = "_blank";
+      link.rel = "noreferrer";
+    }
     const imageUrl = safeSameOriginImage(item.image_url);
     if (imageUrl) {
       const image = document.createElement("img");
@@ -442,7 +447,20 @@ function renderEditorialContent(items) {
     link.append(copy);
     els.editorialList.append(link);
   });
-  els.editorialFeed.hidden = !items.length;
+  els.editorialFeed.hidden = !els.editorialList.children.length;
+}
+
+function loadYouTubeEmbed(button) {
+  const source = button.dataset.videoSrc || "";
+  if (!source.startsWith("https://www.youtube-nocookie.com/embed/")) return;
+
+  const iframe = document.createElement("iframe");
+  iframe.src = source;
+  iframe.title = button.dataset.videoTitle || "Conteúdo de vídeo";
+  iframe.referrerPolicy = "strict-origin-when-cross-origin";
+  iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+  iframe.allowFullscreen = true;
+  button.replaceWith(iframe);
 }
 
 async function loadEditorialContent() {
@@ -2426,6 +2444,10 @@ els.anonymousFeed.addEventListener("click", (event) => {
 
 document.querySelectorAll(".tool-tile").forEach((button) => {
   button.addEventListener("click", () => openTool(button.dataset.tool, button));
+});
+
+document.querySelectorAll(".video-placeholder").forEach((button) => {
+  button.addEventListener("click", () => loadYouTubeEmbed(button));
 });
 
 document.querySelectorAll("[data-checkin]").forEach((button) => {

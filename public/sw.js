@@ -1,4 +1,4 @@
-const CACHE_NAME = "sph-shell-v59";
+const CACHE_NAME = "sph-shell-v61";
 const PUSH_TITLE = "Só Por Hoje";
 const PUSH_BODY = "A meditação de hoje está pronta. Um dia de cada vez.";
 const PUSH_DEFAULT_URL = "/#meditacao";
@@ -10,6 +10,7 @@ const CORE_ASSETS = [
   "/date-utils.mjs",
   "/privacy-copy.mjs",
   "/share-format.mjs",
+  "/editorial-links.mjs",
   "/account-client.mjs",
   "/journey-sync.mjs",
   "/offline-support.mjs",
@@ -28,6 +29,7 @@ const CORE_ASSETS = [
   "/expo/sandro-logo-white.png",
   "/expo/sandro-profile.png"
 ];
+const CORE_PATHS = new Set(CORE_ASSETS.map((asset) => new URL(asset, self.location.origin).pathname));
 
 function navigationFallback(pathname) {
   if (pathname.startsWith("/expo")) return "/expo/index.html";
@@ -86,6 +88,22 @@ self.addEventListener("fetch", (event) => {
         } catch {
           return (await caches.match(fallback)) || caches.match("/index.html");
         }
+      })(),
+    );
+    return;
+  }
+
+  if (CORE_PATHS.has(url.pathname)) {
+    event.respondWith(
+      (async () => {
+        const cached = await caches.match(request);
+        if (cached) return cached;
+        const response = await fetch(request);
+        if (response.ok) {
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(request, response.clone());
+        }
+        return response;
       })(),
     );
     return;

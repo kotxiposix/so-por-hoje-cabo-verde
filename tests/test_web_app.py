@@ -187,7 +187,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v59"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v61"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -201,6 +201,10 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn('event.data?.type === "SKIP_WAITING"', worker)
         self.assertIn("await self.clients.claim()", worker)
         self.assertIn("await cache.put(fallback, response.clone())", worker)
+        self.assertIn("const CORE_PATHS = new Set", worker)
+        self.assertIn("if (CORE_PATHS.has(url.pathname))", worker)
+        core_branch = worker.split("if (CORE_PATHS.has(url.pathname))", 1)[1].split("event.respondWith(\n    (async () => {", 1)[0]
+        self.assertNotIn("event.waitUntil(network", core_branch)
         self.assertIn("event.waitUntil(network.then(() => undefined).catch(() => undefined))", worker)
         self.assertNotIn("\n  self.clients.claim();", worker)
 
@@ -416,12 +420,15 @@ class WebAppStructureTests(unittest.TestCase):
             'src="expo/hero.jpg" alt="Capa da exposição Só Por Hoje" loading="lazy" decoding="async"',
             self.index_text,
         )
-        self.assertRegex(
-            self.index_text,
-            r'title="Playlist do podcast Só Por Hoje Cabo Verde"\s+loading="lazy"',
-        )
+        self.assertIn('data-video-title="Playlist do podcast Só Por Hoje Cabo Verde"', self.index_text)
+        self.assertIn("O YouTube só é contactado depois desta escolha.", self.index_text)
         self.assertNotIn("youtube.com/embed", self.index_text)
         self.assertIn("youtube-nocookie.com/embed", self.index_text)
+        self.assertNotIn("<iframe", self.index_text.split('<section class="media-block">', 1)[1].split("</section>", 1)[0])
+
+        app_script = (PUBLIC / "app.js").read_text(encoding="utf-8")
+        self.assertIn("function loadYouTubeEmbed(button)", app_script)
+        self.assertIn('iframe.referrerPolicy = "strict-origin-when-cross-origin"', app_script)
 
         expo = (PUBLIC / "expo" / "index.html").read_text(encoding="utf-8")
         self.assertIn('class="hero-image" src="/expo/hero-banner.jpg"', expo)
@@ -432,6 +439,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
         self.assertNotIn("youtube.com/embed", expo)
         self.assertIn("youtube-nocookie.com/embed", expo)
+        self.assertIn('referrerpolicy="strict-origin-when-cross-origin"', expo)
 
         expo_script = (PUBLIC / "expo" / "page.js").read_text(encoding="utf-8")
         self.assertIn("youtube-nocookie.com/embed", expo_script)
@@ -487,6 +495,8 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn('fetch("/api/v1/content?limit=50"', script)
         self.assertIn("item.title || \"Conteúdo\"", script)
         self.assertIn("summary.textContent", script)
+        self.assertIn("normalizeEditorialLink(item?.url", script)
+        self.assertIn('"/editorial-links.mjs"', (PUBLIC / "sw.js").read_text(encoding="utf-8"))
         self.assertNotIn("editorialList.innerHTML", script)
 
     def test_privacy_page_matches_local_backup_behavior(self) -> None:
@@ -500,6 +510,8 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("Por defeito", privacy)
         self.assertIn("escolheres sincronizar a Jornada", privacy)
         self.assertIn("modo de privacidade reforçada do YouTube", privacy)
+        self.assertIn("só são carregados depois de escolheres reproduzir", privacy)
+        self.assertIn("nunca o caminho da página ou a meditação consultada", privacy)
         self.assertIn("ignora qualquer texto de meditação enviado pelo navegador", privacy)
         self.assertIn("Nenhum outro campo entra nessa cópia", privacy)
         self.assertIn("não integra publicidade nem ferramentas próprias de análise", privacy)

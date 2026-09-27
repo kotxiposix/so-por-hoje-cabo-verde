@@ -15,7 +15,7 @@ Esta matriz traduz o mapa funcional da plataforma em estado técnico, porta de a
 | --- | --- | --- | --- |
 | Meditação | Ativa localmente | Meditação canónica diária, reflexão, atividade, frase, desafio, gratidão, histórico e partilha; funciona offline | Rever periodicamente conteúdo complementar e permissão da fonte oficial |
 | Jornada | Ativa localmente | Dias limpos, check-in, histórico, marcos, plano pessoal e backup JSON ficam no dispositivo | Testar a sincronização opcional com duas contas antes de ativar `ACCOUNT_READY` |
-| Viver Saudável | Ativa localmente | Podcast, vídeos, história, exposição e recursos estáticos | Rever e publicar o catálogo gerido antes de ativar `EDITORIAL_CONTENT_READY` |
+| Viver Saudável | Ativa localmente | Podcast e vídeos sob escolha explícita, história, exposição e recursos estáticos; ligações editoriais são revalidadas no navegador | Rever e publicar o catálogo gerido antes de ativar `EDITORIAL_CONTENT_READY` |
 | Ajuda | Ativa localmente | SOS, orientação de risco, 17 recursos locais e acesso acionável; falha do diretório gerido preserva o fallback identificado | Confirmar contactos/horários e testar o diretório gerido antes de ativar `HELP_DIRECTORY_READY` |
 | Sobre | Ativa localmente | Missão, visão, história, equipa, privacidade, contacto e FAQ | Concluir revisão jurídica e confirmar parceiros antes de os identificar publicamente |
 

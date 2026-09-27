@@ -105,4 +105,5 @@ function selectMedia(button, iframeSelector, dataKey) {
 
   iframe.src = `https://www.youtube-nocookie.com/embed/${value}`;
   iframe.title = button.textContent.replace(/\s+/g, " ").trim();
+  iframe.referrerPolicy = "strict-origin-when-cross-origin";
 }

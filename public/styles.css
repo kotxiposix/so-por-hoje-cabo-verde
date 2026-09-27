@@ -1373,13 +1373,45 @@ button {
   font-size: 24px;
 }
 
-.media-block iframe {
+.media-block iframe,
+.video-placeholder {
   display: block;
   width: 100%;
   aspect-ratio: 16 / 9;
   border: 1px solid var(--line);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.1);
+}
+
+.video-placeholder {
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 24px;
+  color: var(--white);
+  cursor: pointer;
+  font: inherit;
+  text-align: center;
+}
+
+.video-placeholder span {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--ink);
+  background: var(--white);
+  font-size: 20px;
+}
+
+.video-placeholder strong {
+  font-size: 18px;
+}
+
+.video-placeholder small {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
 }
 
 .social-links {
