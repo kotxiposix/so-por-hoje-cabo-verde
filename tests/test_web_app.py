@@ -70,6 +70,9 @@ class WebAppStructureTests(unittest.TestCase):
             "browse-meditations",
             "archive-modal",
             "archive-date",
+            "privacy-principle-copy",
+            "privacy-storage-summary",
+            "privacy-storage-detail",
         }
         self.assertFalse(critical.difference(counts))
 
@@ -111,6 +114,7 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("hasRemoteJourneyConflict", script)
         self.assertIn("selectSyncableProgress", script)
         self.assertIn('from "./date-utils.mjs"', script)
+        self.assertIn('from "./privacy-copy.mjs"', script)
         self.assertIn('<script type="module" src="app.js"></script>', self.index_text)
 
         backup_parser = (PUBLIC / "journey-backup.mjs").read_text(encoding="utf-8")

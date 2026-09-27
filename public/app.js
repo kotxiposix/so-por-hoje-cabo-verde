@@ -5,6 +5,7 @@ import {
   getCalendarDayInTimeZone,
   getCurrentStreak,
 } from "./date-utils.mjs";
+import { getPrivacyCopy } from "./privacy-copy.mjs";
 
 const state = {
   daily: null,
@@ -121,6 +122,9 @@ const els = {
   sosClose: document.querySelector("#sos-close"),
   copySupportMessage: document.querySelector("#copy-support-message"),
   supportMessageStatus: document.querySelector("#support-message-status"),
+  privacyPrincipleCopy: document.querySelector("#privacy-principle-copy"),
+  privacyStorageSummary: document.querySelector("#privacy-storage-summary"),
+  privacyStorageDetail: document.querySelector("#privacy-storage-detail"),
 };
 
 let currentSupport = null;
@@ -333,6 +337,7 @@ function renderAccount() {
   const signedIn = accountState.enabled && Boolean(accountState.session);
   els.accountAuth.hidden = !accountState.enabled || signedIn;
   els.accountSession.hidden = !signedIn;
+  renderPrivacyState();
 
   if (!accountState.enabled) {
     els.accountSummary.textContent = "A conta opcional ainda não está configurada neste ambiente. Continuas no modo local e anónimo.";
@@ -350,6 +355,17 @@ function renderAccount() {
     ? "A Jornada está ligada à tua conta. Alterações locais serão sincronizadas."
     : "Sessão iniciada. Escolhe qual cópia da Jornada queres usar.";
   els.accountStatus.textContent = accountState.syncEnabled ? "Sincronização ativa." : "Sincronização à espera da tua decisão.";
+}
+
+function renderPrivacyState() {
+  const copy = getPrivacyCopy({
+    accountEnabled: accountState.enabled,
+    signedIn: accountState.enabled && Boolean(accountState.session),
+    syncEnabled: accountState.syncEnabled,
+  });
+  els.privacyPrincipleCopy.textContent = copy.principle;
+  els.privacyStorageSummary.textContent = copy.summary;
+  els.privacyStorageDetail.textContent = copy.detail;
 }
 
 function appendHelpLink(container, label, href) {
