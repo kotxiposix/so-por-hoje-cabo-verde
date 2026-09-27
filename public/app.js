@@ -372,19 +372,19 @@ function persistAccountSession(session) {
 }
 
 function clearAiSupportCache() {
-  appStorage.keys()
-    .filter((key) => key.startsWith("sph-ai-support:"))
-    .forEach((key) => appStorage.removeItem(key));
+  appStorage.removeWhere((key) => key.startsWith("sph-ai-support:"));
 }
 
 function clearLegacySupportCache() {
   const currentPrefix = `sph-ai-support:${SUPPORT_CACHE_VERSION}:`;
-  appStorage.keys()
-    .filter((key) => (
+  appStorage.removeWhere((key) => (
       key.startsWith("sph-ai-support:")
       && (!key.startsWith(currentPrefix) || key.startsWith(`${currentPrefix}local:`))
-    ))
-    .forEach((key) => appStorage.removeItem(key));
+    ));
+}
+
+function removeLocalPlatformData() {
+  return appStorage.removeWhere((key) => key.startsWith("sph-"));
 }
 
 async function setupAccount() {
@@ -901,9 +901,13 @@ async function deleteCurrentAccount() {
     els.accountStatus.textContent = error.message || "Não foi possível eliminar a conta.";
     return;
   }
-  appStorage.keys()
-    .filter((key) => key.startsWith("sph-"))
-    .forEach((key) => appStorage.removeItem(key));
+  if (!removeLocalPlatformData()) {
+    persistAccountSession(null);
+    accountState.syncEnabled = false;
+    renderAccount();
+    els.accountStatus.textContent = "A conta foi eliminada, mas o navegador não permitiu confirmar a limpeza dos dados deste dispositivo.";
+    return;
+  }
   window.location.reload();
 }
 
@@ -925,9 +929,10 @@ async function deleteDeviceData() {
       // Local deletion must still be possible while offline.
     }
   }
-  appStorage.keys()
-    .filter((key) => key.startsWith("sph-"))
-    .forEach((key) => appStorage.removeItem(key));
+  if (!removeLocalPlatformData()) {
+    els.accountStatus.textContent = "O navegador não permitiu confirmar a eliminação dos dados deste dispositivo.";
+    return;
+  }
   window.location.reload();
 }
 

@@ -21,6 +21,10 @@ test("safe storage preserves the Storage contract when available", () => {
   assert.equal(storage.setItem("sph-progress", "{}"), true);
   assert.equal(storage.getItem("sph-progress"), "{}");
   assert.deepEqual(storage.keys(), ["sph-progress"]);
+  storage.setItem("unrelated", "keep");
+  assert.equal(storage.removeWhere((key) => key.startsWith("sph-")), true);
+  assert.equal(storage.getItem("unrelated"), "keep");
+  assert.equal(storage.getItem("sph-progress"), null);
   assert.equal(storage.removeItem("sph-progress"), true);
   assert.equal(storage.getItem("sph-progress"), null);
 });
@@ -35,7 +39,8 @@ test("safe storage contains provider and quota failures", () => {
   assert.equal(blocked.setItem("key", "value"), false);
   assert.equal(blocked.removeItem("key"), false);
   assert.deepEqual(blocked.keys(), []);
-  assert.equal(unavailable, 4);
+  assert.equal(blocked.removeWhere(() => true), false);
+  assert.equal(unavailable, 5);
 
   const quota = createSafeStorage(() => ({
     get length() { return 0; },
@@ -45,5 +50,5 @@ test("safe storage contains provider and quota failures", () => {
     setItem: () => { throw new Error("quota"); },
   }), () => { unavailable += 1; });
   assert.equal(quota.setItem("key", "value"), false);
-  assert.equal(unavailable, 5);
+  assert.equal(unavailable, 6);
 });

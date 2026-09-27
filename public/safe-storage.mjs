@@ -36,5 +36,16 @@ export function createSafeStorage(provider, onUnavailable = () => {}) {
         return keys;
       }, []);
     },
+    removeWhere(predicate) {
+      return useStorage((storage) => {
+        const keys = [];
+        for (let index = 0; index < storage.length; index += 1) {
+          const key = storage.key(index);
+          if (key !== null && predicate(key)) keys.push(key);
+        }
+        keys.forEach((key) => storage.removeItem(key));
+        return true;
+      }, false);
+    },
   };
 }
