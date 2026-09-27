@@ -187,7 +187,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v57"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v58"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -223,6 +223,7 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("selectSyncableProgress", script)
         self.assertIn('from "./date-utils.mjs"', script)
         self.assertIn('from "./privacy-copy.mjs"', script)
+        self.assertIn('from "./share-format.mjs"', script)
         self.assertIn('<script type="module" src="app.js"></script>', self.index_text)
 
         backup_parser = (PUBLIC / "journey-backup.mjs").read_text(encoding="utf-8")
