@@ -8,6 +8,7 @@ import {
 import { getPrivacyCopy } from "./privacy-copy.mjs";
 import { composeGroupMessage } from "./share-format.mjs";
 import { normalizeEditorialLink } from "./editorial-links.mjs";
+import { normalizeHelpAction } from "./help-links.mjs";
 import {
   createJourneyBackup,
   MAX_JOURNEY_BACKUP_BYTES,
@@ -517,22 +518,17 @@ function renderPrivacyState() {
   els.privacyFaqAnswer.textContent = copy.faqAnswer;
 }
 
-function appendHelpLink(container, label, href) {
-  if (!href) return null;
+function appendHelpLink(container, label, destination) {
+  if (!destination) return null;
   const link = document.createElement("a");
   link.textContent = label;
-  link.href = href;
-  if (href.startsWith("http")) {
+  link.href = destination.href;
+  if (destination.external) {
     link.target = "_blank";
     link.rel = "noreferrer";
   }
   container.append(link);
   return link;
-}
-
-function primaryTelephone(value) {
-  const match = String(value || "").match(/\+?\d[\d\s-]{5,}/);
-  return match ? match[0].replace(/(?!^)\D/g, "") : "";
 }
 
 function createHelpResourceCard(resource) {
@@ -580,12 +576,15 @@ function createHelpResourceCard(resource) {
 
   const actions = document.createElement("div");
   actions.className = "help-actions";
-  const telephone = primaryTelephone(resource.phone);
-  const phoneLink = appendHelpLink(actions, resource.is_emergency ? "Ligar agora" : "Ligar", telephone ? `tel:${telephone}` : "");
+  const phoneLink = appendHelpLink(
+    actions,
+    resource.is_emergency ? "Ligar agora" : "Ligar",
+    normalizeHelpAction("phone", resource.phone),
+  );
   if (phoneLink && resource.is_emergency) phoneLink.classList.add("help-primary");
-  appendHelpLink(actions, "Email", resource.email ? `mailto:${resource.email}` : "");
-  appendHelpLink(actions, "Site", resource.website || "");
-  appendHelpLink(actions, "Fonte", resource.source_url || "");
+  appendHelpLink(actions, "Email", normalizeHelpAction("email", resource.email));
+  appendHelpLink(actions, "Site", normalizeHelpAction("web", resource.website));
+  appendHelpLink(actions, "Fonte", normalizeHelpAction("web", resource.source_url));
   if (actions.childElementCount) article.append(actions);
 
   if (resource.review_due_at) {
@@ -652,7 +651,11 @@ async function loadVerifiedHelpResources() {
     });
     if (!response.ok) throw new Error("Diretório indisponível");
     const resources = await response.json();
-    renderVerifiedHelpResources(Array.isArray(resources) ? resources : []);
+    if (!Array.isArray(resources) || !resources.length) {
+      renderHelpDirectoryUnavailable();
+      return;
+    }
+    renderVerifiedHelpResources(resources);
   } catch {
     renderHelpDirectoryUnavailable();
   }

@@ -187,7 +187,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v61"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v62"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -414,6 +414,16 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("Contacto oficial", self.index_text)
         self.assertIn("9h30 indicado pela comunidade", self.index_text)
         self.assertIn("contactos do Ministério da Saúde", self.index_text)
+
+        script = (PUBLIC / "app.js").read_text(encoding="utf-8")
+        self.assertIn('normalizeHelpAction("phone", resource.phone)', script)
+        self.assertIn('normalizeHelpAction("email", resource.email)', script)
+        self.assertIn('normalizeHelpAction("web", resource.website)', script)
+        self.assertRegex(
+            script,
+            r"if \(!Array\.isArray\(resources\) \|\| !resources\.length\) \{\s*renderHelpDirectoryUnavailable\(\);\s*return;",
+        )
+        self.assertIn('"/help-links.mjs"', (PUBLIC / "sw.js").read_text(encoding="utf-8"))
 
     def test_media_outside_the_initial_view_is_deferred(self) -> None:
         self.assertIn(
