@@ -123,13 +123,21 @@ EDITORIAL_CONTENT_READY + STAFF_ACCESS_READY
 
 As flags nao substituem as credenciais nem os testes operacionais. A API publica so anuncia uma funcionalidade quando a flag, as dependencias e todas as variaveis obrigatorias estao presentes.
 
-Auditoria segura:
+Auditoria segura das variáveis e flags:
 
 ```bash
 PYTHONPATH=src python scripts/check_readiness.py
 ```
 
 O comando mostra estados e nomes de variaveis em falta, nunca valores.
+
+Depois de aplicar `supabase/schema.sql`, a estrutura remota pode ser verificada por leitura, sem executar RPCs nem escrever dados:
+
+```bash
+PYTHONPATH=src python scripts/check_supabase_schema.py
+```
+
+O mapa requisito a requisito está em `docs/IMPLEMENTATION_MATRIX.md`.
 
 ## 7. Seguranca e privacidade
 
