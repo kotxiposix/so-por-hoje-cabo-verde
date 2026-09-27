@@ -1,15 +1,25 @@
 from __future__ import annotations
 
 import io
+import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import MagicMock
 
 from pydantic import ValidationError
 
 from sph.api import AiDailySupportPayload
 from sph.send_log import JsonlSendLog, SendLogEntry
-from sph.simple_server import Handler, MAX_JSON_BODY_BYTES, PUBLIC_DIR, RequestBodyTooLarge
+from sph.simple_server import (
+    Handler,
+    MAX_JSON_BODY_BYTES,
+    NO_STORE,
+    PUBLIC_DIR,
+    REVALIDATE,
+    SECURITY_HEADERS,
+    RequestBodyTooLarge,
+)
 
 
 class ApiLimitTests(unittest.TestCase):
@@ -36,6 +46,45 @@ class ApiLimitTests(unittest.TestCase):
 
         self.assertTrue(handler._is_public_file(PUBLIC_DIR / "index.html"))
         self.assertFalse(handler._is_public_file(PUBLIC_DIR.parent / "README.md"))
+
+    def test_simple_server_json_responses_are_private_and_protected(self) -> None:
+        handler = Handler.__new__(Handler)
+        handler.send_response = MagicMock()
+        handler.send_header = MagicMock()
+        handler.end_headers = MagicMock()
+        handler.wfile = io.BytesIO()
+
+        handler.respond({"status": "ok"})
+
+        handler.send_header.assert_any_call("Cache-Control", NO_STORE)
+        for key, value in SECURITY_HEADERS.items():
+            handler.send_header.assert_any_call(key, value)
+        handler.send_header.assert_any_call("Content-Type", "application/json; charset=utf-8")
+
+    def test_simple_server_static_cache_policy_matches_sensitive_routes(self) -> None:
+        self.assertEqual(Handler.static_cache_control("/sw.js"), REVALIDATE)
+        self.assertEqual(Handler.static_cache_control("/admin"), NO_STORE)
+        self.assertEqual(Handler.static_cache_control("/admin/admin.js"), NO_STORE)
+        self.assertEqual(Handler.static_cache_control("/assets/app.js"), REVALIDATE)
+
+    def test_simple_server_adds_utf8_to_textual_content_types(self) -> None:
+        self.assertEqual(
+            Handler.content_type(Path("app.js"), "text/javascript"),
+            "text/javascript; charset=utf-8",
+        )
+        self.assertEqual(Handler.content_type(Path("hero.jpg"), "image/jpeg"), "image/jpeg")
+
+    def test_simple_server_security_headers_match_vercel(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        config = json.loads((root / "vercel.json").read_text(encoding="utf-8"))
+        rules = {
+            rule["source"]: {item["key"]: item["value"] for item in rule["headers"]}
+            for rule in config["headers"]
+        }
+        vercel_security = rules["/(.*)"].copy()
+        vercel_security.pop("Strict-Transport-Security")
+
+        self.assertEqual(SECURITY_HEADERS, vercel_security)
 
     def test_ai_payload_rejects_negative_or_excessive_progress(self) -> None:
         with self.assertRaises(ValidationError):

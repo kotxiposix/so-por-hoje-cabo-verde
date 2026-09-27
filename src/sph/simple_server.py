@@ -29,6 +29,22 @@ repository = MeditationRepository(settings.data_path)
 service = DailyMeditationService(repository, settings.timezone)
 PUBLIC_DIR = settings.data_path.parents[1] / "public"
 MAX_JSON_BODY_BYTES = 64 * 1024
+CONTENT_SECURITY_POLICY = (
+    "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; "
+    "script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; "
+    "connect-src 'self' https://*.supabase.co; "
+    "frame-src https://www.youtube-nocookie.com; worker-src 'self'; manifest-src 'self'; "
+    "form-action 'self' mailto:"
+)
+SECURITY_HEADERS = {
+    "Content-Security-Policy": CONTENT_SECURITY_POLICY,
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+    "Referrer-Policy": "no-referrer",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+}
+NO_STORE = "private, no-store"
+REVALIDATE = "public, max-age=0, must-revalidate"
 
 
 class RequestBodyTooLarge(ValueError):
@@ -142,6 +158,7 @@ class Handler(BaseHTTPRequestHandler):
     ) -> None:
         body = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
         self.send_response(status.value)
+        self.send_standard_headers(NO_STORE)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
@@ -161,11 +178,37 @@ class Handler(BaseHTTPRequestHandler):
         body = file_path.read_bytes()
         content_type, _ = mimetypes.guess_type(file_path)
         self.send_response(HTTPStatus.OK.value)
-        self.send_header("Content-Type", content_type or "application/octet-stream")
+        self.send_standard_headers(self.static_cache_control(path))
+        self.send_header("Content-Type", self.content_type(file_path, content_type))
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         if write_body:
             self.wfile.write(body)
+
+    def send_standard_headers(self, cache_control: str) -> None:
+        for key, value in SECURITY_HEADERS.items():
+            self.send_header(key, value)
+        self.send_header("Cache-Control", cache_control)
+
+    @staticmethod
+    def static_cache_control(path: str) -> str:
+        normalized = "/" + path.lstrip("/")
+        if normalized == "/sw.js":
+            return REVALIDATE
+        if normalized == "/admin" or normalized.startswith("/admin/"):
+            return NO_STORE
+        return REVALIDATE
+
+    @staticmethod
+    def content_type(file_path: Path, guessed_type: str | None = None) -> str:
+        content_type = guessed_type or mimetypes.guess_type(file_path)[0] or "application/octet-stream"
+        if content_type.startswith("text/") or content_type in {
+            "application/javascript",
+            "application/json",
+            "application/manifest+json",
+        }:
+            return f"{content_type}; charset=utf-8"
+        return content_type
 
     def _is_public_file(self, file_path: Path) -> bool:
         try:
