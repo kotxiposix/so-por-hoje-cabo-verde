@@ -3,6 +3,19 @@
 
 create extension if not exists pgcrypto;
 
+create table if not exists public.staff_roles (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  role text not null check (role in ('admin', 'moderator', 'help_editor')),
+  status text not null default 'active' check (status in ('active', 'suspended')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, role)
+);
+
+create index if not exists staff_roles_active_idx
+  on public.staff_roles (status, role, user_id)
+  where status = 'active';
+
 create table if not exists public.journey_state (
   user_id uuid primary key references auth.users(id) on delete cascade,
   payload jsonb not null default '{}'::jsonb,
@@ -376,6 +389,7 @@ grant execute on function public.submit_anonymous_post(uuid, text, text, integer
   to service_role;
 
 alter table public.journey_state enable row level security;
+alter table public.staff_roles enable row level security;
 alter table public.anonymous_posts enable row level security;
 alter table public.anonymous_reports enable row level security;
 alter table public.help_resources enable row level security;
@@ -412,6 +426,7 @@ create policy "Users delete their journey"
 drop policy if exists "Public reads moderated posts" on public.anonymous_posts;
 drop policy if exists "Members submit pending posts" on public.anonymous_posts;
 drop policy if exists "Members report published posts" on public.anonymous_reports;
+drop policy if exists "Users read staff roles" on public.staff_roles;
 
 drop policy if exists "Public reads verified help resources" on public.help_resources;
 

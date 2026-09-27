@@ -109,6 +109,9 @@ class PublicConfigTests(unittest.TestCase):
         self.assertFalse(public_runtime_config(environment)["features"]["community"])
 
         environment["COMMUNITY_READY"] = "true"
+        self.assertFalse(public_runtime_config(environment)["features"]["community"])
+
+        environment["STAFF_ACCESS_READY"] = "true"
         config = public_runtime_config(environment)
 
         self.assertTrue(config["features"]["community"])
@@ -123,6 +126,9 @@ class PublicConfigTests(unittest.TestCase):
         self.assertFalse(public_runtime_config(environment)["features"]["helpDirectory"])
 
         environment["HELP_DIRECTORY_READY"] = "true"
+        self.assertFalse(public_runtime_config(environment)["features"]["helpDirectory"])
+
+        environment["STAFF_ACCESS_READY"] = "true"
         config = public_runtime_config(environment)
 
         self.assertTrue(config["features"]["helpDirectory"])

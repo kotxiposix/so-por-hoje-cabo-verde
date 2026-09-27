@@ -22,6 +22,7 @@ VAPID_PRIVATE_KEY=...          # apenas no emissor seguro
 VAPID_SUBJECT=mailto:equipa@exemplo.cv
 PUSH_CRON_SECRET=...           # segredo longo enviado apenas pelo agendador
 ADMIN_API_SECRET=...           # protege testes e registos tecnicos
+STAFF_ACCESS_READY=false       # ativar só depois de atribuir e testar papéis individuais
 PUSH_DELIVERY_READY=false      # mudar para true so depois do teste integral
 OPENAI_API_KEY=...             # apenas servidor
 OPENAI_MODEL=gpt-4.1-mini
@@ -41,6 +42,7 @@ O endpoint `DELETE /api/v1/account` valida o token de acesso no Supabase antes d
 ## 2. Modelo minimo
 
 - `journey_state`: um documento JSON por conta; apenas o proprio utilizador pode ler e atualizar.
+- `staff_roles`: papéis mínimos da equipa; sem leitura direta pelo browser.
 - `anonymous_posts`: novas partilhas entram sempre como `pending`.
 - `anonymous_reports`: uma denuncia por utilizador e publicacao.
 - `help_resources`: o publico ve apenas recursos marcados como verificados.
@@ -80,7 +82,7 @@ Fluxo previsto:
 
 Antes de abrir ao publico, definir moderadores, tempos de resposta, criterios de remocao, politica de retencao e protocolo de crise.
 
-O backend já contém os endpoints de criação pendente, listagem publicada, denúncia e moderação. O pseudónimo é gerado pelo servidor e a resposta pública nunca inclui `author_id` ou notas internas. Registos públicos malformados são omitidos. A fila administrativa assinala padrões claros de telefone, email e ligação; mensagens com esses sinais não podem ser publicadas e devem ser rejeitadas ou revistas fora da plataforma. Publicar ou rejeitar exige que a mensagem ainda esteja pendente; ocultar só aceita mensagens pendentes ou publicadas, evitando republicações acidentais. Esta deteção é apenas uma barreira de privacidade e não substitui análise humana. A moderação usa `ADMIN_API_SECRET`; isto é uma base técnica, não uma área administrativa final com papéis individuais e auditoria.
+O backend já contém os endpoints de criação pendente, listagem publicada, denúncia e moderação. O pseudónimo é gerado pelo servidor e a resposta pública nunca inclui `author_id` ou notas internas. Registos públicos malformados são omitidos. A fila administrativa assinala padrões claros de telefone, email e ligação; mensagens com esses sinais não podem ser publicadas e devem ser rejeitadas ou revistas fora da plataforma. Publicar ou rejeitar exige que a mensagem ainda esteja pendente; ocultar só aceita mensagens pendentes ou publicadas, evitando republicações acidentais. Esta deteção é apenas uma barreira de privacidade e não substitui análise humana. A moderação exige uma conta autenticada com papel `moderator` ou `admin` ativo em `staff_roles`.
 
 Manter `COMMUNITY_READY=false` em todos os ambientes até a checklist operacional estar concluída. Com a flag desligada, a interface continua a usar apenas o diário local.
 
@@ -118,7 +120,9 @@ Nunca colocar a chave OpenAI nem a service role do Supabase em `public/`, no Git
 
 O endpoint de apoio diário usa sempre o catálogo local por defeito. Só reserva e envia um pedido à OpenAI quando `AI_DELIVERY_READY=true`, a sessão da própria pessoa é validada no Supabase e a função atómica `claim_ai_daily_request` confirma que a quota diária ainda não foi atingida. A meditação é resolvida novamente pela data na base canónica do servidor, por isso texto alterado no browser não entra no contexto do modelo. A identidade da conta não é enviada à OpenAI. A resposta usa esquema estrito, limites de tamanho e validação adicional para rejeitar alegações inseguras ou falta de encaminhamento humano em estados de risco. Falhas de autenticação, quota, validação, rede ou fornecedor regressam silenciosamente ao catálogo local.
 
-Os endpoints `/api/v1/admin/send-logs`, `/api/v1/admin/send-test`, `/api/v1/admin/community/*` e `/api/v1/admin/help/*` exigem `Authorization: Bearer $ADMIN_API_SECRET`. Sem esse segredo configurado, permanecem fechados.
+Os endpoints `/api/v1/admin/community/*` exigem uma conta autenticada com papel `moderator` ou `admin`; `/api/v1/admin/help/*` exige `help_editor` ou `admin`. A flag `STAFF_ACCESS_READY=false` mantém ambos fechados mesmo quando existem contas. Os endpoints estritamente técnicos `/api/v1/admin/send-logs` e `/api/v1/admin/send-test` continuam a exigir `Authorization: Bearer $ADMIN_API_SECRET` e esse segredo não deve ser usado por pessoas no browser.
+
+Os papéis são atribuídos diretamente no Supabase por uma pessoa administradora autorizada. A tabela não tem políticas para o browser: a aplicação resolve a sessão e consulta apenas os papéis ativos com a chave de serviço no servidor. Suspender um registo remove o acesso no pedido seguinte. Antes de ligar `STAFF_ACCESS_READY`, criar pelo menos duas contas de equipa, atribuir apenas os papéis necessários e testar que uma conta sem papel recebe `403`.
 
 ## 7. Checklist antes de producao
 

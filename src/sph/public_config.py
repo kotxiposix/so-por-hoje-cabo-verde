@@ -32,14 +32,17 @@ def public_runtime_config(environment: Mapping[str, str] | None = None) -> dict[
         and env.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
     )
     community_ready = env.get("COMMUNITY_READY", "").strip().lower() in {"1", "true", "yes"}
+    staff_access_ready = env.get("STAFF_ACCESS_READY", "").strip().lower() in {"1", "true", "yes"}
     community_enabled = bool(
         account_enabled
         and community_ready
+        and staff_access_ready
         and env.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
     )
     help_directory_ready = env.get("HELP_DIRECTORY_READY", "").strip().lower() in {"1", "true", "yes"}
     help_directory_enabled = bool(
         help_directory_ready
+        and staff_access_ready
         and supabase_url
         and env.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
     )

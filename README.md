@@ -185,7 +185,7 @@ No fluxo gerido:
 - recursos cuja revisão venceu deixam automaticamente de aparecer;
 - o endpoint público devolve apenas campos necessários para apresentar e contactar o recurso;
 - retirar um recurso muda-o para `retired`, preservando o histórico em vez de o apagar;
-- gestão, verificação e retirada exigem `ADMIN_API_SECRET`.
+- gestão, verificação e retirada exigem uma sessão de equipa com o papel `help_editor` ou `admin`.
 
 Não ativar o diretório sem rever os contactos, horários e fontes diretamente com as entidades responsáveis.
 

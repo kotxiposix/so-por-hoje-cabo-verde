@@ -21,6 +21,7 @@ class ReadinessTests(unittest.TestCase):
             "SUPABASE_PUBLISHABLE_KEY": "public-but-not-for-report",
             "SUPABASE_SERVICE_ROLE_KEY": "service-secret",
             "ADMIN_API_SECRET": "admin-secret",
+            "STAFF_ACCESS_READY": "true",
             "AI_DELIVERY_READY": "true",
             "OPENAI_API_KEY": "openai-secret",
             "OPENAI_MODEL": "configured-model",

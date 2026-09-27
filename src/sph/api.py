@@ -34,6 +34,13 @@ from sph.public_config import public_runtime_config
 from sph.push_delivery import PushDeliveryConfig, deliver_due_notifications, is_authorized
 from sph.repository import MeditationRepository
 from sph.security import admin_access_allowed
+from sph.staff_access import (
+    StaffAccessConfig,
+    StaffAccessServiceError,
+    StaffAuthenticationError,
+    StaffForbiddenError,
+    SupabaseStaffAccess,
+)
 from sph.send_log import JsonlSendLog
 from sph.sender import DailySender
 from sph.service import DailyMeditationService
@@ -99,9 +106,23 @@ class HelpVerificationPayload(BaseModel):
     review_days: int = Field(default=90, ge=1, le=365)
 
 
-def require_admin_access(authorization: str | None) -> None:
+def require_technical_admin_access(authorization: str | None) -> None:
     if not admin_access_allowed(authorization):
         raise HTTPException(status_code=401, detail="Não autorizado")
+
+
+def require_staff_access(authorization: str | None, allowed_roles: set[str]) -> None:
+    try:
+        SupabaseStaffAccess(StaffAccessConfig.from_environment()).authorize(
+            authorization,
+            allowed_roles,
+        )
+    except StaffAuthenticationError as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
+    except StaffForbiddenError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except StaffAccessServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 def community_service() -> SupabaseCommunity:
@@ -235,7 +256,7 @@ def pending_community_posts(
     limit: int = Query(default=50, ge=1, le=200),
     authorization: str | None = Header(default=None),
 ) -> list[dict[str, object]]:
-    require_admin_access(authorization)
+    require_staff_access(authorization, {"moderator"})
     try:
         return community_service().list_pending_posts(limit)
     except CommunityServiceError as exc:
@@ -248,7 +269,7 @@ def moderate_community_post(
     payload: CommunityModerationPayload,
     authorization: str | None = Header(default=None),
 ) -> dict[str, object]:
-    require_admin_access(authorization)
+    require_staff_access(authorization, {"moderator"})
     try:
         return community_service().moderate_post(post_id, payload.status, payload.note)
     except CommunityInputError as exc:
@@ -270,7 +291,7 @@ def help_resources_for_review(
     limit: int = Query(default=200, ge=1, le=500),
     authorization: str | None = Header(default=None),
 ) -> list[dict[str, object]]:
-    require_admin_access(authorization)
+    require_staff_access(authorization, {"help_editor"})
     try:
         return help_directory_service().list_for_review(limit)
     except HelpDirectoryServiceError as exc:
@@ -282,7 +303,7 @@ def create_help_resource(
     payload: HelpResourcePayload,
     authorization: str | None = Header(default=None),
 ) -> dict[str, object]:
-    require_admin_access(authorization)
+    require_staff_access(authorization, {"help_editor"})
     try:
         return help_directory_service().create_draft(payload.model_dump())
     except HelpDirectoryInputError as exc:
@@ -297,7 +318,7 @@ def update_help_resource(
     payload: HelpResourcePayload,
     authorization: str | None = Header(default=None),
 ) -> dict[str, object]:
-    require_admin_access(authorization)
+    require_staff_access(authorization, {"help_editor"})
     try:
         return help_directory_service().update_draft(resource_id, payload.model_dump())
     except HelpDirectoryInputError as exc:
@@ -312,7 +333,7 @@ def verify_help_resource(
     payload: HelpVerificationPayload,
     authorization: str | None = Header(default=None),
 ) -> dict[str, object]:
-    require_admin_access(authorization)
+    require_staff_access(authorization, {"help_editor"})
     try:
         return help_directory_service().verify(resource_id, payload.review_days)
     except HelpDirectoryInputError as exc:
@@ -326,7 +347,7 @@ def retire_help_resource(
     resource_id: str,
     authorization: str | None = Header(default=None),
 ) -> dict[str, object]:
-    require_admin_access(authorization)
+    require_staff_access(authorization, {"help_editor"})
     try:
         return help_directory_service().retire(resource_id)
     except HelpDirectoryInputError as exc:
@@ -378,7 +399,7 @@ def send_logs(
     limit: int = Query(default=100, ge=1, le=500),
     authorization: str | None = Header(default=None),
 ) -> list[dict[str, str | None]]:
-    require_admin_access(authorization)
+    require_technical_admin_access(authorization)
     return [entry.__dict__ for entry in send_log.list(limit=limit)]
 
 
@@ -387,7 +408,7 @@ async def send_test(
     force: bool = True,
     authorization: str | None = Header(default=None),
 ) -> dict[str, str | bool | None]:
-    require_admin_access(authorization)
+    require_technical_admin_access(authorization)
     daily = service.today()
     result = await sender.send_for_date(
         target=date.fromisoformat(daily.date),

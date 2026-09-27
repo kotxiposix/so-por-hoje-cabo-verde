@@ -51,12 +51,12 @@ def readiness_report(environment: Mapping[str, str] | None = None) -> dict[str, 
                 "SUPABASE_URL",
                 "SUPABASE_PUBLISHABLE_KEY",
                 "SUPABASE_SERVICE_ROLE_KEY",
-                "ADMIN_API_SECRET",
+                "STAFF_ACCESS_READY",
             ),
         ),
         "helpDirectory": (
             "HELP_DIRECTORY_READY",
-            ("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ADMIN_API_SECRET"),
+            ("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "STAFF_ACCESS_READY"),
         ),
     }
     report: dict[str, dict[str, object]] = {}

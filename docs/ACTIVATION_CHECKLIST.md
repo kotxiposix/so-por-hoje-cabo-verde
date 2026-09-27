@@ -34,6 +34,8 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] `ACCOUNT_READY=false` mantém conta, sincronização, AI, push e comunidade ocultos enquanto o Supabase está em configuração.
 - [ ] Mudar `ACCOUNT_READY=true` apenas depois de validar RLS, Email OTP, SMTP, CAPTCHA e os fluxos com duas contas.
 - [ ] Gerar e guardar `ADMIN_API_SECRET` para os endpoints tecnicos; nao o reutilizar noutros servicos.
+- [x] Papéis individuais `admin`, `moderator` e `help_editor` preparados no esquema e validados pelo servidor sem exposição ao browser.
+- [ ] Atribuir papéis mínimos a contas reais da equipa e ativar `STAFF_ACCESS_READY=true` apenas depois de testar suspensão e acesso negado.
 - [ ] Entrar com duas contas diferentes e confirmar que a RLS impede acesso cruzado.
 - [ ] Testar escolha entre copia local e copia da conta nos dois sentidos.
 - [ ] Testar eliminacao da Jornada, eliminacao da conta e limpeza local com duas contas reais.
@@ -104,7 +106,7 @@ Nao ativar antes de existirem moderadores identificados, horario e tempo de resp
 - [ ] Nomear pelo menos dois moderadores e definir escalas, permissões e substituição.
 - [ ] Aprovar regras de publicação, motivos de denúncia, retenção e auditoria.
 - [ ] Aprovar e ensaiar o protocolo para conteúdo de risco antes de receber uma única partilha pública.
-- [ ] Construir e testar a área administrativa com contas individuais; não usar um segredo partilhado como solução final.
+- [ ] Construir a interface administrativa e testá-la com contas individuais; o backend por papéis já está preparado e não usa o segredo técnico partilhado.
 - [ ] Testar publicação, rejeição, ocultação, denúncia duplicada e eliminação de conta em Preview.
 - [ ] Só depois destes passos ativar `COMMUNITY_READY=true` em Preview.
 
