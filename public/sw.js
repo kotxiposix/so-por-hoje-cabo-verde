@@ -1,4 +1,4 @@
-const CACHE_NAME = "sph-shell-v38";
+const CACHE_NAME = "sph-shell-v39";
 const PUSH_TITLE = "Só Por Hoje";
 const PUSH_BODY = "A meditação de hoje está pronta. Um dia de cada vez.";
 const PUSH_DEFAULT_URL = "/#meditacao";

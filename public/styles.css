@@ -1607,7 +1607,23 @@ button {
 
 .anonymous-feed strong {
   display: block;
+}
+
+.anonymous-share-heading {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 6px;
+}
+
+.anonymous-room .anonymous-delete {
+  min-height: 36px;
+  padding: 0 10px;
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.86);
+  background: transparent;
+  font-size: 12px;
 }
 
 .expo-hero {

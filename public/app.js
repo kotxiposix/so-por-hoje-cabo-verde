@@ -1598,11 +1598,17 @@ function flashStatus(title, copy) {
 
 function renderAnonymousRoom() {
   els.anonymousName.textContent = state.progress.anonymousName;
-  const shares = state.progress.anonymousShares.slice(-4).reverse();
+  const shares = state.progress.anonymousShares
+    .map((share, index) => ({ share, index }))
+    .slice(-4)
+    .reverse();
   els.anonymousFeed.innerHTML = shares.length
-    ? shares.map((share) => `
+    ? shares.map(({ share, index }) => `
         <article>
-          <strong>${escapeHtml(share.name)}</strong>
+          <div class="anonymous-share-heading">
+            <strong>${escapeHtml(share.name)}</strong>
+            <button type="button" class="anonymous-delete" data-anonymous-delete="${index}" aria-label="Eliminar esta partilha local">Eliminar</button>
+          </div>
           <p>${escapeHtml(share.message)}</p>
         </article>
       `).join("")
@@ -1619,6 +1625,15 @@ function addAnonymousShare(message) {
     date: new Date().toISOString(),
   });
   state.progress.anonymousShares = state.progress.anonymousShares.slice(-20);
+  saveProgress({ touch: false, sync: false });
+  renderAnonymousRoom();
+}
+
+function removeAnonymousShare(index) {
+  if (!Number.isInteger(index) || index < 0 || index >= state.progress.anonymousShares.length) return;
+  const confirmed = window.confirm("Eliminar esta partilha guardada neste dispositivo?");
+  if (!confirmed) return;
+  state.progress.anonymousShares.splice(index, 1);
   saveProgress({ touch: false, sync: false });
   renderAnonymousRoom();
 }
@@ -2058,6 +2073,11 @@ els.anonymousForm.addEventListener("submit", (event) => {
   event.preventDefault();
   addAnonymousShare(els.anonymousMessage.value);
   els.anonymousMessage.value = "";
+});
+els.anonymousFeed.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-anonymous-delete]");
+  if (!button) return;
+  removeAnonymousShare(Number(button.dataset.anonymousDelete));
 });
 
 document.querySelectorAll(".tool-tile").forEach((button) => {
