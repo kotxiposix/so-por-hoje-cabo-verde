@@ -8,7 +8,7 @@
     <meta name="description" content="Área reservada da equipa Só Por Hoje Cabo Verde." />
     <title>Equipa · Só Por Hoje Cabo Verde</title>
     <link rel="icon" type="image/png" href="../favicon-32.png" />
-    <link rel="stylesheet" href="admin.css?v=4" />
+    <link rel="stylesheet" href="/admin/admin.css?v=6" />
   </head>
   <body>
     <header class="admin-header">
@@ -23,8 +23,8 @@
       <section id="auth-panel" class="auth-panel" aria-labelledby="auth-title">
         <span class="eyebrow">Acesso reservado</span>
         <h1 id="auth-title">Entrar na área da equipa</h1>
-        <p id="auth-summary">Usa a conta previamente autorizada pela administração.</p>
-        <form id="email-form">
+        <p id="auth-summary">A verificar se esta área está disponível neste ambiente.</p>
+        <form id="email-form" hidden>
           <label for="staff-email">Email</label>
           <div class="inline-form">
             <input id="staff-email" name="email" type="email" autocomplete="email" required />
@@ -50,16 +50,16 @@
           <div id="role-list" class="role-list" aria-label="Papéis ativos"></div>
         </header>
 
-        <nav class="admin-tabs" aria-label="Áreas administrativas">
-          <button id="community-tab" type="button" data-admin-view="community">Moderação</button>
-          <button id="directory-tab" type="button" data-admin-view="directory">Diretório de ajuda</button>
-          <button id="content-tab" type="button" data-admin-view="content">Conteúdos</button>
-          <button id="operations-tab" type="button" data-admin-view="operations">Operação</button>
+        <nav class="admin-tabs" role="tablist" aria-label="Áreas administrativas">
+          <button id="community-tab" type="button" role="tab" aria-selected="false" aria-controls="community-view" tabindex="-1" data-admin-view="community">Moderação</button>
+          <button id="directory-tab" type="button" role="tab" aria-selected="false" aria-controls="directory-view" tabindex="-1" data-admin-view="directory">Diretório de ajuda</button>
+          <button id="content-tab" type="button" role="tab" aria-selected="false" aria-controls="content-view" tabindex="-1" data-admin-view="content">Conteúdos</button>
+          <button id="operations-tab" type="button" role="tab" aria-selected="false" aria-controls="operations-view" tabindex="-1" data-admin-view="operations">Operação</button>
         </nav>
 
         <p id="workspace-status" class="status" role="status" aria-live="polite"></p>
 
-        <section id="community-view" class="admin-view" aria-labelledby="community-title" hidden>
+        <section id="community-view" class="admin-view" role="tabpanel" aria-labelledby="community-tab community-title" hidden>
           <div class="section-heading">
             <div><span class="eyebrow">Sala Anónima</span><h2 id="community-title">Fila de moderação</h2></div>
             <button id="refresh-community" class="quiet-button" type="button">Atualizar</button>
@@ -67,7 +67,7 @@
           <div id="community-list" class="record-list"></div>
         </section>
 
-        <section id="content-view" class="admin-view" aria-labelledby="content-title" hidden>
+        <section id="content-view" class="admin-view" role="tabpanel" aria-labelledby="content-tab content-title" hidden>
           <div class="section-heading">
             <div><span class="eyebrow">Viver Saudável</span><h2 id="content-title">Catálogo editorial</h2></div>
             <button id="new-content" class="quiet-button" type="button">Novo conteúdo</button>
@@ -106,7 +106,7 @@
           </div>
         </section>
 
-        <section id="directory-view" class="admin-view" aria-labelledby="directory-title" hidden>
+        <section id="directory-view" class="admin-view" role="tabpanel" aria-labelledby="directory-tab directory-title" hidden>
           <div class="section-heading">
             <div><span class="eyebrow">Ajuda verificada</span><h2 id="directory-title">Recursos e revisão</h2></div>
             <button id="new-resource" class="quiet-button" type="button">Novo recurso</button>
@@ -150,7 +150,7 @@
           </div>
         </section>
 
-        <section id="operations-view" class="admin-view" aria-labelledby="operations-title" hidden>
+        <section id="operations-view" class="admin-view" role="tabpanel" aria-labelledby="operations-tab operations-title" hidden>
           <div class="section-heading">
             <div><span class="eyebrow">Entregas técnicas</span><h2 id="operations-title">Estado dos envios</h2></div>
             <button id="refresh-operations" class="quiet-button" type="button">Atualizar</button>
@@ -169,6 +169,6 @@
       </section>
     </main>
 
-    <script type="module" src="admin.js?v=4"></script>
+    <script type="module" src="/admin/admin.js?v=6"></script>
   </body>
 </html>

@@ -15,6 +15,7 @@ const els = Object.fromEntries([
 ].map((id) => [id.replaceAll("-", "_"), document.getElementById(id)]));
 
 let pendingEmail = "";
+const adminTabs = [els.community_tab, els.directory_tab, els.content_tab, els.operations_tab];
 
 function loadSession() {
   try {
@@ -97,9 +98,24 @@ async function showView(view) {
   Object.entries(views).forEach(([name, [tab, section]]) => {
     const active = name === view;
     tab.setAttribute("aria-selected", String(active));
+    tab.tabIndex = active ? 0 : -1;
     section.hidden = !active;
   });
   await views[view][2]();
+}
+
+function moveAdminTab(current, key) {
+  const available = adminTabs.filter((tab) => !tab.hidden);
+  const index = available.indexOf(current);
+  if (index < 0) return;
+  let nextIndex = index;
+  if (key === "ArrowLeft") nextIndex = (index - 1 + available.length) % available.length;
+  if (key === "ArrowRight") nextIndex = (index + 1) % available.length;
+  if (key === "Home") nextIndex = 0;
+  if (key === "End") nextIndex = available.length - 1;
+  const next = available[nextIndex];
+  next.focus();
+  showView(next.dataset.adminView).catch((error) => setStatus(error.message, true));
 }
 
 function emptyState(message) {
@@ -455,7 +471,19 @@ async function initialize() {
       return;
     }
     state.client = new SupabaseAccountClient(config.supabase);
-    if (state.session) await authenticate();
+    if (state.session) {
+      try {
+        await authenticate();
+      } catch (error) {
+        persistSession(null);
+        els.email_form.hidden = false;
+        els.auth_summary.textContent = "Usa a conta previamente autorizada pela administração.";
+        setStatus(error.message || "A sessão terminou. Entra novamente.", true);
+      }
+      return;
+    }
+    els.email_form.hidden = false;
+    els.auth_summary.textContent = "Usa a conta previamente autorizada pela administração.";
   } catch (error) {
     persistSession(null);
     setStatus(error.message || "Não foi possível iniciar a área da equipa.", true);
@@ -491,6 +519,13 @@ els.community_tab.addEventListener("click", () => showView("community").catch((e
 els.directory_tab.addEventListener("click", () => showView("directory").catch((error) => setStatus(error.message, true)));
 els.content_tab.addEventListener("click", () => showView("content").catch((error) => setStatus(error.message, true)));
 els.operations_tab.addEventListener("click", () => showView("operations").catch((error) => setStatus(error.message, true)));
+adminTabs.forEach((tab) => {
+  tab.addEventListener("keydown", (event) => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    moveAdminTab(tab, event.key);
+  });
+});
 els.refresh_community.addEventListener("click", () => loadCommunity().catch((error) => setStatus(error.message, true)));
 els.refresh_operations.addEventListener("click", () => loadOperations().catch((error) => setStatus(error.message, true)));
 els.new_resource.addEventListener("click", () => fillResource());
