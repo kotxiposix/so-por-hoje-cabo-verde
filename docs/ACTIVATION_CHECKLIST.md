@@ -118,6 +118,7 @@ Nao ativar antes de existirem moderadores identificados, horario e tempo de resp
 - [x] Registar alterações editoriais do painel por trigger atómico, sem copiar conteúdo privado para `staff_audit_events`.
 - [x] Preparar catálogo editorial de Viver Saudável com rascunho, publicação, retirada, papel `content_editor` e auditoria privada.
 - [x] Preparar catálogo inicial validado e importador idempotente que mantém todos os conteúdos em rascunho.
+- [x] Importador editorial recusa rotas ou âncoras internas inexistentes antes de criar rascunhos.
 - [ ] Importar o catálogo editorial inicial em Preview e rever cada título, resumo, ligação, imagem, autoria e consentimento.
 - [ ] Testar criação, edição, publicação e retirada de conteúdos editoriais com uma conta real em Preview.
 - [ ] Ativar `EDITORIAL_CONTENT_READY=true` apenas depois de rever todas as ligações e confirmar autoria/consentimento dos conteúdos publicados.

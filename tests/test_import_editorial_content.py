@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -55,6 +57,22 @@ class ImportEditorialContentTests(unittest.TestCase):
         self.assertEqual((created, updated), (1, 1))
         self.assertEqual(catalog.limit, 500)
         self.assertEqual(catalog.updated[0][0], "4948b21e-facf-4bc8-a60e-8800b488dfee")
+
+    def test_catalog_internal_links_resolve_to_real_pages_and_anchors(self) -> None:
+        drafts = MODULE.load_drafts(MODULE.DEFAULT_DATA_PATH)
+
+        MODULE.validate_internal_links(drafts)
+        author = next(item for item in drafts if item["kind"] == "story")
+        self.assertEqual(author["url"], "https://soporhoje.cv/expo#autor")
+
+    def test_catalog_rejects_a_missing_internal_anchor(self) -> None:
+        drafts = json.loads(MODULE.DEFAULT_DATA_PATH.read_text(encoding="utf-8"))
+        drafts[0]["url"] = "https://soporhoje.cv/expo#nao-existe"
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "drafts.json"
+            path.write_text(json.dumps(drafts, ensure_ascii=False), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "Âncora interna inexistente"):
+                MODULE.load_drafts(path)
 
 
 if __name__ == "__main__":

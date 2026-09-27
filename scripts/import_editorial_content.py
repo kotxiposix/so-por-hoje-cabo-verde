@@ -3,8 +3,10 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from html.parser import HTMLParser
 from pathlib import Path
 from typing import Protocol
+from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
@@ -19,6 +21,19 @@ from sph.editorial_catalog import (  # noqa: E402
 
 
 DEFAULT_DATA_PATH = ROOT / "data" / "editorial_content_drafts.json"
+PUBLIC_DIR = ROOT / "public"
+PLATFORM_HOSTS = {"soporhoje.cv", "www.soporhoje.cv"}
+
+
+class IdParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.ids: set[str] = set()
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        element_id = dict(attrs).get("id")
+        if element_id:
+            self.ids.add(element_id)
 
 
 class DraftCatalog(Protocol):
@@ -33,6 +48,25 @@ def content_key(item: dict[str, object]) -> tuple[str, str]:
     return tuple(str(item.get(field) or "").strip().casefold() for field in ("kind", "title"))
 
 
+def validate_internal_links(drafts: list[dict[str, object]], public_dir: Path = PUBLIC_DIR) -> None:
+    public_root = public_dir.resolve()
+    for item in drafts:
+        parsed = urlparse(str(item.get("url") or ""))
+        if parsed.hostname not in PLATFORM_HOSTS:
+            continue
+        relative = parsed.path.strip("/")
+        target = (public_root / relative).resolve() if relative else public_root
+        if target.is_dir():
+            target = (target / "index.html").resolve()
+        if not target.is_file() or not target.is_relative_to(public_root):
+            raise ValueError(f"Ligação interna inexistente: {item['url']}")
+        if parsed.fragment:
+            parser = IdParser()
+            parser.feed(target.read_text(encoding="utf-8"))
+            if parsed.fragment not in parser.ids:
+                raise ValueError(f"Âncora interna inexistente: {item['url']}")
+
+
 def load_drafts(path: Path) -> list[dict[str, object]]:
     raw = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(raw, list):
@@ -43,6 +77,7 @@ def load_drafts(path: Path) -> list[dict[str, object]]:
     keys = [content_key(item) for item in drafts]
     if len(keys) != len(set(keys)):
         raise ValueError("O catálogo contém conteúdos duplicados.")
+    validate_internal_links(drafts)
     return drafts
 
 
