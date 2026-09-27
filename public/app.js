@@ -1070,21 +1070,45 @@ function renderJourneyHistory() {
     consumo: "Recomeço",
   };
 
-  els.historyList.innerHTML = recent.length
-    ? recent.map((day) => {
-        const parts = [];
-        if (state.progress.completed.includes(day)) parts.push("Meditação lida");
-        if (state.progress.checkins[day]) parts.push(labels[state.progress.checkins[day]] || "Check-in");
-        if (state.progress.gratitudes[day]) parts.push("Gratidão");
-        const gratitude = state.progress.gratitudes[day];
-        return `<button class="history-item" type="button" data-history-date="${day}" aria-label="Abrir meditação de ${formatShortDate(day)}">
-          <time datetime="${day}">${formatShortDate(day)}</time>
-          <strong>${escapeHtml(parts.join(" · "))}</strong>
-          <small>${gratitude ? escapeHtml(gratitude) : ""}</small>
-          <span class="history-open" aria-hidden="true">›</span>
-        </button>`;
-      }).join("")
-    : '<p class="history-empty">O teu histórico começa quando fizeres o primeiro check-in, leitura ou gratidão.</p>';
+  els.historyList.replaceChildren();
+  if (!recent.length) {
+    const empty = document.createElement("p");
+    empty.className = "history-empty";
+    empty.textContent = "O teu histórico começa quando fizeres o primeiro check-in, leitura ou gratidão.";
+    els.historyList.append(empty);
+    return;
+  }
+
+  recent.forEach((day) => {
+    const parts = [];
+    if (state.progress.completed.includes(day)) parts.push("Meditação lida");
+    if (state.progress.checkins[day]) parts.push(labels[state.progress.checkins[day]] || "Check-in");
+    if (state.progress.gratitudes[day]) parts.push("Gratidão");
+
+    const item = document.createElement("button");
+    item.className = "history-item";
+    item.type = "button";
+    item.dataset.historyDate = day;
+    item.setAttribute("aria-label", `Abrir meditação de ${formatShortDate(day)}`);
+
+    const date = document.createElement("time");
+    date.dateTime = day;
+    date.textContent = formatShortDate(day);
+
+    const summary = document.createElement("strong");
+    summary.textContent = parts.join(" · ");
+
+    const gratitude = document.createElement("small");
+    gratitude.textContent = state.progress.gratitudes[day] || "";
+
+    const open = document.createElement("span");
+    open.className = "history-open";
+    open.setAttribute("aria-hidden", "true");
+    open.textContent = "›";
+
+    item.append(date, summary, gratitude, open);
+    els.historyList.append(item);
+  });
 }
 
 function formatShortDate(isoDate) {
