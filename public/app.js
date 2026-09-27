@@ -20,10 +20,18 @@ const viewHashes = {
   help: "ajuda",
   about: "sobre",
 };
+const viewLabels = {
+  meditation: "Meditação",
+  journey: "Jornada",
+  wellness: "Viver Saudável",
+  help: "Ajuda",
+  about: "Sobre",
+};
 const SUPPORT_CACHE_VERSION = "v2";
 
 const els = {
   appContent: document.querySelector("#app-content"),
+  viewAnnouncement: document.querySelector("#view-announcement"),
   currentDate: document.querySelector("#current-date"),
   streakCount: document.querySelector("#streak-count"),
   statusCard: document.querySelector("#status-card"),
@@ -2189,6 +2197,7 @@ function showView(view, options = {}) {
   document.querySelectorAll(".view-section").forEach((section) => {
     section.hidden = section.dataset.section !== view;
   });
+  els.viewAnnouncement.textContent = `Área ${viewLabels[view]} aberta.`;
 
   if (updateHistory) {
     const nextHash = `#${viewHashes[view]}`;
@@ -2206,6 +2215,21 @@ function showView(view, options = {}) {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
   }
+}
+
+function handleBottomNavigationKeydown(event) {
+  if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+  const buttons = [...document.querySelectorAll(".bottom-nav button")];
+  const currentIndex = buttons.indexOf(event.currentTarget);
+  if (currentIndex < 0) return;
+
+  event.preventDefault();
+  let nextIndex = currentIndex;
+  if (event.key === "Home") nextIndex = 0;
+  if (event.key === "End") nextIndex = buttons.length - 1;
+  if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+  if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % buttons.length;
+  buttons[nextIndex].focus();
 }
 
 els.retry.addEventListener("click", loadToday);
@@ -2345,6 +2369,7 @@ document.querySelectorAll("[data-checkin]").forEach((button) => {
 
 document.querySelectorAll(".bottom-nav button").forEach((button) => {
   button.addEventListener("click", () => showView(button.dataset.view, { updateHistory: true }));
+  button.addEventListener("keydown", handleBottomNavigationKeydown);
 });
 
 window.addEventListener("popstate", () => showView(getViewFromHash()));

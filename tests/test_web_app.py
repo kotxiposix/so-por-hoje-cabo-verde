@@ -185,7 +185,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v48"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v49"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -285,6 +285,9 @@ class WebAppStructureTests(unittest.TestCase):
     def test_keyboard_and_assistive_technology_contracts(self) -> None:
         app = self.parser.attributes_by_id["app-content"]
         self.assertEqual(app["class"], "app-shell")
+        self.assertEqual(app["tabindex"], "-1")
+        self.assertEqual(self.parser.attributes_by_id["view-announcement"].get("aria-live"), "polite")
+        self.assertIn('class="skip-link" href="#app-content"', self.index_text)
 
         for modal_id in ("prayer-modal", "tool-modal", "archive-modal", "sos-modal", "more-modal"):
             self.assertIn(f'id="{modal_id}" hidden', self.index_text)
@@ -299,6 +302,10 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn('els.appContent.setAttribute("aria-hidden", "true")', script)
         self.assertIn("disabledBackgroundFocus", script)
         self.assertIn("function trapModalFocus", script)
+        self.assertIn("function handleBottomNavigationKeydown", script)
+        self.assertIn('["ArrowLeft", "ArrowRight", "Home", "End"]', script)
+        self.assertIn('button.addEventListener("keydown", handleBottomNavigationKeydown)', script)
+        self.assertIn('els.viewAnnouncement.textContent = `Área ${viewLabels[view]} aberta.`', script)
         self.assertIn('event.key === "Escape" && activeModalClose', script)
         self.assertIn("function renderArchiveMeditation", script)
         self.assertIn("function loadMeditationForDate", script)

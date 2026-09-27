@@ -12,7 +12,9 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="app-shell" id="app-content">
+    <main class="app-shell" id="app-content" tabindex="-1">
+      <a class="skip-link" href="#app-content">Ir para o conteúdo principal</a>
+      <p class="sr-only" id="view-announcement" role="status" aria-live="polite"></p>
       <header class="brand">
         <button class="more-button" id="more-button" type="button" aria-label="Abrir menu Mais">
           <span aria-hidden="true">•••</span>

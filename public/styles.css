@@ -25,6 +25,22 @@ body {
     linear-gradient(180deg, #124e73 0%, #1e7ea5 64%, #8fd2df 100%);
 }
 
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 10px;
+  left: 10px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  color: var(--white);
+  background: var(--ink);
+  transform: translateY(calc(-100% - 20px));
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
 body.modal-open {
   overflow: hidden;
 }
