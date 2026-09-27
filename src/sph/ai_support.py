@@ -39,13 +39,45 @@ SUPPORT_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
-        "activity": {"type": "string"},
-        "phrase": {"type": "string"},
-        "mental_challenge": {"type": "string"},
-        "safety_note": {"type": "string"},
+        "activity": {"type": "string", "minLength": 1, "maxLength": 420},
+        "phrase": {"type": "string", "minLength": 1, "maxLength": 180},
+        "mental_challenge": {"type": "string", "minLength": 1, "maxLength": 420},
+        "safety_note": {"type": "string", "minLength": 1, "maxLength": 240},
     },
     "required": ["activity", "phrase", "mental_challenge", "safety_note"],
 }
+
+SUPPORT_FIELD_LIMITS = {
+    "activity": 420,
+    "phrase": 180,
+    "mental_challenge": 420,
+    "safety_note": 240,
+}
+HUMAN_SUPPORT_MARKERS = (
+    "ajuda",
+    "apoio",
+    "liga",
+    "contact",
+    "pessoa segura",
+    "reuni",
+    "sponsor",
+    "terapeuta",
+    "centro",
+    "urgência",
+    "emergência",
+)
+UNSAFE_CLAIMS = (
+    "cura garantida",
+    "garanto a cura",
+    "deixa de tomar",
+    "pare de tomar",
+    "não precisas de ajuda",
+    "nao precisas de ajuda",
+    "não procures ajuda",
+    "nao procures ajuda",
+    "substitui o teu médico",
+    "substitui o seu médico",
+)
 
 
 SYSTEM_PROMPT = """
@@ -125,11 +157,12 @@ def openai_daily_support(request: DailySupportRequest, api_key: str) -> DailySup
 
     content = extract_response_text(response_payload)
     parsed = json.loads(content)
+    fields = validate_support_output(parsed, request.user_state)
     return DailySupport(
-        activity=clean_text(parsed["activity"]),
-        phrase=clean_text(parsed["phrase"]),
-        mental_challenge=clean_text(parsed["mental_challenge"]),
-        safety_note=clean_text(parsed["safety_note"]),
+        activity=fields["activity"],
+        phrase=fields["phrase"],
+        mental_challenge=fields["mental_challenge"],
+        safety_note=fields["safety_note"],
         source="openai",
     )
 
@@ -144,6 +177,33 @@ def extract_response_text(payload: dict[str, Any]) -> str:
                 return content["text"]
 
     raise ValueError("Resposta OpenAI sem texto extraivel")
+
+
+def validate_support_output(payload: object, user_state: str) -> dict[str, str]:
+    if not isinstance(payload, dict):
+        raise ValueError("Resposta OpenAI com formato inválido")
+
+    fields: dict[str, str] = {}
+    for field, limit in SUPPORT_FIELD_LIMITS.items():
+        value = clean_text(payload.get(field, ""))
+        if not value or len(value) > limit:
+            raise ValueError(f"Campo de apoio inválido: {field}")
+        fields[field] = value
+
+    combined = " ".join(fields.values()).lower()
+    if any(claim in combined for claim in UNSAFE_CLAIMS):
+        raise ValueError("Resposta OpenAI contém orientação insegura")
+
+    state = normalize_user_state(user_state)
+    visible_support = " ".join(
+        fields[field] for field in ("activity", "phrase", "mental_challenge")
+    ).lower()
+    if state in {"ansioso", "risco", "consumo"} and not any(
+        marker in visible_support for marker in HUMAN_SUPPORT_MARKERS
+    ):
+        raise ValueError("Resposta OpenAI sem encaminhamento para apoio humano")
+
+    return fields
 
 
 def local_daily_support(request: DailySupportRequest) -> DailySupport:

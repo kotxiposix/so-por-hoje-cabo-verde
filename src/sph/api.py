@@ -30,7 +30,6 @@ from sph.help_directory import (
     HelpDirectoryServiceError,
     SupabaseHelpDirectory,
 )
-from sph.models import DailyMeditation
 from sph.public_config import public_runtime_config
 from sph.push_delivery import PushDeliveryConfig, deliver_due_notifications, is_authorized
 from sph.repository import MeditationRepository
@@ -160,8 +159,8 @@ def ai_daily_support(
     authorization: str | None = Header(default=None),
 ) -> dict[str, str]:
     try:
-        daily = DailyMeditation(**payload.daily.model_dump()) if payload.daily else service.today()
-    except TypeError as exc:
+        daily = service.for_date(date.fromisoformat(payload.daily.date)) if payload.daily else service.today()
+    except (TypeError, ValueError, LookupError) as exc:
         raise HTTPException(status_code=400, detail="Dados da meditação inválidos") from exc
     allow_openai = False
     runtime = AiRuntimeConfig.from_environment()

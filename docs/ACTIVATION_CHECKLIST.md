@@ -61,6 +61,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [ ] Manter `AI_DELIVERY_READY=false` durante a configuração e os primeiros testes.
 - [ ] Confirmar no Supabase que `ai_daily_usage` guarda apenas conta, data, contador e atualização.
 - [x] Testes automatizados confirmam que utilizador sem conta, sessão inválida, limite atingido e falha da OpenAI recebem sempre o catálogo local.
+- [x] O servidor substitui contexto enviado pelo browser pela meditação canónica e rejeita respostas remotas excessivas ou inseguras.
 - [ ] Rever custos e definir o limite diário inicial; recomendado: `3`.
 - [ ] Mudar `AI_DELIVERY_READY=true` apenas em Preview e monitorizar custo, latência e falhas antes de produção.
 

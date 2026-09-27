@@ -116,7 +116,7 @@ AI_DELIVERY_READY=false
 
 Nunca colocar a chave OpenAI nem a service role do Supabase em `public/`, no Git ou em JavaScript enviado ao navegador.
 
-O endpoint de apoio diário usa sempre o catálogo local por defeito. Só reserva e envia um pedido à OpenAI quando `AI_DELIVERY_READY=true`, a sessão da própria pessoa é validada no Supabase e a função atómica `claim_ai_daily_request` confirma que a quota diária ainda não foi atingida. A identidade da conta não é enviada à OpenAI. Falhas de autenticação, quota, rede ou fornecedor regressam silenciosamente ao catálogo local.
+O endpoint de apoio diário usa sempre o catálogo local por defeito. Só reserva e envia um pedido à OpenAI quando `AI_DELIVERY_READY=true`, a sessão da própria pessoa é validada no Supabase e a função atómica `claim_ai_daily_request` confirma que a quota diária ainda não foi atingida. A meditação é resolvida novamente pela data na base canónica do servidor, por isso texto alterado no browser não entra no contexto do modelo. A identidade da conta não é enviada à OpenAI. A resposta usa esquema estrito, limites de tamanho e validação adicional para rejeitar alegações inseguras ou falta de encaminhamento humano em estados de risco. Falhas de autenticação, quota, validação, rede ou fornecedor regressam silenciosamente ao catálogo local.
 
 Os endpoints `/api/v1/admin/send-logs`, `/api/v1/admin/send-test`, `/api/v1/admin/community/*` e `/api/v1/admin/help/*` exigem `Authorization: Bearer $ADMIN_API_SECRET`. Sem esse segredo configurado, permanecem fechados.
 

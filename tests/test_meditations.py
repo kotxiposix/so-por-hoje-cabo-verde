@@ -8,7 +8,13 @@ from pathlib import Path
 from unittest.mock import patch
 
 from sph.repository import MeditationRepository
-from sph.ai_support import DailySupport, DailySupportRequest, build_daily_support, local_daily_support
+from sph.ai_support import (
+    DailySupport,
+    DailySupportRequest,
+    build_daily_support,
+    local_daily_support,
+    validate_support_output,
+)
 from sph.service import DailyMeditationService
 
 
@@ -145,6 +151,49 @@ class MeditationTests(unittest.TestCase):
 
         openai_support.assert_called_once_with(request, "secret")
         self.assertEqual(support, expected)
+
+    def test_openai_output_is_bounded_and_normalized(self) -> None:
+        result = validate_support_output(
+            {
+                "activity": "  Liga a uma pessoa segura.  ",
+                "phrase": "  Um dia de cada vez. ",
+                "mental_challenge": "Escolhe pedir apoio antes de decidir.",
+                "safety_note": "Não substitui ajuda profissional.",
+            },
+            "risco",
+        )
+
+        self.assertEqual(result["activity"], "Liga a uma pessoa segura.")
+        with self.assertRaisesRegex(ValueError, "Campo de apoio inválido"):
+            validate_support_output({**result, "activity": "a" * 421}, "standard")
+
+    def test_high_risk_openai_output_requires_human_support(self) -> None:
+        payload = {
+            "activity": "Respira devagar durante um minuto.",
+            "phrase": "Este momento vai passar.",
+            "mental_challenge": "Observa o pensamento sem agir.",
+            "safety_note": "Conteúdo complementar.",
+        }
+
+        with self.assertRaisesRegex(ValueError, "apoio humano"):
+            validate_support_output(payload, "consumo")
+
+        with self.assertRaisesRegex(ValueError, "apoio humano"):
+            validate_support_output(
+                {**payload, "safety_note": "Procura ajuda profissional."},
+                "risco",
+            )
+
+    def test_openai_output_rejects_unsafe_medical_claims(self) -> None:
+        payload = {
+            "activity": "Pare de tomar a medicação e descansa.",
+            "phrase": "Tudo ficará bem.",
+            "mental_challenge": "Faz uma chamada de apoio.",
+            "safety_note": "Conteúdo complementar.",
+        }
+
+        with self.assertRaisesRegex(ValueError, "orientação insegura"):
+            validate_support_output(payload, "ansioso")
 
 
 if __name__ == "__main__":
