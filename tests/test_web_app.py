@@ -198,7 +198,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v75"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v76"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -251,9 +251,14 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("notificationOperationPending || accountState.operationPending", script)
         self.assertIn("runNotificationOperation(activateNotifications)", script)
         self.assertIn("runNotificationOperation(disableNotifications)", script)
+        self.assertIn("communitySubmitPending || accountState.operationPending", script)
+        self.assertIn('els.anonymousSubmit.textContent = communitySubmitPending ? "A enviar..."', script)
         self.assertIn("pushAvailable: accountState.pushEnabled", script)
         self.assertIn("async function runAccountOperation(operation)", script)
-        self.assertIn("if (accountState.operationPending || notificationOperationPending) return", script)
+        self.assertIn(
+            "if (accountState.operationPending || notificationOperationPending || communitySubmitPending) return",
+            script,
+        )
         self.assertIn('container.setAttribute("aria-busy", String(pending))', script)
         self.assertIn("runAccountOperation(deleteCurrentAccount)", script)
         self.assertIn('els.prayer.addEventListener("click", () => openPrayer())', script)

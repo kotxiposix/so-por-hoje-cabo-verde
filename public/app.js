@@ -188,6 +188,7 @@ let disabledBackgroundFocus = [];
 let pendingServiceWorker = null;
 let appUpdateRequested = false;
 let notificationOperationPending = false;
+let communitySubmitPending = false;
 let localSupportCatalog = null;
 let meditationCatalog = null;
 let archiveRequestId = 0;
@@ -564,10 +565,11 @@ function setAccountOperationPending(pending) {
       });
     });
   renderNotificationOperationState();
+  renderAnonymousRoom();
 }
 
 async function runAccountOperation(operation) {
-  if (accountState.operationPending || notificationOperationPending) return;
+  if (accountState.operationPending || notificationOperationPending || communitySubmitPending) return;
   setAccountOperationPending(true);
   try {
     await operation();
@@ -1893,16 +1895,19 @@ function renderAnonymousRoom() {
     els.anonymousDescription.textContent = signedIn
       ? "As partilhas entram numa fila privada e só aparecem depois de revisão humana. Não incluas nomes, contactos ou ligações."
       : "Podes ler partilhas aprovadas. Para partilhar ou denunciar, entra com uma conta validada no menu Mais.";
-    els.anonymousMessage.disabled = !signedIn;
-    els.anonymousSubmit.disabled = !signedIn;
-    els.anonymousSubmit.textContent = "Enviar para moderação";
+    const unavailable = !signedIn || communitySubmitPending || accountState.operationPending;
+    els.anonymousMessage.disabled = unavailable;
+    els.anonymousSubmit.disabled = unavailable;
+    els.anonymousSubmit.setAttribute("aria-busy", String(communitySubmitPending));
+    els.anonymousSubmit.textContent = communitySubmitPending ? "A enviar..." : "Enviar para moderação";
     renderPublishedCommunity();
     return;
   }
 
   els.anonymousDescription.textContent = "Nesta fase, as partilhas ficam guardadas apenas neste dispositivo. Não são enviadas nem vistas por outras pessoas, e podes eliminá-las individualmente.";
-  els.anonymousMessage.disabled = false;
-  els.anonymousSubmit.disabled = false;
+  els.anonymousMessage.disabled = communitySubmitPending || accountState.operationPending;
+  els.anonymousSubmit.disabled = communitySubmitPending || accountState.operationPending;
+  els.anonymousSubmit.setAttribute("aria-busy", String(communitySubmitPending));
   els.anonymousSubmit.textContent = "Guardar partilha";
   els.anonymousName.textContent = state.progress.anonymousName;
   const shares = state.progress.anonymousShares
@@ -2017,20 +2022,28 @@ async function loadPublishedCommunity() {
 }
 
 async function submitAnonymousShare(message) {
+  if (communitySubmitPending || accountState.operationPending) return;
   const cleanMessage = message.trim();
   if (!cleanMessage) return;
-  if (!accountState.communityEnabled) {
-    addAnonymousShare(cleanMessage);
+  communitySubmitPending = true;
+  renderAnonymousRoom();
+  try {
+    if (!accountState.communityEnabled) {
+      addAnonymousShare(cleanMessage);
+      els.anonymousMessage.value = "";
+      return;
+    }
+    els.anonymousStatus.textContent = "A enviar para revisão...";
+    await authenticatedCommunityRequest("/api/v1/community/posts", {
+      method: "POST",
+      body: JSON.stringify({ body: cleanMessage }),
+    });
     els.anonymousMessage.value = "";
-    return;
+    els.anonymousStatus.textContent = "Partilha recebida. Só ficará pública depois de revisão humana.";
+  } finally {
+    communitySubmitPending = false;
+    renderAnonymousRoom();
   }
-  els.anonymousStatus.textContent = "A enviar para revisão...";
-  await authenticatedCommunityRequest("/api/v1/community/posts", {
-    method: "POST",
-    body: JSON.stringify({ body: cleanMessage }),
-  });
-  els.anonymousMessage.value = "";
-  els.anonymousStatus.textContent = "Partilha recebida. Só ficará pública depois de revisão humana.";
 }
 
 async function reportCommunityPost(postId) {
