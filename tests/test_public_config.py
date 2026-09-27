@@ -38,6 +38,23 @@ class PublicConfigTests(unittest.TestCase):
         self.assertFalse(config["features"]["account"])
         self.assertNotIn("supabase", config)
 
+    def test_unsafe_supabase_origin_keeps_every_integration_closed(self) -> None:
+        environment = {
+            "ACCOUNT_READY": "true",
+            "STAFF_ACCESS_READY": "true",
+            "COMMUNITY_READY": "true",
+            "HELP_DIRECTORY_READY": "true",
+            "EDITORIAL_CONTENT_READY": "true",
+            "SUPABASE_URL": "http://project.supabase.co",
+            "SUPABASE_PUBLISHABLE_KEY": "public-key",
+            "SUPABASE_SERVICE_ROLE_KEY": "service-role",
+        }
+
+        config = public_runtime_config(environment)
+
+        self.assertFalse(any(config["features"].values()))
+        self.assertNotIn("supabase", config)
+
     def test_staff_admin_is_separate_from_the_optional_public_account(self) -> None:
         environment = {
             "STAFF_ACCESS_READY": "true",

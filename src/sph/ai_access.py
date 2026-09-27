@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
+from sph.security import is_safe_https_origin, normalize_https_origin
+
 
 class AiUsageError(RuntimeError):
     pass
@@ -28,7 +30,7 @@ class AiRuntimeConfig:
             daily_limit = 3
         return cls(
             enabled=enabled,
-            supabase_url=os.getenv("SUPABASE_URL", "").strip().rstrip("/"),
+            supabase_url=normalize_https_origin(os.getenv("SUPABASE_URL", "")),
             service_role_key=os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip(),
             openai_api_key=os.getenv("OPENAI_API_KEY", "").strip(),
             daily_limit=daily_limit,
@@ -38,7 +40,7 @@ class AiRuntimeConfig:
     def ready(self) -> bool:
         return bool(
             self.enabled
-            and self.supabase_url
+            and is_safe_https_origin(self.supabase_url)
             and self.service_role_key
             and self.openai_api_key
         )

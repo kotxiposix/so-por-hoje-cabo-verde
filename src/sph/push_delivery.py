@@ -10,7 +10,7 @@ from urllib.parse import quote
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from sph.security import is_bearer_secret
+from sph.security import is_bearer_secret, normalize_https_origin
 
 
 class HttpTransport(Protocol):
@@ -39,7 +39,7 @@ class PushDeliveryConfig:
     def from_environment(cls) -> "PushDeliveryConfig":
         return cls(
             enabled=os.getenv("PUSH_DELIVERY_READY", "").strip().lower() in {"1", "true", "yes"},
-            supabase_url=os.getenv("SUPABASE_URL", "").strip().rstrip("/"),
+            supabase_url=normalize_https_origin(os.getenv("SUPABASE_URL", "")),
             service_role_key=os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip(),
             vapid_private_key=os.getenv("VAPID_PRIVATE_KEY", "").strip(),
             vapid_subject=os.getenv("VAPID_SUBJECT", "").strip(),
@@ -52,7 +52,7 @@ class PushDeliveryConfig:
         missing = [
             name
             for name, value in {
-                "SUPABASE_URL": self.supabase_url,
+                "SUPABASE_URL": normalize_https_origin(self.supabase_url),
                 "SUPABASE_SERVICE_ROLE_KEY": self.service_role_key,
                 "VAPID_PRIVATE_KEY": self.vapid_private_key,
                 "VAPID_SUBJECT": self.vapid_subject,

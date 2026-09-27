@@ -1,13 +1,38 @@
 import { JOURNEY_SCHEMA_VERSION } from "./journey-sync.mjs";
 
+function normalizeSupabaseOrigin(value) {
+  if (typeof value !== "string" || !value.trim()) return "";
+  try {
+    const url = new URL(value.trim());
+    if (
+      url.protocol !== "https:"
+      || url.username
+      || url.password
+      || url.search
+      || url.hash
+      || !["", "/"].includes(url.pathname)
+    ) return "";
+    return url.origin;
+  } catch {
+    return "";
+  }
+}
+
+function normalizePublishableKey(value) {
+  if (typeof value !== "string") return "";
+  const key = value.trim();
+  if (!key || key.length > 4096 || /[\u0000-\u001f\u007f\s]/.test(key)) return "";
+  return key;
+}
+
 export class SupabaseAccountClient {
   constructor({ url, publishableKey, fetchImpl = fetch, platformFetchImpl = fetch }) {
-    this.url = String(url || "").replace(/\/$/, "");
-    this.publishableKey = String(publishableKey || "");
+    this.url = normalizeSupabaseOrigin(url);
+    this.publishableKey = normalizePublishableKey(publishableKey);
     this.fetchImpl = fetchImpl;
     this.platformFetchImpl = platformFetchImpl;
     if (!this.url || !this.publishableKey) {
-      throw new Error("Configuração Supabase incompleta.");
+      throw new Error("Configuração Supabase inválida ou incompleta.");
     }
   }
 

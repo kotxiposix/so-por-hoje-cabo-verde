@@ -7,6 +7,8 @@ from urllib.error import HTTPError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
+from sph.security import is_safe_https_origin, normalize_https_origin
+
 
 class AccountAuthenticationError(RuntimeError):
     pass
@@ -24,12 +26,12 @@ class AccountDeletionConfig:
     @classmethod
     def from_environment(cls) -> "AccountDeletionConfig":
         return cls(
-            supabase_url=os.getenv("SUPABASE_URL", "").strip().rstrip("/"),
+            supabase_url=normalize_https_origin(os.getenv("SUPABASE_URL", "")),
             service_role_key=os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip(),
         )
 
     def validate(self) -> None:
-        if not self.supabase_url or not self.service_role_key:
+        if not is_safe_https_origin(self.supabase_url) or not self.service_role_key:
             raise AccountServiceError("A eliminação de conta ainda não está configurada.")
 
 

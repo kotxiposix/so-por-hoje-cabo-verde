@@ -3,10 +3,12 @@ from __future__ import annotations
 import os
 from collections.abc import Mapping
 
+from sph.security import normalize_https_origin
+
 
 def public_runtime_config(environment: Mapping[str, str] | None = None) -> dict[str, object]:
     env = environment or os.environ
-    supabase_url = env.get("SUPABASE_URL", "").strip().rstrip("/")
+    supabase_url = normalize_https_origin(env.get("SUPABASE_URL", ""))
     publishable_key = (
         env.get("SUPABASE_PUBLISHABLE_KEY", "").strip()
         or env.get("SUPABASE_ANON_KEY", "").strip()

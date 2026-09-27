@@ -22,6 +22,8 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Importação da planilha sincroniza a base canónica e a cópia pública; os testes recusam divergências nas meditações e no catálogo de apoio.
 - [x] Players de video e podcast usam incorporacao YouTube com privacidade reforcada, sem referencia da pagina e com CSP restrita.
 - [x] Servidor local real e interface verificados sem segredos: conta, AI remota, comunidade pública, diretório gerido e push permanecem desativados por defeito.
+- [x] O cliente recusa uma configuração de conta cujo destino Supabase não seja uma origem HTTPS sem credenciais, caminho, query ou fragmento.
+- [x] Conta, equipa, AI, push, comunidade, Ajuda e conteúdo editorial aplicam a mesma validação de origem no servidor antes de usarem chaves privadas.
 - [x] Exportacao local versionada e importacao da Jornada validada, limitada a 1 MB e confirmada antes da substituicao.
 - [x] Falhas, bloqueio ou quota do armazenamento local não interrompem a aplicação e são anunciados num aviso persistente antes de novos registos se perderem ao fechar.
 - [x] Importar uma cópia nunca a envia automaticamente para a conta; a sincronização ativa é pausada até uma nova escolha explícita.

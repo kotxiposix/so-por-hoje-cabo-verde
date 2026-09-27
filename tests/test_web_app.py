@@ -198,7 +198,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v78"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v79"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))

@@ -11,6 +11,36 @@ function jsonResponse(payload, status = 200) {
   });
 }
 
+test("accepts only a credential-free HTTPS Supabase origin", () => {
+  const client = new SupabaseAccountClient({
+    url: " https://project.supabase.co/ ",
+    publishableKey: "public-key",
+  });
+  assert.equal(client.url, "https://project.supabase.co");
+
+  for (const url of [
+    "http://project.supabase.co",
+    "https://user:secret@project.supabase.co",
+    "https://project.supabase.co/rest/v1",
+    "https://project.supabase.co?redirect=example.cv",
+    "not-a-url",
+  ]) {
+    assert.throws(
+      () => new SupabaseAccountClient({ url, publishableKey: "public-key" }),
+      /Configuração Supabase inválida/,
+    );
+  }
+});
+
+test("rejects empty, oversized and whitespace-bearing publishable keys", () => {
+  for (const publishableKey of ["", "public key", "key\nvalue", "x".repeat(4097)]) {
+    assert.throws(
+      () => new SupabaseAccountClient({ url: "https://project.supabase.co", publishableKey }),
+      /Configuração Supabase inválida/,
+    );
+  }
+});
+
 test("sendOtp uses the official email OTP endpoint", async () => {
   let request;
   const client = new SupabaseAccountClient({

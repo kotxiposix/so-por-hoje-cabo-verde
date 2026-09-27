@@ -9,6 +9,7 @@ from urllib.request import Request, urlopen
 from uuid import UUID
 
 from sph.account_deletion import AccountAuthenticationError, bearer_token
+from sph.security import is_safe_https_origin, normalize_https_origin
 
 
 class StaffAuthenticationError(RuntimeError):
@@ -33,13 +34,13 @@ class StaffAccessConfig:
     def from_environment(cls) -> "StaffAccessConfig":
         return cls(
             enabled=os.getenv("STAFF_ACCESS_READY", "").strip().lower() in {"1", "true", "yes"},
-            supabase_url=os.getenv("SUPABASE_URL", "").strip().rstrip("/"),
+            supabase_url=normalize_https_origin(os.getenv("SUPABASE_URL", "")),
             service_role_key=os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip(),
         )
 
     @property
     def ready(self) -> bool:
-        return bool(self.enabled and self.supabase_url and self.service_role_key)
+        return bool(self.enabled and is_safe_https_origin(self.supabase_url) and self.service_role_key)
 
     def validate(self) -> None:
         if not self.ready:
