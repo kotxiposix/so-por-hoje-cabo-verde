@@ -73,6 +73,9 @@ class WebAppStructureTests(unittest.TestCase):
             "privacy-principle-copy",
             "privacy-storage-summary",
             "privacy-storage-detail",
+            "gratitude-privacy-note",
+            "journey-privacy-intro",
+            "privacy-faq-answer",
         }
         self.assertFalse(critical.difference(counts))
 
@@ -246,6 +249,8 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("cópia JSON versionada", privacy)
         self.assertIn("aceita até 1 MB", privacy)
         self.assertIn("pede confirmação antes de substituir os dados locais", privacy)
+        self.assertIn("Por defeito", privacy)
+        self.assertIn("escolheres sincronizar a Jornada", privacy)
         self.assertIn("modo de privacidade reforçada do YouTube", privacy)
 
 

@@ -65,6 +65,7 @@ const els = {
   archiveBody: document.querySelector("#archive-meditation-body"),
   archiveReflection: document.querySelector("#archive-meditation-reflection"),
   progressPanel: document.querySelector("#progress-panel"),
+  journeyPrivacyIntro: document.querySelector("#journey-privacy-intro"),
   sobrietyDate: document.querySelector("#sobriety-date"),
   cleanDays: document.querySelector("#clean-days"),
   cleanDaysCopy: document.querySelector("#clean-days-copy"),
@@ -79,6 +80,7 @@ const els = {
   gratitudeForm: document.querySelector("#gratitude-form"),
   gratitudeInput: document.querySelector("#gratitude-input"),
   gratitudeStatus: document.querySelector("#gratitude-status"),
+  gratitudePrivacyNote: document.querySelector("#gratitude-privacy-note"),
   historyList: document.querySelector("#history-list"),
   exportData: document.querySelector("#export-data"),
   reminderTime: document.querySelector("#reminder-time"),
@@ -125,6 +127,7 @@ const els = {
   privacyPrincipleCopy: document.querySelector("#privacy-principle-copy"),
   privacyStorageSummary: document.querySelector("#privacy-storage-summary"),
   privacyStorageDetail: document.querySelector("#privacy-storage-detail"),
+  privacyFaqAnswer: document.querySelector("#privacy-faq-answer"),
 };
 
 let currentSupport = null;
@@ -366,6 +369,9 @@ function renderPrivacyState() {
   els.privacyPrincipleCopy.textContent = copy.principle;
   els.privacyStorageSummary.textContent = copy.summary;
   els.privacyStorageDetail.textContent = copy.detail;
+  els.journeyPrivacyIntro.textContent = copy.journeyIntro;
+  els.gratitudePrivacyNote.textContent = copy.gratitudeNote;
+  els.privacyFaqAnswer.textContent = copy.faqAnswer;
 }
 
 function appendHelpLink(container, label, href) {

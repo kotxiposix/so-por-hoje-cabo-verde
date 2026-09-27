@@ -9,6 +9,7 @@ test("privacy copy keeps unconfigured environments local", () => {
 
   assert.match(copy.summary, /armazenamento do navegador/);
   assert.match(copy.summary, /Não são enviados para uma conta/);
+  assert.match(copy.gratitudeNote, /apenas neste dispositivo/);
 });
 
 test("privacy copy explains that an available account remains optional", () => {
@@ -16,6 +17,7 @@ test("privacy copy explains that an available account remains optional", () => {
 
   assert.match(copy.summary, /nenhum dado da Jornada é enviado/);
   assert.match(copy.detail, /modo local e anónimo/);
+  assert.match(copy.faqAnswer, /permanecem neste dispositivo/);
 });
 
 test("privacy copy does not claim synchronization before the user chooses", () => {
@@ -23,6 +25,7 @@ test("privacy copy does not claim synchronization before the user chooses", () =
 
   assert.match(copy.summary, /sincronização ainda não começou/);
   assert.match(copy.principle, /continua local/);
+  assert.match(copy.journeyIntro, /continuam neste navegador/);
 });
 
 test("privacy copy distinguishes synchronized and device-only data", () => {
@@ -35,4 +38,6 @@ test("privacy copy distinguishes synchronized and device-only data", () => {
   assert.match(copy.summary, /podem ser guardados na tua conta/);
   assert.match(copy.detail, /Sala Anónima/);
   assert.match(copy.detail, /apenas neste dispositivo/);
+  assert.match(copy.gratitudeNote, /guardada na tua conta/);
+  assert.match(copy.faqAnswer, /Sala Anónima.*continuam locais/);
 });
