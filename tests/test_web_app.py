@@ -198,7 +198,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v72"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v73"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -241,6 +241,10 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn('"/journey-sync-cursor.mjs"', worker)
         self.assertIn('from "./date-utils.mjs"', script)
         self.assertIn('from "./privacy-copy.mjs"', script)
+        self.assertIn('from "./safe-storage.mjs"', script)
+        self.assertNotIn("localStorage.", script)
+        self.assertIn('"/safe-storage.mjs"', worker)
+        self.assertIn('id="storage-warning" role="alert" hidden', self.index_text)
         self.assertIn("pushAvailable: accountState.pushEnabled", script)
         self.assertIn("async function runAccountOperation(operation)", script)
         self.assertIn("if (accountState.operationPending) return", script)
@@ -281,7 +285,7 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("accountState.client.disablePushSubscription", reconciliation)
         self.assertIn("await subscription.unsubscribe()", reconciliation)
         self.assertIn("accountState.pushRegistered = pushAllowed && Boolean(subscription)", reconciliation)
-        self.assertIn('localStorage.removeItem("sph-push-enabled")', reconciliation)
+        self.assertIn('appStorage.removeItem("sph-push-enabled")', reconciliation)
         self.assertIn("transient configuration outage", script)
 
     def test_vercel_routes_dynamic_api_before_static_files(self) -> None:

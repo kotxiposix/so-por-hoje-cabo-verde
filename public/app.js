@@ -21,6 +21,15 @@ import {
   mergeJourneyBackupProgress,
   parseJourneyBackup,
 } from "./journey-backup.mjs";
+import { createSafeStorage } from "./safe-storage.mjs";
+
+const appStorage = createSafeStorage(
+  () => window.localStorage,
+  () => {
+    const warning = document.querySelector("#storage-warning");
+    if (warning) warning.hidden = false;
+  },
+);
 
 const state = {
   daily: null,
@@ -189,7 +198,7 @@ const accountState = {
   enabled: false,
   pendingEmail: "",
   session: initialAccountSession,
-  syncEnabled: localStorage.getItem("sph-account-sync") === "on",
+  syncEnabled: appStorage.getItem("sph-account-sync") === "on",
   remoteUpdatedAt: loadJourneyRemoteVersion(initialAccountSession),
   aiEnabled: false,
   pushEnabled: false,
@@ -202,7 +211,7 @@ const accountState = {
   communityReportsSent: new Set(),
   operationPending: false,
   vapidPublicKey: "",
-  pushRegistered: localStorage.getItem("sph-push-enabled") === "on",
+  pushRegistered: appStorage.getItem("sph-push-enabled") === "on",
 };
 
 const tools = {
@@ -230,7 +239,7 @@ const tools = {
 
 function loadProgress() {
   try {
-    const progress = JSON.parse(localStorage.getItem("sph-progress")) || {};
+    const progress = JSON.parse(appStorage.getItem("sph-progress")) || {};
     return normalizeProgress(progress);
   } catch {
     return normalizeProgress({});
@@ -239,7 +248,7 @@ function loadProgress() {
 
 function saveProgress({ touch = true, sync = true } = {}) {
   if (touch) state.progress.updatedAt = new Date().toISOString();
-  localStorage.setItem("sph-progress", JSON.stringify(state.progress));
+  appStorage.setItem("sph-progress", JSON.stringify(state.progress));
   if (sync) queueJourneySync();
 }
 
@@ -321,7 +330,7 @@ function normalizeSupportPlan(value) {
 
 function loadAccountSession() {
   try {
-    const session = JSON.parse(localStorage.getItem("sph-account-session"));
+    const session = JSON.parse(appStorage.getItem("sph-account-session"));
     if (!session?.access_token || !session?.refresh_token || !session?.user?.id) return null;
     return session;
   } catch {
@@ -331,7 +340,7 @@ function loadAccountSession() {
 
 function loadJourneyRemoteVersion(session) {
   return readJourneySyncCursor(
-    localStorage.getItem(JOURNEY_SYNC_CURSOR_KEY),
+    appStorage.getItem(JOURNEY_SYNC_CURSOR_KEY),
     session?.user?.id || "",
   );
 }
@@ -340,42 +349,42 @@ function persistJourneyRemoteVersion(updatedAt) {
   const cursor = createJourneySyncCursor(accountState.session?.user?.id, updatedAt);
   accountState.remoteUpdatedAt = cursor?.updatedAt || "";
   if (cursor) {
-    localStorage.setItem(JOURNEY_SYNC_CURSOR_KEY, JSON.stringify(cursor));
+    appStorage.setItem(JOURNEY_SYNC_CURSOR_KEY, JSON.stringify(cursor));
   } else {
-    localStorage.removeItem(JOURNEY_SYNC_CURSOR_KEY);
+    appStorage.removeItem(JOURNEY_SYNC_CURSOR_KEY);
   }
 }
 
 function clearJourneyRemoteVersion() {
   accountState.remoteUpdatedAt = "";
-  localStorage.removeItem(JOURNEY_SYNC_CURSOR_KEY);
+  appStorage.removeItem(JOURNEY_SYNC_CURSOR_KEY);
 }
 
 function persistAccountSession(session) {
   accountState.session = session;
   if (session) {
-    localStorage.setItem("sph-account-session", JSON.stringify(session));
+    appStorage.setItem("sph-account-session", JSON.stringify(session));
     accountState.remoteUpdatedAt = loadJourneyRemoteVersion(session);
   } else {
-    localStorage.removeItem("sph-account-session");
+    appStorage.removeItem("sph-account-session");
     clearJourneyRemoteVersion();
   }
 }
 
 function clearAiSupportCache() {
-  Object.keys(localStorage)
+  appStorage.keys()
     .filter((key) => key.startsWith("sph-ai-support:"))
-    .forEach((key) => localStorage.removeItem(key));
+    .forEach((key) => appStorage.removeItem(key));
 }
 
 function clearLegacySupportCache() {
   const currentPrefix = `sph-ai-support:${SUPPORT_CACHE_VERSION}:`;
-  Object.keys(localStorage)
+  appStorage.keys()
     .filter((key) => (
       key.startsWith("sph-ai-support:")
       && (!key.startsWith(currentPrefix) || key.startsWith(`${currentPrefix}local:`))
     ))
-    .forEach((key) => localStorage.removeItem(key));
+    .forEach((key) => appStorage.removeItem(key));
 }
 
 async function setupAccount() {
@@ -416,7 +425,7 @@ async function setupAccount() {
       } catch {
         persistAccountSession(null);
         accountState.syncEnabled = false;
-        localStorage.removeItem("sph-account-sync");
+        appStorage.removeItem("sph-account-sync");
       }
     }
     renderAccount();
@@ -745,13 +754,13 @@ async function verifyAccountCode(token) {
 
 function enableJourneySync() {
   accountState.syncEnabled = true;
-  localStorage.setItem("sph-account-sync", "on");
+  appStorage.setItem("sph-account-sync", "on");
   renderAccount();
 }
 
 function pauseJourneySync(message) {
   accountState.syncEnabled = false;
-  localStorage.removeItem("sph-account-sync");
+  appStorage.removeItem("sph-account-sync");
   renderAccount();
   els.accountStatus.textContent = message;
 }
@@ -850,7 +859,7 @@ async function signOutAccount() {
   persistAccountSession(null);
   clearAiSupportCache();
   accountState.syncEnabled = false;
-  localStorage.removeItem("sph-account-sync");
+  appStorage.removeItem("sph-account-sync");
   renderAccount();
   els.accountStatus.textContent = "Sessão terminada. Os dados locais foram mantidos.";
 }
@@ -866,7 +875,7 @@ async function deleteAccountJourney() {
   persistAccountSession(await accountState.client.deleteJourney(accountState.session));
   clearJourneyRemoteVersion();
   accountState.syncEnabled = false;
-  localStorage.removeItem("sph-account-sync");
+  appStorage.removeItem("sph-account-sync");
   renderAccount();
   els.accountStatus.textContent = "Cópia sincronizada apagada. Os dados deste dispositivo foram mantidos.";
 }
@@ -892,9 +901,9 @@ async function deleteCurrentAccount() {
     els.accountStatus.textContent = error.message || "Não foi possível eliminar a conta.";
     return;
   }
-  Object.keys(localStorage)
+  appStorage.keys()
     .filter((key) => key.startsWith("sph-"))
-    .forEach((key) => localStorage.removeItem(key));
+    .forEach((key) => appStorage.removeItem(key));
   window.location.reload();
 }
 
@@ -916,9 +925,9 @@ async function deleteDeviceData() {
       // Local deletion must still be possible while offline.
     }
   }
-  Object.keys(localStorage)
+  appStorage.keys()
     .filter((key) => key.startsWith("sph-"))
-    .forEach((key) => localStorage.removeItem(key));
+    .forEach((key) => appStorage.removeItem(key));
   window.location.reload();
 }
 
@@ -2054,7 +2063,7 @@ async function activateNotifications() {
         pushActive = await registerPushNotifications();
       } catch {
         accountState.pushRegistered = false;
-        localStorage.removeItem("sph-push-enabled");
+        appStorage.removeItem("sph-push-enabled");
       }
     }
     try {
@@ -2101,7 +2110,7 @@ async function registerPushNotifications() {
   });
   persistAccountSession(session);
   accountState.pushRegistered = true;
-  localStorage.setItem("sph-push-enabled", "on");
+  appStorage.setItem("sph-push-enabled", "on");
   renderReminderStatus();
   return true;
 }
@@ -2140,9 +2149,9 @@ async function reconcilePushRegistration() {
 
   accountState.pushRegistered = pushAllowed && Boolean(subscription);
   if (accountState.pushRegistered) {
-    localStorage.setItem("sph-push-enabled", "on");
+    appStorage.setItem("sph-push-enabled", "on");
   } else {
-    localStorage.removeItem("sph-push-enabled");
+    appStorage.removeItem("sph-push-enabled");
   }
   renderReminderStatus();
 }
@@ -2161,7 +2170,7 @@ async function removeRemotePushRegistration() {
   }
   if (subscription) await subscription.unsubscribe();
   accountState.pushRegistered = false;
-  localStorage.removeItem("sph-push-enabled");
+  appStorage.removeItem("sph-push-enabled");
   if (remoteError) throw remoteError;
 }
 
@@ -2255,7 +2264,7 @@ async function getDailySupport() {
   const cacheKey = `sph-ai-support:${SUPPORT_CACHE_VERSION}:ai:${cacheOwner}:${state.daily.date}:${payload.user_state}:${payload.clean_days}:${payload.reading_streak}`;
 
   try {
-    const cached = JSON.parse(localStorage.getItem(cacheKey));
+    const cached = JSON.parse(appStorage.getItem(cacheKey));
     if (cached?.activity && cached?.phrase && cached?.mental_challenge) {
       currentSupport = cached;
       return cached;
@@ -2288,7 +2297,7 @@ async function getDailySupport() {
 
     const support = await response.json();
     currentSupport = support;
-    localStorage.setItem(cacheKey, JSON.stringify(support));
+    appStorage.setItem(cacheKey, JSON.stringify(support));
     return support;
   } catch {
     return loadLocalDailySupport(payload);

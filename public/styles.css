@@ -170,6 +170,17 @@ button {
   background: var(--panel);
 }
 
+.storage-warning {
+  margin: 18px 0 0;
+  padding: 14px 18px;
+  border: 2px solid #ffe08a;
+  border-radius: 8px;
+  color: #402b00;
+  background: #fff3c4;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
 .status-icon {
   display: grid;
   place-items: center;
