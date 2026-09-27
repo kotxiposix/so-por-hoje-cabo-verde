@@ -166,8 +166,10 @@ Quando a equipa concluir as decisões operacionais e ativar a flag, o servidor:
 - cria todas as partilhas como `pending`;
 - aplica um limite diário atómico por conta, configurado por `COMMUNITY_DAILY_POST_LIMIT`;
 - expõe publicamente apenas `id`, pseudónimo, texto e data de mensagens publicadas;
+- valida novamente cada registo antes de o expor e omite linhas malformadas;
 - aceita uma denúncia por conta e publicação;
-- reserva publicação, rejeição e ocultação para endpoints administrativos protegidos.
+- reserva publicação, rejeição e ocultação para endpoints administrativos protegidos;
+- impede republicar silenciosamente mensagens já rejeitadas ou ocultadas.
 
 Esta preparação não substitui moderadores, regras editoriais, retenção, horário de resposta nem protocolo de crise.
 

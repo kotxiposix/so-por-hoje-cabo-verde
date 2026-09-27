@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import secrets
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -87,8 +88,24 @@ def normalize_uuid(value: str, label: str) -> str:
 def public_post(record: object) -> dict[str, object]:
     if not isinstance(record, dict):
         raise CommunityServiceError("A comunidade devolveu uma resposta inválida.")
-    allowed = ("id", "pseudonym", "body", "created_at")
-    return {key: record[key] for key in allowed if key in record}
+    try:
+        post_id = normalize_uuid(record.get("id"), "Publicação")
+        pseudonym = str(record.get("pseudonym", "")).strip()
+        body = normalize_post_body(record.get("body", ""))
+        created_at = str(record.get("created_at", "")).strip()
+        parsed_created_at = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+    except (AttributeError, CommunityInputError, TypeError, ValueError) as exc:
+        raise CommunityServiceError("A comunidade devolveu uma publicação inválida.") from exc
+    if not re.fullmatch(r"Guerreiro\d{4}", pseudonym):
+        raise CommunityServiceError("A comunidade devolveu uma publicação inválida.")
+    if parsed_created_at.tzinfo is None:
+        raise CommunityServiceError("A comunidade devolveu uma publicação inválida.")
+    return {
+        "id": post_id,
+        "pseudonym": pseudonym,
+        "body": body,
+        "created_at": created_at,
+    }
 
 
 class SupabaseCommunity:
@@ -128,7 +145,13 @@ class SupabaseCommunity:
         )
         if not isinstance(records, list):
             raise CommunityServiceError("A comunidade devolveu uma resposta inválida.")
-        return [public_post(record) for record in records]
+        published: list[dict[str, object]] = []
+        for record in records:
+            try:
+                published.append(public_post(record))
+            except CommunityServiceError:
+                continue
+        return published
 
     def report_post(
         self,
@@ -179,10 +202,16 @@ class SupabaseCommunity:
         normalized_status = status.strip().lower()
         if normalized_status not in self.MODERATION_STATUSES:
             raise CommunityInputError("Decisão de moderação inválida.")
+        allowed_current_status = (
+            "status=in.(pending,published)"
+            if normalized_status == "hidden"
+            else "status=eq.pending"
+        )
         record = self._request(
             "PATCH",
             "/rest/v1/anonymous_posts"
-            f"?id=eq.{quote(normalize_uuid(post_id, 'Publicação'), safe='')}",
+            f"?id=eq.{quote(normalize_uuid(post_id, 'Publicação'), safe='')}"
+            f"&{allowed_current_status}",
             payload={
                 "status": normalized_status,
                 "moderated_at": datetime.now(timezone.utc).isoformat(),
@@ -191,7 +220,7 @@ class SupabaseCommunity:
             prefer="return=representation",
         )
         if not isinstance(record, list) or not record:
-            raise CommunityInputError("A publicação não foi encontrada.")
+            raise CommunityInputError("O estado atual da publicação já não permite esta decisão.")
         return public_post(record[0]) | {"status": record[0].get("status", normalized_status)}
 
     def _request(

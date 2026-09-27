@@ -104,6 +104,58 @@ class CommunityTests(unittest.TestCase):
         self.assertIn("limit=50", request.full_url)
         self.assertEqual(result, returned)
 
+    def test_public_listing_skips_malformed_database_records(self) -> None:
+        returned = [
+            {
+                "id": POST_ID,
+                "pseudonym": "Guerreiro1234",
+                "body": "Partilha publicada.",
+                "created_at": "2026-09-26T12:00:00Z",
+            },
+            {
+                "id": "not-a-uuid",
+                "pseudonym": "Nome real",
+                "body": "a" * 281,
+                "created_at": "ontem",
+            },
+        ]
+        with patch("sph.community.urlopen", return_value=FakeResponse(returned)):
+            result = SupabaseCommunity(config()).list_published_posts()
+
+        self.assertEqual(result, [returned[0]])
+
+    def test_publishing_requires_a_still_pending_post(self) -> None:
+        returned = [{
+            "id": POST_ID,
+            "pseudonym": "Guerreiro1234",
+            "body": "Partilha aprovada.",
+            "status": "published",
+            "created_at": "2026-09-26T12:00:00Z",
+        }]
+        with patch("sph.community.urlopen", return_value=FakeResponse(returned)) as urlopen_mock:
+            result = SupabaseCommunity(config()).moderate_post(POST_ID, "published")
+
+        self.assertIn("status=eq.pending", urlopen_mock.call_args.args[0].full_url)
+        self.assertEqual(result["status"], "published")
+
+    def test_hiding_is_limited_to_pending_or_published_posts(self) -> None:
+        returned = [{
+            "id": POST_ID,
+            "pseudonym": "Guerreiro1234",
+            "body": "Partilha ocultada.",
+            "status": "hidden",
+            "created_at": "2026-09-26T12:00:00Z",
+        }]
+        with patch("sph.community.urlopen", return_value=FakeResponse(returned)) as urlopen_mock:
+            SupabaseCommunity(config()).moderate_post(POST_ID, "hidden")
+
+        self.assertIn("status=in.(pending,published)", urlopen_mock.call_args.args[0].full_url)
+
+    def test_moderation_rejects_a_stale_transition(self) -> None:
+        with patch("sph.community.urlopen", return_value=FakeResponse([])):
+            with self.assertRaisesRegex(CommunityInputError, "estado atual"):
+                SupabaseCommunity(config()).moderate_post(POST_ID, "published")
+
     def test_report_checks_visibility_before_inserting(self) -> None:
         responses = [FakeResponse([{"id": POST_ID}]), FakeResponse([{"id": "report-id"}])]
         with patch("sph.community.urlopen", side_effect=responses) as urlopen_mock:
