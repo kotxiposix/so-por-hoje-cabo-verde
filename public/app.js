@@ -187,6 +187,7 @@ let modalReturnFocus = null;
 let disabledBackgroundFocus = [];
 let pendingServiceWorker = null;
 let appUpdateRequested = false;
+let notificationOperationPending = false;
 let localSupportCatalog = null;
 let meditationCatalog = null;
 let archiveRequestId = 0;
@@ -409,7 +410,7 @@ async function setupAccount() {
     }
     if (!config.features?.account || !config.supabase) {
       renderAccount();
-      await reconcilePushRegistration();
+      await runNotificationOperation(reconcilePushRegistration);
       return;
     }
 
@@ -429,7 +430,7 @@ async function setupAccount() {
       }
     }
     renderAccount();
-    await reconcilePushRegistration();
+    await runNotificationOperation(reconcilePushRegistration);
   } catch {
     // Keep the last known local state during a transient configuration outage.
     renderAccount();
@@ -562,15 +563,38 @@ function setAccountOperationPending(pending) {
         control.disabled = pending;
       });
     });
+  renderNotificationOperationState();
 }
 
 async function runAccountOperation(operation) {
-  if (accountState.operationPending) return;
+  if (accountState.operationPending || notificationOperationPending) return;
   setAccountOperationPending(true);
   try {
     await operation();
   } finally {
     setAccountOperationPending(false);
+  }
+}
+
+function renderNotificationOperationState() {
+  const pending = notificationOperationPending || accountState.operationPending;
+  [els.reminder, els.notificationsSecondary, els.disableNotifications]
+    .filter(Boolean)
+    .forEach((control) => {
+      control.disabled = pending;
+      control.setAttribute("aria-busy", String(pending));
+    });
+}
+
+async function runNotificationOperation(operation) {
+  if (notificationOperationPending || accountState.operationPending) return;
+  notificationOperationPending = true;
+  renderNotificationOperationState();
+  try {
+    await operation();
+  } finally {
+    notificationOperationPending = false;
+    renderNotificationOperationState();
   }
 }
 
@@ -2468,7 +2492,7 @@ els.shareCopy.addEventListener("click", () => copyMeditationText().catch(() => {
 els.story.addEventListener("click", () => shareStoryImage().catch(() => {
   flashStatus("Imagem indisponível", "Não foi possível gerar a imagem agora.");
 }));
-els.reminder.addEventListener("click", () => activateNotifications());
+els.reminder.addEventListener("click", () => runNotificationOperation(activateNotifications));
 els.sobrietyDate.addEventListener("change", (event) => setSobrietyDate(event.target.value));
 els.gratitudeForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -2502,8 +2526,8 @@ els.exportDataSecondary.addEventListener("click", exportJourneyData);
 els.importData.addEventListener("change", (event) => importJourneyData(event.target.files[0]));
 els.installAppSecondary.addEventListener("click", () => installApp());
 els.pwaUpdate.addEventListener("click", activateAppUpdate);
-els.notificationsSecondary.addEventListener("click", () => activateNotifications());
-els.disableNotifications.addEventListener("click", () => disableNotifications());
+els.notificationsSecondary.addEventListener("click", () => runNotificationOperation(activateNotifications));
+els.disableNotifications.addEventListener("click", () => runNotificationOperation(disableNotifications));
 els.accountEmailForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   await runAccountOperation(async () => {
