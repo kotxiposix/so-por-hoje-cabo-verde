@@ -181,6 +181,13 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertRegex(styles, r"\.resource-heading\s*\{[^}]*flex-wrap:\s*wrap")
         self.assertRegex(styles, r"\.resource-heading strong\s*\{[^}]*overflow-wrap:\s*anywhere")
 
+    def test_static_help_contacts_distinguish_official_and_unconfirmed_details(self) -> None:
+        self.assertIn('href="tel:+2382620699">Ligar 262 06 99</a>', self.index_text)
+        self.assertIn('href="tel:+2382620122">Ligar 262 01 22</a>', self.index_text)
+        self.assertIn("Contacto oficial", self.index_text)
+        self.assertIn("9h30 indicado pela comunidade", self.index_text)
+        self.assertIn("contactos do Ministério da Saúde", self.index_text)
+
     def test_media_outside_the_initial_view_is_deferred(self) -> None:
         self.assertIn(
             'src="expo/hero.jpg" alt="Capa da exposição Só Por Hoje" loading="lazy" decoding="async"',
