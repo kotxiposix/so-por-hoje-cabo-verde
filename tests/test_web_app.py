@@ -170,6 +170,19 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertNotIn("SUPABASE_SERVICE_ROLE_KEY", public_text)
         self.assertNotIn("OPENAI_API_KEY", public_text)
 
+    def test_public_scripts_do_not_build_dynamic_html(self) -> None:
+        scripts = [*PUBLIC.rglob("*.js"), *PUBLIC.rglob("*.mjs")]
+
+        self.assertTrue(scripts)
+        for path in scripts:
+            source = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(PUBLIC)):
+                self.assertNotIn(".innerHTML", source)
+                self.assertNotIn("insertAdjacentHTML", source)
+                self.assertNotIn("document.write", source)
+                self.assertNotIn("new Function", source)
+                self.assertNotIn("eval(", source)
+
     def test_keyboard_and_assistive_technology_contracts(self) -> None:
         app = self.parser.attributes_by_id["app-content"]
         self.assertEqual(app["class"], "app-shell")
