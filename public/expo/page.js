@@ -1,7 +1,7 @@
 const collectionButtons = document.querySelectorAll("[data-collection]");
 const menuToggle = document.querySelector("#menu-toggle");
 const siteMenu = document.querySelector("#site-menu");
-const mobileMenuMedia = window.matchMedia("(max-width: 760px)");
+const mobileMenuMedia = window.matchMedia("(max-width: 860px)");
 const collectionPanels = {
   sobriu: document.querySelector("#collection-sobriu"),
   spirit: document.querySelector("#collection-spirit"),

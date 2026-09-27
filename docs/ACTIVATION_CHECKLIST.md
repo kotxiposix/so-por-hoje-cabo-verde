@@ -29,6 +29,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Testes automaticos no GitHub Actions para `dev`, `production` e pull requests.
 - [x] Referências locais, rotas limpas, âncoras entre páginas, assets CSS e isolamento de links externos são validados automaticamente.
 - [x] Navegação principal suporta atalho para o conteúdo, setas/Home/End, ativação explícita e anúncio da área aberta para tecnologias de apoio.
+- [x] Breakpoints visuais e interativos do menu da exposição estão alinhados; links fora do ecrã ficam inertes e movimento reduzido é respeitado.
 - [ ] Confirmar instalacao e atualizacao da PWA em Android Chrome e iPhone Safari seguindo `docs/PWA_DEVICE_TEST.md`.
 - [ ] Confirmar os contactos e horarios comunitarios diretamente com cada entidade.
 
