@@ -97,6 +97,7 @@ const els = {
   importData: document.querySelector("#import-data"),
   importStatus: document.querySelector("#import-status"),
   installAppSecondary: document.querySelector("#install-app-secondary"),
+  pwaInstallStatus: document.querySelector("#pwa-install-status"),
   pwaUpdate: document.querySelector("#pwa-update"),
   notificationsSecondary: document.querySelector("#notifications-secondary"),
   disableNotifications: document.querySelector("#disable-notifications"),
@@ -1075,22 +1076,48 @@ function isStandalone() {
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
 }
 
+function getInstallGuidance() {
+  const userAgent = window.navigator.userAgent || "";
+  const isIos = /iPad|iPhone|iPod/.test(userAgent)
+    || (window.navigator.platform === "MacIntel" && window.navigator.maxTouchPoints > 1);
+  if (isIos) {
+    return "No Safari, toca em Partilhar e depois em Adicionar ao ecrã principal.";
+  }
+  if (/Android/i.test(userAgent)) {
+    return "No menu do navegador, escolhe Instalar aplicação ou Adicionar ao ecrã principal.";
+  }
+  return "No menu do navegador, escolhe Instalar aplicação. Esta opção pode aparecer também na barra de endereço.";
+}
+
+function updateInstallAction() {
+  const installed = isStandalone();
+  els.installApp.hidden = installed || !installPrompt;
+  els.installAppSecondary.hidden = installed;
+  if (installed) {
+    els.pwaInstallStatus.textContent = "Aplicação instalada neste dispositivo.";
+    return;
+  }
+  els.installAppSecondary.textContent = installPrompt ? "Instalar aplicação" : "Como instalar";
+}
+
 async function installApp() {
   if (!installPrompt) {
     const message = isStandalone()
       ? "A aplicação já está instalada."
-      : "Usa a opção Instalar ou Adicionar ao ecrã principal no menu do navegador.";
+      : getInstallGuidance();
     els.pwaStatus.textContent = message;
-    els.importStatus.textContent = message;
+    els.pwaInstallStatus.textContent = message;
     return;
   }
   installPrompt.prompt();
   const result = await installPrompt.userChoice;
-  els.pwaStatus.textContent = result.outcome === "accepted"
+  const message = result.outcome === "accepted"
     ? "Instalação iniciada."
     : "A instalação foi cancelada.";
+  els.pwaStatus.textContent = message;
+  els.pwaInstallStatus.textContent = message;
   installPrompt = null;
-  els.installApp.hidden = true;
+  updateInstallAction();
 }
 
 function openModal(modal, closeHandler, returnFocus, initialFocus) {
@@ -1257,7 +1284,7 @@ function setupPwa() {
       });
   }
 
-  if (isStandalone()) els.installApp.hidden = true;
+  updateInstallAction();
   updateConnectivityStatus();
 }
 
@@ -2027,13 +2054,15 @@ window.addEventListener("popstate", () => showView(getViewFromHash()));
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();
   installPrompt = event;
-  els.installApp.hidden = false;
+  updateInstallAction();
   els.pwaStatus.textContent = "Pronta para instalar neste dispositivo.";
+  els.pwaInstallStatus.textContent = "A aplicação está pronta para instalar.";
 });
 window.addEventListener("appinstalled", () => {
   installPrompt = null;
-  els.installApp.hidden = true;
+  updateInstallAction();
   els.pwaStatus.textContent = "Aplicação instalada com sucesso.";
+  els.pwaInstallStatus.textContent = "Aplicação instalada com sucesso.";
 });
 window.addEventListener("online", updateConnectivityStatus);
 window.addEventListener("offline", updateConnectivityStatus);
