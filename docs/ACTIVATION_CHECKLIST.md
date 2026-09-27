@@ -43,6 +43,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [ ] Guardar o endpoint e o segredo do cron no Supabase Vault.
 - [ ] Agendar `POST /api/v1/internal/push/deliver` a cada minuto com `Authorization: Bearer $PUSH_CRON_SECRET`.
 - [ ] Testar subscricao, hora/fuso, entrega com app fechada, cancelamento e endpoint expirado em dois dispositivos.
+- [x] O servidor e o service worker limitam o ecrã bloqueado a uma mensagem genérica e ignoram texto recebido no payload push.
 - [ ] Confirmar que o ecrã bloqueado mostra apenas a mensagem generica.
 - [ ] Mudar `PUSH_DELIVERY_READY=true` apenas depois do teste integral.
 

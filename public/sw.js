@@ -1,4 +1,7 @@
-const CACHE_NAME = "sph-shell-v35";
+const CACHE_NAME = "sph-shell-v36";
+const PUSH_TITLE = "Só Por Hoje";
+const PUSH_BODY = "A meditação de hoje está pronta. Um dia de cada vez.";
+const PUSH_DEFAULT_URL = "/#meditacao";
 const CORE_ASSETS = [
   "/",
   "/index.html",
@@ -110,17 +113,27 @@ self.addEventListener("notificationclick", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  let payload = {};
+  let requestedUrl = PUSH_DEFAULT_URL;
   try {
-    payload = event.data?.json() || {};
+    const payload = event.data?.json() || {};
+    if (typeof payload.url === "string") requestedUrl = payload.url;
   } catch {
-    payload = { body: event.data?.text() || "A meditação de hoje está pronta." };
+    // Text from a push payload is intentionally ignored on the lock screen.
   }
-  event.waitUntil(self.registration.showNotification(payload.title || "Só Por Hoje", {
-    body: payload.body || "A meditação de hoje está pronta. Um dia de cada vez.",
+  let targetUrl = PUSH_DEFAULT_URL;
+  try {
+    const parsedUrl = new URL(requestedUrl, self.location.origin);
+    if (parsedUrl.origin === self.location.origin) {
+      targetUrl = `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
+    }
+  } catch {
+    targetUrl = PUSH_DEFAULT_URL;
+  }
+  event.waitUntil(self.registration.showNotification(PUSH_TITLE, {
+    body: PUSH_BODY,
     icon: "/icon-512.png",
     badge: "/favicon-32.png",
     tag: "sph-daily-reminder",
-    data: { url: payload.url || "/#meditacao" },
+    data: { url: targetUrl },
   }));
 });

@@ -61,7 +61,11 @@ class PushDeliveryTests(unittest.TestCase):
         )
 
         self.assertEqual(result, {"due": 1, "sent": 1, "expired": 0, "failed": 0})
-        self.assertEqual(sent[0][1]["url"], "/#meditacao")
+        self.assertEqual(sent[0][1], {
+            "title": "Só Por Hoje",
+            "body": "A meditação de hoje está pronta. Um dia de cada vez.",
+            "url": "/#meditacao",
+        })
         self.assertNotIn("user-one", sent[0][1].values())
         self.assertIn(
             (

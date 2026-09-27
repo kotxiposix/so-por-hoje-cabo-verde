@@ -117,6 +117,16 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("JOURNEY_BACKUP_VERSION = 1", backup_parser)
         self.assertIn("MAX_JOURNEY_BACKUP_BYTES = 1_000_000", backup_parser)
 
+    def test_push_notification_ignores_remote_lock_screen_text(self) -> None:
+        service_worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
+
+        self.assertIn('const PUSH_TITLE = "Só Por Hoje"', service_worker)
+        self.assertIn('const PUSH_BODY = "A meditação de hoje está pronta. Um dia de cada vez."', service_worker)
+        self.assertIn("showNotification(PUSH_TITLE", service_worker)
+        self.assertIn("body: PUSH_BODY", service_worker)
+        self.assertNotIn("payload.title ||", service_worker)
+        self.assertNotIn("payload.body ||", service_worker)
+
     def test_vercel_routes_dynamic_api_before_static_files(self) -> None:
         config = json.loads((ROOT / "vercel.json").read_text(encoding="utf-8"))
         routes = config["routes"]
