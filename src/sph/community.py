@@ -85,6 +85,18 @@ def normalize_uuid(value: str, label: str) -> str:
         raise CommunityInputError(f"{label} inválido.") from exc
 
 
+def contact_data_flags(value: str) -> list[str]:
+    body = normalize_post_body(value)
+    flags: list[str] = []
+    if re.search(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", body, re.IGNORECASE):
+        flags.append("email")
+    if re.search(r"\b(?:https?://|www\.)\S+", body, re.IGNORECASE):
+        flags.append("link")
+    if re.search(r"(?<!\d)(?:\+?\d[\s().-]*){7,}(?!\d)", body):
+        flags.append("phone")
+    return flags
+
+
 def public_post(record: object) -> dict[str, object]:
     if not isinstance(record, dict):
         raise CommunityServiceError("A comunidade devolveu uma resposta inválida.")
@@ -196,12 +208,42 @@ class SupabaseCommunity:
         )
         if not isinstance(records, list):
             raise CommunityServiceError("A fila de moderação devolveu uma resposta inválida.")
-        return records
+        pending: list[dict[str, object]] = []
+        for record in records:
+            try:
+                item = public_post(record)
+            except CommunityServiceError:
+                continue
+            if record.get("status") != "pending":
+                continue
+            pending.append(
+                item
+                | {
+                    "status": "pending",
+                    "review_flags": contact_data_flags(str(item["body"])),
+                }
+            )
+        return pending
 
     def moderate_post(self, post_id: str, status: str, note: str | None = None) -> dict[str, object]:
         normalized_status = status.strip().lower()
         if normalized_status not in self.MODERATION_STATUSES:
             raise CommunityInputError("Decisão de moderação inválida.")
+        normalized_post_id = normalize_uuid(post_id, "Publicação")
+        if normalized_status == "published":
+            current = self._request(
+                "GET",
+                "/rest/v1/anonymous_posts"
+                f"?select=id,pseudonym,body,created_at,status&id=eq.{quote(normalized_post_id, safe='')}"
+                "&status=eq.pending&limit=1",
+            )
+            if not isinstance(current, list) or not current:
+                raise CommunityInputError("O estado atual da publicação já não permite esta decisão.")
+            candidate = public_post(current[0])
+            if contact_data_flags(str(candidate["body"])):
+                raise CommunityInputError(
+                    "A publicação contém possíveis contactos ou ligações e não pode ser publicada."
+                )
         allowed_current_status = (
             "status=in.(pending,published)"
             if normalized_status == "hidden"
@@ -210,7 +252,7 @@ class SupabaseCommunity:
         record = self._request(
             "PATCH",
             "/rest/v1/anonymous_posts"
-            f"?id=eq.{quote(normalize_uuid(post_id, 'Publicação'), safe='')}"
+            f"?id=eq.{quote(normalized_post_id, safe='')}"
             f"&{allowed_current_status}",
             payload={
                 "status": normalized_status,

@@ -11,6 +11,7 @@ from sph.community import (
     CommunityInputError,
     CommunityLimitError,
     SupabaseCommunity,
+    contact_data_flags,
     normalize_post_body,
 )
 
@@ -55,6 +56,12 @@ class CommunityTests(unittest.TestCase):
             normalize_post_body(" ")
         with self.assertRaises(CommunityInputError):
             normalize_post_body("a" * 281)
+
+    def test_contact_data_flags_are_limited_to_clear_signals(self) -> None:
+        self.assertEqual(contact_data_flags("Hoje preciso de falar com alguém."), [])
+        self.assertEqual(contact_data_flags("Escreve para pessoa@example.cv"), ["email"])
+        self.assertEqual(contact_data_flags("Liga +238 999 12 34"), ["phone"])
+        self.assertEqual(contact_data_flags("Vê https://example.cv/apoio"), ["link"])
 
     def test_pending_post_uses_server_pseudonym_and_hides_author(self) -> None:
         returned = [{
@@ -132,11 +139,39 @@ class CommunityTests(unittest.TestCase):
             "status": "published",
             "created_at": "2026-09-26T12:00:00Z",
         }]
-        with patch("sph.community.urlopen", return_value=FakeResponse(returned)) as urlopen_mock:
+        responses = [FakeResponse(returned), FakeResponse(returned)]
+        with patch("sph.community.urlopen", side_effect=responses) as urlopen_mock:
             result = SupabaseCommunity(config()).moderate_post(POST_ID, "published")
 
-        self.assertIn("status=eq.pending", urlopen_mock.call_args.args[0].full_url)
+        self.assertIn("status=eq.pending", urlopen_mock.call_args_list[1].args[0].full_url)
         self.assertEqual(result["status"], "published")
+
+    def test_publishing_blocks_clear_contact_data(self) -> None:
+        returned = [{
+            "id": POST_ID,
+            "pseudonym": "Guerreiro1234",
+            "body": "Liga para +238 999 12 34.",
+            "status": "pending",
+            "created_at": "2026-09-26T12:00:00Z",
+        }]
+        with patch("sph.community.urlopen", return_value=FakeResponse(returned)) as urlopen_mock:
+            with self.assertRaisesRegex(CommunityInputError, "possíveis contactos"):
+                SupabaseCommunity(config()).moderate_post(POST_ID, "published")
+
+        self.assertEqual(urlopen_mock.call_count, 1)
+
+    def test_pending_queue_marks_contact_data_for_human_review(self) -> None:
+        returned = [{
+            "id": POST_ID,
+            "pseudonym": "Guerreiro1234",
+            "body": "Escreve para pessoa@example.cv.",
+            "status": "pending",
+            "created_at": "2026-09-26T12:00:00Z",
+        }]
+        with patch("sph.community.urlopen", return_value=FakeResponse(returned)):
+            result = SupabaseCommunity(config()).list_pending_posts()
+
+        self.assertEqual(result[0]["review_flags"], ["email"])
 
     def test_hiding_is_limited_to_pending_or_published_posts(self) -> None:
         returned = [{

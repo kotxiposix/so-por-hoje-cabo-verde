@@ -80,7 +80,7 @@ Fluxo previsto:
 
 Antes de abrir ao publico, definir moderadores, tempos de resposta, criterios de remocao, politica de retencao e protocolo de crise.
 
-O backend já contém os endpoints de criação pendente, listagem publicada, denúncia e moderação. O pseudónimo é gerado pelo servidor e a resposta pública nunca inclui `author_id` ou notas internas. Registos públicos malformados são omitidos. Publicar ou rejeitar exige que a mensagem ainda esteja pendente; ocultar só aceita mensagens pendentes ou publicadas, evitando republicações acidentais. A moderação usa `ADMIN_API_SECRET`; isto é uma base técnica, não uma área administrativa final com papéis individuais e auditoria.
+O backend já contém os endpoints de criação pendente, listagem publicada, denúncia e moderação. O pseudónimo é gerado pelo servidor e a resposta pública nunca inclui `author_id` ou notas internas. Registos públicos malformados são omitidos. A fila administrativa assinala padrões claros de telefone, email e ligação; mensagens com esses sinais não podem ser publicadas e devem ser rejeitadas ou revistas fora da plataforma. Publicar ou rejeitar exige que a mensagem ainda esteja pendente; ocultar só aceita mensagens pendentes ou publicadas, evitando republicações acidentais. Esta deteção é apenas uma barreira de privacidade e não substitui análise humana. A moderação usa `ADMIN_API_SECRET`; isto é uma base técnica, não uma área administrativa final com papéis individuais e auditoria.
 
 Manter `COMMUNITY_READY=false` em todos os ambientes até a checklist operacional estar concluída. Com a flag desligada, a interface continua a usar apenas o diário local.
 

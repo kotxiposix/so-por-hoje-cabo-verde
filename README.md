@@ -169,6 +169,7 @@ Quando a equipa concluir as decisões operacionais e ativar a flag, o servidor:
 - valida novamente cada registo antes de o expor e omite linhas malformadas;
 - aceita uma denúncia por conta e publicação;
 - reserva publicação, rejeição e ocultação para endpoints administrativos protegidos;
+- assinala telefones, emails e ligações na fila e bloqueia a respetiva publicação;
 - impede republicar silenciosamente mensagens já rejeitadas ou ocultadas.
 
 Esta preparação não substitui moderadores, regras editoriais, retenção, horário de resposta nem protocolo de crise.
