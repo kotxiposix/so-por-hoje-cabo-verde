@@ -167,9 +167,13 @@ def deliver_due_notifications(
             "/rest/v1/push_subscriptions"
             f"?select=id,endpoint,p256dh,auth_secret&user_id=eq.{user_id}&active=eq.true",
         )
+        if not isinstance(subscriptions, list):
+            stats["failed"] += 1
+            _delivery_rpc(request, "release", raw_user_id, local_day, current_time)
+            continue
         sent_for_user = False
         transient_failure = False
-        for subscription in subscriptions if isinstance(subscriptions, list) else []:
+        for subscription in subscriptions:
             if not isinstance(subscription, dict):
                 continue
             try:

@@ -187,7 +187,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v62"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v64"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -223,8 +223,11 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("parseJourneyBackup", script)
         self.assertIn("MAX_JOURNEY_BACKUP_BYTES", script)
         self.assertIn("validateRemoteJourneyRecord", script)
-        self.assertIn("hasRemoteJourneyConflict", script)
         self.assertIn("selectSyncableProgress", script)
+        self.assertIn("shouldPauseAutomaticSync", script)
+        self.assertIn("persistJourneyRemoteVersion(result.updatedAt)", script)
+        self.assertIn("persistJourneyRemoteVersion(remote.updatedAt)", script)
+        self.assertIn('"/journey-sync-cursor.mjs"', worker)
         self.assertIn('from "./date-utils.mjs"', script)
         self.assertIn('from "./privacy-copy.mjs"', script)
         self.assertIn('from "./share-format.mjs"', script)
@@ -253,6 +256,8 @@ class WebAppStructureTests(unittest.TestCase):
         )[0]
 
         self.assertIn("registration.pushManager.getSubscription()", reconciliation)
+        self.assertIn('state.progress.notifications === "on"', reconciliation)
+        self.assertIn("accountState.client.disablePushSubscription", reconciliation)
         self.assertIn("await subscription.unsubscribe()", reconciliation)
         self.assertIn("accountState.pushRegistered = pushAllowed && Boolean(subscription)", reconciliation)
         self.assertIn('localStorage.removeItem("sph-push-enabled")', reconciliation)

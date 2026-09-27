@@ -10,6 +10,11 @@ import { composeGroupMessage } from "./share-format.mjs";
 import { normalizeEditorialLink } from "./editorial-links.mjs";
 import { normalizeHelpAction } from "./help-links.mjs";
 import {
+  createJourneySyncCursor,
+  readJourneySyncCursor,
+  shouldPauseAutomaticSync,
+} from "./journey-sync-cursor.mjs";
+import {
   createJourneyBackup,
   MAX_JOURNEY_BACKUP_BYTES,
   mergeJourneyBackupProgress,
@@ -37,6 +42,7 @@ const viewLabels = {
   about: "Sobre",
 };
 const SUPPORT_CACHE_VERSION = "v2";
+const JOURNEY_SYNC_CURSOR_KEY = "sph-journey-remote-version";
 
 const els = {
   appContent: document.querySelector("#app-content"),
@@ -176,12 +182,14 @@ let meditationCatalog = null;
 let archiveRequestId = 0;
 const trackedServiceWorkers = new WeakSet();
 
+const initialAccountSession = loadAccountSession();
 const accountState = {
   client: null,
   enabled: false,
   pendingEmail: "",
-  session: loadAccountSession(),
+  session: initialAccountSession,
   syncEnabled: localStorage.getItem("sph-account-sync") === "on",
+  remoteUpdatedAt: loadJourneyRemoteVersion(initialAccountSession),
   aiEnabled: false,
   pushEnabled: false,
   helpDirectoryEnabled: false,
@@ -317,12 +325,36 @@ function loadAccountSession() {
   }
 }
 
+function loadJourneyRemoteVersion(session) {
+  return readJourneySyncCursor(
+    localStorage.getItem(JOURNEY_SYNC_CURSOR_KEY),
+    session?.user?.id || "",
+  );
+}
+
+function persistJourneyRemoteVersion(updatedAt) {
+  const cursor = createJourneySyncCursor(accountState.session?.user?.id, updatedAt);
+  accountState.remoteUpdatedAt = cursor?.updatedAt || "";
+  if (cursor) {
+    localStorage.setItem(JOURNEY_SYNC_CURSOR_KEY, JSON.stringify(cursor));
+  } else {
+    localStorage.removeItem(JOURNEY_SYNC_CURSOR_KEY);
+  }
+}
+
+function clearJourneyRemoteVersion() {
+  accountState.remoteUpdatedAt = "";
+  localStorage.removeItem(JOURNEY_SYNC_CURSOR_KEY);
+}
+
 function persistAccountSession(session) {
   accountState.session = session;
   if (session) {
     localStorage.setItem("sph-account-session", JSON.stringify(session));
+    accountState.remoteUpdatedAt = loadJourneyRemoteVersion(session);
   } else {
     localStorage.removeItem("sph-account-session");
+    clearJourneyRemoteVersion();
   }
 }
 
@@ -699,20 +731,28 @@ async function uploadLocalJourney({ silent = false } = {}) {
   if (!accountState.client || !accountState.session) return;
   if (!silent) els.accountStatus.textContent = "A guardar a Jornada na conta...";
   const {
-    hasRemoteJourneyConflict,
     selectSyncableProgress,
     validateRemoteJourneyRecord,
   } = await import("./journey-sync.mjs");
   const remoteResult = await accountState.client.getJourney(accountState.session);
   persistAccountSession(remoteResult.session);
   let expectedUpdatedAt = null;
+  let remote = null;
   if (remoteResult.record) {
-    const remote = validateRemoteJourneyRecord(remoteResult.record);
+    remote = validateRemoteJourneyRecord(remoteResult.record);
     expectedUpdatedAt = remote.updatedAt;
-    if (silent && hasRemoteJourneyConflict(state.progress.updatedAt, remote.updatedAt)) {
-      pauseJourneySync("Existem alterações mais recentes noutro dispositivo. Escolhe qual cópia da Jornada queres usar.");
-      return;
-    }
+  }
+  if (silent && shouldPauseAutomaticSync({
+    knownRemoteUpdatedAt: accountState.remoteUpdatedAt,
+    remoteExists: Boolean(remote),
+    remoteUpdatedAt: remote?.updatedAt || "",
+    localUpdatedAt: state.progress.updatedAt,
+  })) {
+    const message = remote
+      ? "Existem alterações mais recentes noutro dispositivo. Escolhe qual cópia da Jornada queres usar."
+      : "A cópia da Jornada foi removida noutro dispositivo. Escolhe se queres voltar a guardar estes dados na conta.";
+    pauseJourneySync(message);
+    return;
   }
   const result = await accountState.client.saveJourney(accountState.session, selectSyncableProgress(state.progress), {
     expectedUpdatedAt,
@@ -723,6 +763,7 @@ async function uploadLocalJourney({ silent = false } = {}) {
     pauseJourneySync("A Jornada mudou noutro dispositivo durante a sincronização. Escolhe qual cópia queres usar.");
     return;
   }
+  persistJourneyRemoteVersion(result.updatedAt);
   enableJourneySync();
   if (!silent) els.accountStatus.textContent = "Dados deste dispositivo guardados na conta.";
 }
@@ -746,6 +787,7 @@ async function useAccountJourney() {
 
   state.progress = normalizeProgress(mergeRemoteJourneyProgress(remote.payload, state.progress));
   saveProgress({ touch: false, sync: false });
+  persistJourneyRemoteVersion(remote.updatedAt);
   enableJourneySync();
   renderProgress();
   renderAnonymousRoom();
@@ -792,6 +834,7 @@ async function deleteAccountJourney() {
   }
   els.accountStatus.textContent = "A apagar a cópia da conta...";
   persistAccountSession(await accountState.client.deleteJourney(accountState.session));
+  clearJourneyRemoteVersion();
   accountState.syncEnabled = false;
   localStorage.removeItem("sph-account-sync");
   renderAccount();
@@ -2021,6 +2064,7 @@ async function reconcilePushRegistration() {
   const notificationAllowed = "Notification" in window && Notification.permission === "granted";
   const pushAllowed = Boolean(
     notificationAllowed
+    && state.progress.notifications === "on"
     && accountState.pushEnabled
     && accountState.client
     && accountState.session
@@ -2035,6 +2079,16 @@ async function reconcilePushRegistration() {
     : null;
 
   if (!pushAllowed && subscription) {
+    if (accountState.client && accountState.session) {
+      try {
+        persistAccountSession(await accountState.client.disablePushSubscription(
+          accountState.session,
+          subscription.endpoint,
+        ));
+      } catch {
+        // The local subscription is still removed; an expired endpoint is retired by delivery.
+      }
+    }
     await subscription.unsubscribe();
   }
 

@@ -25,6 +25,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Exportacao local versionada e importacao da Jornada validada, limitada a 1 MB e confirmada antes da substituicao.
 - [x] Importar uma cópia nunca a envia automaticamente para a conta; a sincronização ativa é pausada até uma nova escolha explícita.
 - [x] Sincronizacao preparada para recusar versoes futuras, pausar quando outra copia remota for mais recente e excluir dados exclusivos do dispositivo.
+- [x] Cursor remoto por conta impede que sincronização automática ressuscite uma Jornada eliminada ou sobrescreva uma versão alterada noutro dispositivo.
 - [x] Testes automaticos no GitHub Actions para `dev`, `production` e pull requests.
 - [x] Referências locais, rotas limpas, âncoras entre páginas, assets CSS e isolamento de links externos são validados automaticamente.
 - [x] Navegação principal suporta atalho para o conteúdo, setas/Home/End, ativação explícita e anúncio da área aberta para tecnologias de apoio.
@@ -56,11 +57,13 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] `PUSH_DELIVERY_READY=false` bloqueia o emissor no servidor, mesmo com Supabase, VAPID e segredo do cron configurados.
 - [x] O browser só recebe a funcionalidade push quando todas as credenciais de subscrição e entrega estão presentes no servidor.
 - [x] O estado mostrado é reconciliado com a permissão e a subscrição reais do navegador; uma subscrição órfã é removida sem reagir destrutivamente a uma falha transitória de configuração.
+- [x] A reconciliação push exige também a preferência local ativa e tenta retirar o endpoint remoto antes de remover uma subscrição que deixou de ser válida.
 - [ ] Guardar o endpoint e o segredo do cron no Supabase Vault.
 - [ ] Agendar `POST /api/v1/internal/push/deliver` a cada minuto com `Authorization: Bearer $PUSH_CRON_SECRET`.
 - [ ] Testar subscricao, hora/fuso, entrega com app fechada, cancelamento e endpoint expirado em dois dispositivos.
 - [x] O servidor e o service worker limitam o ecrã bloqueado a uma mensagem genérica e ignoram texto recebido no payload push.
 - [x] Uma reserva atómica por conta e dia impede notificações duplicadas em ciclos concorrentes e permite repetir falhas transitórias.
+- [x] Resposta de subscrições malformada é tratada como falha transitória e nunca desativa silenciosamente a preferência da pessoa.
 - [ ] Confirmar que o ecrã bloqueado mostra apenas a mensagem generica.
 - [ ] Mudar `PUSH_DELIVERY_READY=true` apenas depois do teste integral.
 

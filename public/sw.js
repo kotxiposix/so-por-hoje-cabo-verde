@@ -1,4 +1,4 @@
-const CACHE_NAME = "sph-shell-v62";
+const CACHE_NAME = "sph-shell-v64";
 const PUSH_TITLE = "Só Por Hoje";
 const PUSH_BODY = "A meditação de hoje está pronta. Um dia de cada vez.";
 const PUSH_DEFAULT_URL = "/#meditacao";
@@ -14,6 +14,7 @@ const CORE_ASSETS = [
   "/help-links.mjs",
   "/account-client.mjs",
   "/journey-sync.mjs",
+  "/journey-sync-cursor.mjs",
   "/offline-support.mjs",
   "/journey-backup.mjs",
   "/manifest.webmanifest",

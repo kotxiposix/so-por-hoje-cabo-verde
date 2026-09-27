@@ -241,6 +241,38 @@ class PushDeliveryTests(unittest.TestCase):
             },
         ), calls)
 
+    def test_invalid_subscription_response_is_retried_without_disabling_preference(self) -> None:
+        calls: list[tuple[str, str, object | None]] = []
+
+        def transport(method: str, path: str, payload: object | None = None) -> object:
+            calls.append((method, path, payload))
+            if "notification_preferences?select" in path:
+                return [{
+                    "user_id": "user-one",
+                    "local_time": "07:00:00",
+                    "timezone": "Atlantic/Cape_Verde",
+                    "last_sent_on": None,
+                }]
+            if "rpc/claim_push_delivery" in path or "rpc/release_push_delivery" in path:
+                return True
+            if "push_subscriptions?select" in path:
+                return {"unexpected": "shape"}
+            return None
+
+        result = deliver_due_notifications(
+            self.config,
+            now_utc=datetime(2026, 9, 26, 8, 0, tzinfo=timezone.utc),
+            transport=transport,
+            send_push=lambda *_: self.fail("Push must not use a malformed subscription response"),
+        )
+
+        self.assertEqual(result, {"due": 1, "sent": 0, "expired": 0, "failed": 1})
+        self.assertTrue(any("rpc/release_push_delivery" in path for _, path, _ in calls))
+        self.assertFalse(any(
+            method == "PATCH" and "notification_preferences" in path
+            for method, path, _ in calls
+        ))
+
 
 if __name__ == "__main__":
     unittest.main()
