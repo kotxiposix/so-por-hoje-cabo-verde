@@ -53,6 +53,46 @@ class JourneySyncSchemaTests(unittest.TestCase):
         self.assertIn("p256dh ~ '^[A-Za-z0-9_-]+={0,2}$'", self.schema)
         self.assertIn("auth_secret ~ '^[A-Za-z0-9_-]+={0,2}$'", self.schema)
 
+    def test_every_public_table_enables_row_level_security(self) -> None:
+        tables = set(re.findall(
+            r"create table if not exists public\.([a-z_]+)\s*\(",
+            self.schema,
+        ))
+        rls_tables = set(re.findall(
+            r"alter table public\.([a-z_]+) enable row level security;",
+            self.schema,
+        ))
+
+        self.assertTrue(tables)
+        self.assertEqual(rls_tables, tables)
+
+    def test_privileged_functions_fix_search_path_and_revoke_browser_access(self) -> None:
+        functions = re.findall(
+            r"create or replace function public\.([a-z_]+)\((.*?)\n\$\$;",
+            self.schema,
+            re.S,
+        )
+        privileged = {
+            name: body
+            for name, body in functions
+            if "security definer" in body
+        }
+
+        self.assertTrue(privileged)
+        for name, body in privileged.items():
+            with self.subTest(function=name):
+                self.assertIn("set search_path = ''", body)
+                self.assertRegex(
+                    self.schema,
+                    rf"revoke all on function public\.{name}\([\s\S]+?\)\s+from public, anon, authenticated;",
+                )
+
+    def test_no_public_or_anonymous_table_policy_is_created(self) -> None:
+        self.assertNotRegex(
+            self.schema,
+            r"create policy .*?\s+to\s+(?:public|anon)(?:\s|,)",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
