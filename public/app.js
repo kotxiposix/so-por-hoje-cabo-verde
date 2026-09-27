@@ -9,6 +9,7 @@ import { getPrivacyCopy } from "./privacy-copy.mjs";
 import { composeGroupMessage } from "./share-format.mjs";
 import { normalizeEditorialLink } from "./editorial-links.mjs";
 import { normalizeHelpAction } from "./help-links.mjs";
+import { normalizePublishedCommunityPosts } from "./community-posts.mjs";
 import {
   createJourneySyncCursor,
   readJourneySyncCursor,
@@ -197,6 +198,8 @@ const accountState = {
   communityEnabled: false,
   communityPosts: [],
   communityLoaded: false,
+  communityReportsPending: new Set(),
+  communityReportsSent: new Set(),
   vapidPublicKey: "",
   pushRegistered: localStorage.getItem("sph-push-enabled") === "on",
 };
@@ -1894,7 +1897,10 @@ function renderPublishedCommunity() {
       report.type = "button";
       report.className = "anonymous-report";
       report.dataset.communityReport = post.id;
-      report.textContent = "Denunciar";
+      const pending = accountState.communityReportsPending.has(post.id);
+      const sent = accountState.communityReportsSent.has(post.id);
+      report.disabled = pending || sent;
+      report.textContent = sent ? "Denunciada" : pending ? "A enviar..." : "Denunciar";
       heading.append(report);
     }
     const body = document.createElement("p");
@@ -1931,7 +1937,7 @@ async function loadPublishedCommunity() {
     });
     if (!response.ok) throw new Error("Comunidade indisponível");
     const posts = await response.json();
-    accountState.communityPosts = Array.isArray(posts) ? posts : [];
+    accountState.communityPosts = normalizePublishedCommunityPosts(posts, 20);
     accountState.communityLoaded = true;
   } catch {
     accountState.communityPosts = [];
@@ -1959,13 +1965,22 @@ async function submitAnonymousShare(message) {
 }
 
 async function reportCommunityPost(postId) {
+  if (accountState.communityReportsPending.has(postId) || accountState.communityReportsSent.has(postId)) return;
   if (!window.confirm("Denunciar esta partilha para revisão da equipa?")) return;
   els.anonymousStatus.textContent = "A enviar denúncia...";
-  await authenticatedCommunityRequest(`/api/v1/community/posts/${encodeURIComponent(postId)}/reports`, {
-    method: "POST",
-    body: JSON.stringify({ reason: "unsafe", details: null }),
-  });
-  els.anonymousStatus.textContent = "Denúncia recebida pela equipa.";
+  accountState.communityReportsPending.add(postId);
+  renderPublishedCommunity();
+  try {
+    await authenticatedCommunityRequest(`/api/v1/community/posts/${encodeURIComponent(postId)}/reports`, {
+      method: "POST",
+      body: JSON.stringify({ reason: "unsafe", details: null }),
+    });
+    accountState.communityReportsSent.add(postId);
+    els.anonymousStatus.textContent = "Denúncia recebida pela equipa.";
+  } finally {
+    accountState.communityReportsPending.delete(postId);
+    renderPublishedCommunity();
+  }
 }
 
 function addAnonymousShare(message) {

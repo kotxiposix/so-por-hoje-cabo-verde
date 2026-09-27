@@ -187,7 +187,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v64"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v65"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -399,6 +399,10 @@ class WebAppStructureTests(unittest.TestCase):
 
         self.assertIn("accountState.communityEnabled = Boolean(config.features?.community)", script)
         self.assertIn('fetch("/api/v1/community/posts?limit=20"', script)
+        self.assertIn("normalizePublishedCommunityPosts(posts, 20)", script)
+        self.assertIn("communityReportsPending", script)
+        self.assertIn("communityReportsSent", script)
+        self.assertIn('"/community-posts.mjs"', (PUBLIC / "sw.js").read_text(encoding="utf-8"))
         self.assertIn('Authorization: `Bearer ${session.access_token}`', script)
         self.assertIn("Partilha recebida. Só ficará pública depois de revisão humana.", script)
         self.assertIn("body.textContent = post.body", script)

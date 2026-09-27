@@ -118,6 +118,7 @@ Nao ativar antes de existirem moderadores identificados, horario e tempo de resp
 - [x] `COMMUNITY_READY=false` mantém todos os endpoints comunitários indisponíveis por defeito.
 - [x] Limite diário atómico protege a fila de moderação; valor inicial recomendado: `3`.
 - [x] Saída pública revalidada e transições de moderação limitadas para impedir exposição de registos malformados ou republicação acidental.
+- [x] O navegador volta a validar e deduplicar a lista pública e bloqueia denúncias repetidas durante a mesma sessão.
 - [x] Telefones, emails e ligações são assinalados para revisão e bloqueados antes da publicação; a decisão continua humana.
 - [ ] Nomear pelo menos dois moderadores e definir escalas, permissões e substituição.
 - [ ] Preencher e aprovar as secções de comunidade, risco e retenção em `docs/OPERATIONS_DECISIONS.md`.
