@@ -1,9 +1,10 @@
-const CACHE_NAME = "sph-shell-v32";
+const CACHE_NAME = "sph-shell-v33";
 const CORE_ASSETS = [
   "/",
   "/index.html",
   "/styles.css",
   "/app.js",
+  "/date-utils.mjs",
   "/account-client.mjs",
   "/journey-sync.mjs",
   "/offline-support.mjs",

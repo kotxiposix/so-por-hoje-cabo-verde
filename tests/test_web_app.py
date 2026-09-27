@@ -110,6 +110,8 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("validateRemoteJourneyRecord", script)
         self.assertIn("hasRemoteJourneyConflict", script)
         self.assertIn("selectSyncableProgress", script)
+        self.assertIn('from "./date-utils.mjs"', script)
+        self.assertIn('<script type="module" src="app.js"></script>', self.index_text)
 
         backup_parser = (PUBLIC / "journey-backup.mjs").read_text(encoding="utf-8")
         self.assertIn("JOURNEY_BACKUP_VERSION = 1", backup_parser)

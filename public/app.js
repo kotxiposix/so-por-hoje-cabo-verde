@@ -1,3 +1,10 @@
+import {
+  addIsoDays,
+  differenceInCalendarDays,
+  getBestStreak,
+  getCurrentStreak,
+} from "./date-utils.mjs";
+
 const state = {
   daily: null,
   progress: loadProgress(),
@@ -798,9 +805,7 @@ function closeArchive() {
 
 function moveArchiveDate(offset) {
   const selected = els.archiveDate.value || getCapeVerdeToday().iso;
-  const date = new Date(`${selected}T12:00:00Z`);
-  date.setUTCDate(date.getUTCDate() + offset);
-  const nextDate = date.toISOString().slice(0, 10);
+  const nextDate = addIsoDays(selected, offset);
   if (nextDate <= getCapeVerdeToday().iso) renderArchiveMeditation(nextDate);
 }
 
@@ -1268,9 +1273,7 @@ function renderCleanDays(cleanDays) {
 
 function getCleanDays(todayIso) {
   if (!state.progress.sobrietyDate || !todayIso) return 0;
-  const start = new Date(`${state.progress.sobrietyDate}T00:00:00`);
-  const today = new Date(`${todayIso}T00:00:00`);
-  return Math.max(0, diffDays(start, today));
+  return Math.max(0, differenceInCalendarDays(state.progress.sobrietyDate, todayIso));
 }
 
 function getTodayCheckin() {
@@ -1304,45 +1307,6 @@ function renderCheckinGuidance() {
     button.classList.toggle("active", isActive);
     button.setAttribute("aria-pressed", String(isActive));
   });
-}
-
-function getCurrentStreak(completed, todayIso) {
-  if (!todayIso) return 0;
-  let count = 0;
-  let cursor = new Date(`${todayIso}T00:00:00`);
-
-  while (completed.has(toIsoDate(cursor))) {
-    count += 1;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-  return count;
-}
-
-function getBestStreak(completed) {
-  const days = [...completed].sort();
-  let best = 0;
-  let current = 0;
-  let previous = null;
-
-  for (const day of days) {
-    const date = new Date(`${day}T00:00:00`);
-    if (!previous || diffDays(previous, date) === 1) {
-      current += 1;
-    } else {
-      current = 1;
-    }
-    best = Math.max(best, current);
-    previous = date;
-  }
-  return best;
-}
-
-function diffDays(a, b) {
-  return Math.round((b - a) / 86400000);
-}
-
-function toIsoDate(date) {
-  return date.toISOString().slice(0, 10);
 }
 
 function completeToday() {
