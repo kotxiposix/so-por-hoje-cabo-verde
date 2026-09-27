@@ -89,6 +89,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
+        self.assertIn('const CACHE_NAME = "sph-shell-v43"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -100,6 +101,8 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn('pathname.startsWith("/expo")', worker)
         self.assertIn('pathname.startsWith("/privacidade")', worker)
         self.assertIn('event.data?.type === "SKIP_WAITING"', worker)
+        self.assertIn("await self.clients.claim()", worker)
+        self.assertNotIn("\n  self.clients.claim();", worker)
 
         script = (PUBLIC / "app.js").read_text(encoding="utf-8")
         self.assertIn("function loadLocalDailySupport", script)
