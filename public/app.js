@@ -699,7 +699,7 @@ async function useAccountJourney() {
     els.accountStatus.textContent = "Ainda não existem dados guardados nesta conta.";
     return;
   }
-  const { validateRemoteJourneyRecord } = await import("./journey-sync.mjs");
+  const { mergeRemoteJourneyProgress, validateRemoteJourneyRecord } = await import("./journey-sync.mjs");
   const remote = validateRemoteJourneyRecord(result.record);
   const confirmed = window.confirm("Substituir a Jornada deste dispositivo pela cópia guardada na conta?");
   if (!confirmed) {
@@ -707,13 +707,7 @@ async function useAccountJourney() {
     return;
   }
 
-  const deviceOnly = {
-    anonymousName: state.progress.anonymousName,
-    anonymousShares: state.progress.anonymousShares,
-    notifications: state.progress.notifications,
-    lastReminderAt: state.progress.lastReminderAt,
-  };
-  state.progress = normalizeProgress({ ...remote.payload, ...deviceOnly });
+  state.progress = normalizeProgress(mergeRemoteJourneyProgress(remote.payload, state.progress));
   saveProgress({ touch: false, sync: false });
   enableJourneySync();
   renderProgress();
@@ -2090,13 +2084,20 @@ async function getDailySupport() {
   if (!navigator.onLine) return loadLocalDailySupport(payload);
 
   try {
+    const apiPayload = {
+      meditation_date: state.daily.date,
+      user_state: payload.user_state,
+      clean_days: payload.clean_days,
+      reading_streak: payload.reading_streak,
+      language: payload.language,
+    };
     const response = await fetch("/api/v1/ai/daily-support", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         ...(authorization ? { Authorization: authorization } : {}),
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(apiPayload),
     });
     if (!response.ok) {
       throw new Error(`Apoio diário respondeu com ${response.status}`);

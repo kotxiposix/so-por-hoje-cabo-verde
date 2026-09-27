@@ -185,7 +185,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v50"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v51"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -202,6 +202,8 @@ class WebAppStructureTests(unittest.TestCase):
 
         script = (PUBLIC / "app.js").read_text(encoding="utf-8")
         self.assertIn("function loadLocalDailySupport", script)
+        self.assertIn("meditation_date: state.daily.date", script)
+        self.assertIn("body: JSON.stringify(apiPayload)", script)
         self.assertRegex(
             script,
             r"if \(!authorization\) \{[\s\S]*?loadLocalDailySupport\(payload\)[\s\S]*?return support;\s*\}",
@@ -469,6 +471,9 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("Por defeito", privacy)
         self.assertIn("escolheres sincronizar a Jornada", privacy)
         self.assertIn("modo de privacidade reforçada do YouTube", privacy)
+        self.assertIn("ignora qualquer texto de meditação enviado pelo navegador", privacy)
+        self.assertIn("Nenhum outro campo entra nessa cópia", privacy)
+        self.assertIn("não integra publicidade nem ferramentas próprias de análise", privacy)
 
 
 if __name__ == "__main__":

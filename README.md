@@ -172,7 +172,7 @@ Implicacoes:
 - A chave OpenAI fica apenas no servidor. Nunca colocar a chave no `public/app.js` ou no browser.
 - Cada pedido AI pode ter custo e alguma latencia.
 - A OpenAI só é chamada para uma conta autenticada e dentro do limite diário configurado; o limite é reclamado atomicamente no servidor.
-- O pedido envia apenas contexto minimo: titulo, excerto da meditacao, reflexao, estado local, dias limpos e sequencia de leituras.
+- O navegador envia ao servidor apenas a data da meditacao e o contexto pessoal minimo. O servidor resolve a meditacao canonica e so depois envia à OpenAI titulo, excerto, reflexao, estado local, dias limpos, sequencia de leituras e idioma.
 - Nome, email, telefone e identificador da conta nao sao enviados à OpenAI nesta versao.
 - O Supabase guarda por conta apenas a data e o número de utilizações AI necessárias para aplicar a quota.
 - Se a OpenAI falhar, faltar saldo, faltar internet ou nao houver chave, o sistema usa automaticamente a base local.

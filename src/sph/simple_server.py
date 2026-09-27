@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import mimetypes
+from datetime import date
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -18,7 +19,6 @@ from sph.account_deletion import (
 from sph.ai_support import DailySupportRequest, build_daily_support, support_to_dict
 from sph.config import settings
 from sph.help_directory import HelpDirectoryConfig, HelpDirectoryServiceError, SupabaseHelpDirectory
-from sph.models import DailyMeditation
 from sph.public_config import public_runtime_config
 from sph.push_delivery import PushDeliveryConfig, deliver_due_notifications, is_authorized
 from sph.repository import MeditationRepository
@@ -108,8 +108,9 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if path == "/api/v1/ai/daily-support":
                 payload = self.read_json_body()
-                daily_payload = payload.get("daily") or service.today().__dict__
-                daily = DailyMeditation(**daily_payload)
+                daily_payload = payload.get("daily") or {}
+                requested_date = payload.get("meditation_date") or daily_payload.get("date")
+                daily = service.for_date(date.fromisoformat(requested_date)) if requested_date else service.today()
                 support = build_daily_support(
                     DailySupportRequest(
                         daily=daily,

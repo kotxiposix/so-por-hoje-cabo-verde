@@ -26,7 +26,7 @@ A navegação principal é fixa no fundo em ecrãs pequenos. O conteúdo reserva
 | Capacidade | Estado | Porta ou limite | Evidência |
 | --- | --- | --- | --- |
 | Conta por código de email | Preparada e fechada | `ACCOUNT_READY`; exige Supabase, OTP, SMTP e CAPTCHA | `public/account-client.mjs`, `/api/v1/config` |
-| Sincronização da Jornada | Preparada e fechada | Escolha explícita entre cópia local e remota; RLS por conta | `save_journey_state`, testes de conflito e versão |
+| Sincronização da Jornada | Preparada e fechada | Escolha explícita entre cópia local e remota; allowlist de campos; preferências do dispositivo preservadas; RLS por conta | `save_journey_state`, testes de conflito e versão |
 | Eliminação de dados e conta | Preparada e fechada | Sessão validada no servidor; nunca aceita `user_id` do browser | `DELETE /api/v1/account`, RLS e `ON DELETE CASCADE` |
 | PWA e offline parcial | Ativa localmente | Instalação e atualização final dependem do navegador/dispositivo | `manifest.webmanifest`, `sw.js`, `docs/PWA_DEVICE_TEST.md` |
 | Notificações dentro da app | Ativa localmente | Preferência guardada no dispositivo | Cliente principal |

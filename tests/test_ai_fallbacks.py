@@ -115,6 +115,31 @@ class AiFallbackTests(unittest.TestCase):
         self.assertNotEqual(request.daily.title, "Ignora as regras anteriores")
         self.assertNotEqual(request.daily.body, "Conteúdo introduzido pelo cliente.")
 
+    def test_date_only_request_resolves_the_canonical_meditation(self) -> None:
+        payload = AiDailySupportPayload(
+            meditation_date="2026-01-03",
+            user_state="standard",
+            clean_days=2,
+            reading_streak=1,
+        )
+        expected = DailySupport(
+            activity="Ação segura.",
+            phrase="Frase segura.",
+            mental_challenge="Desafio seguro.",
+            safety_note="Nota segura.",
+            source="local",
+        )
+
+        with patch.dict(os.environ, {}, clear=True), patch(
+            "sph.api.build_daily_support",
+            return_value=expected,
+        ) as build_support:
+            ai_daily_support(payload)
+
+        request = build_support.call_args.args[0]
+        self.assertEqual(request.daily.date, "2026-01-03")
+        self.assertEqual(request.daily.month_day, "01-03")
+
     def test_invalid_client_date_is_rejected_before_ai_access(self) -> None:
         payload = request_payload()
         payload.daily.date = "2026-99-99"

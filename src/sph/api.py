@@ -75,6 +75,7 @@ class DailyMeditationPayload(BaseModel):
 class AiDailySupportPayload(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    meditation_date: str | None = Field(default=None, min_length=10, max_length=10)
     daily: DailyMeditationPayload | None = None
     user_state: str = Field(default="", max_length=20)
     clean_days: int = Field(default=0, ge=0, le=100_000)
@@ -221,7 +222,8 @@ def ai_daily_support(
     authorization: str | None = Header(default=None),
 ) -> dict[str, str]:
     try:
-        daily = service.for_date(date.fromisoformat(payload.daily.date)) if payload.daily else service.today()
+        requested_date = payload.meditation_date or (payload.daily.date if payload.daily else None)
+        daily = service.for_date(date.fromisoformat(requested_date)) if requested_date else service.today()
     except (TypeError, ValueError, LookupError) as exc:
         raise HTTPException(status_code=400, detail="Dados da meditação inválidos") from exc
     allow_openai = False

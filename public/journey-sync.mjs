@@ -1,15 +1,44 @@
 export const JOURNEY_SCHEMA_VERSION = 2;
 
+export const SYNCABLE_PROGRESS_FIELDS = Object.freeze([
+  "completed",
+  "sobrietyDate",
+  "checkins",
+  "gratitudes",
+  "supportPlan",
+  "updatedAt",
+]);
+
+export const DEVICE_ONLY_PROGRESS_FIELDS = Object.freeze([
+  "anonymousName",
+  "anonymousShares",
+  "notifications",
+  "lastReminderAt",
+  "reminderTime",
+  "showCleanDays",
+]);
+
 export function selectSyncableProgress(progress) {
   const source = progress && typeof progress === "object" && !Array.isArray(progress) ? progress : {};
-  const {
-    anonymousName,
-    anonymousShares,
-    notifications,
-    lastReminderAt,
-    ...syncable
-  } = source;
+  const syncable = {};
+  SYNCABLE_PROGRESS_FIELDS.forEach((field) => {
+    if (Object.hasOwn(source, field)) syncable[field] = source[field];
+  });
   return syncable;
+}
+
+export function mergeRemoteJourneyProgress(remoteProgress, localProgress) {
+  const remote = remoteProgress && typeof remoteProgress === "object" && !Array.isArray(remoteProgress)
+    ? remoteProgress
+    : {};
+  const local = localProgress && typeof localProgress === "object" && !Array.isArray(localProgress)
+    ? localProgress
+    : {};
+  const merged = { ...remote };
+  DEVICE_ONLY_PROGRESS_FIELDS.forEach((field) => {
+    if (Object.hasOwn(local, field)) merged[field] = local[field];
+  });
+  return merged;
 }
 
 export function validateRemoteJourneyRecord(record) {
