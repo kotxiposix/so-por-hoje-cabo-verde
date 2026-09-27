@@ -13,6 +13,7 @@ from sph.help_directory import (
     SupabaseHelpDirectory,
     normalize_resource,
     public_resource,
+    validate_verifiable_resource,
 )
 
 
@@ -85,7 +86,15 @@ class HelpDirectoryTests(unittest.TestCase):
         with self.assertRaises(HelpDirectoryInputError):
             normalize_resource(unsafe)
         with self.assertRaises(HelpDirectoryInputError):
+            normalize_resource(payload() | {"website": "http://example.cv"})
+        with self.assertRaises(HelpDirectoryInputError):
             normalize_resource(payload() | {"category": "unknown"})
+        with self.assertRaises(HelpDirectoryInputError):
+            normalize_resource(payload() | {"email": "not-an-email"})
+        with self.assertRaises(HelpDirectoryInputError):
+            normalize_resource(payload() | {"phone": "123"})
+        with self.assertRaises(HelpDirectoryInputError):
+            normalize_resource(payload() | {"is_emergency": "false"})
 
     def test_public_shape_excludes_internal_review_fields(self) -> None:
         record = payload() | {
@@ -104,7 +113,11 @@ class HelpDirectoryTests(unittest.TestCase):
         self.assertNotIn("moderation_note", visible)
 
     def test_public_listing_requires_valid_verification_date(self) -> None:
-        returned = [payload() | {"id": RESOURCE_ID, "review_due_at": "2026-12-01"}]
+        returned = [payload() | {
+            "id": RESOURCE_ID,
+            "verified_at": "2026-09-01T10:00:00+00:00",
+            "review_due_at": "2026-12-01",
+        }]
         with patch("sph.help_directory.urlopen", return_value=FakeResponse(returned)) as urlopen_mock:
             result = SupabaseHelpDirectory(config()).list_verified(999)
 
@@ -115,6 +128,21 @@ class HelpDirectoryTests(unittest.TestCase):
         self.assertIn("limit=200", request.full_url)
         self.assertNotIn("select=*", request.full_url)
         self.assertEqual(result[0]["id"], RESOURCE_ID)
+
+    def test_public_listing_skips_an_unsafe_database_record(self) -> None:
+        unsafe = payload() | {
+            "id": RESOURCE_ID,
+            "website": "javascript:alert(1)",
+            "review_due_at": "2026-12-01",
+        }
+        safe = payload() | {
+            "id": "e00acccc-0f83-4132-8949-cd090a217c20",
+            "review_due_at": "2026-12-01",
+        }
+        with patch("sph.help_directory.urlopen", return_value=FakeResponse([unsafe, safe])):
+            result = SupabaseHelpDirectory(config()).list_verified()
+
+        self.assertEqual([item["id"] for item in result], [safe["id"]])
 
     def test_create_and_update_always_return_resource_to_draft(self) -> None:
         returned = [payload() | {"id": RESOURCE_ID, "verification_status": "draft"}]
@@ -134,10 +162,31 @@ class HelpDirectoryTests(unittest.TestCase):
 
         request = urlopen_mock.call_args.args[0]
         request_payload = json.loads(request.data)
-        self.assertIn("source_url=not.is.null", request.full_url)
+        self.assertEqual(urlopen_mock.call_count, 2)
+        self.assertIn(f"id=eq.{RESOURCE_ID}", request.full_url)
         self.assertTrue(request_payload["is_verified"])
         self.assertEqual(request_payload["verification_status"], "verified")
         self.assertRegex(request_payload["review_due_at"], r"^\d{4}-\d{2}-\d{2}$")
+
+    def test_verification_requires_actionable_emergency_and_meeting_details(self) -> None:
+        with self.assertRaisesRegex(HelpDirectoryInputError, "telefone confirmado"):
+            validate_verifiable_resource(payload() | {"phone": None})
+
+        meeting = payload() | {
+            "category": "meeting",
+            "is_emergency": False,
+            "schedule": [],
+        }
+        with self.assertRaisesRegex(HelpDirectoryInputError, "horário confirmado"):
+            validate_verifiable_resource(meeting)
+
+        with self.assertRaisesRegex(HelpDirectoryInputError, "contacto confirmado"):
+            validate_verifiable_resource(meeting | {
+                "schedule": ["Terça · 18h"],
+                "phone": None,
+                "email": None,
+                "website": None,
+            })
 
     def test_browser_has_no_direct_help_directory_policy(self) -> None:
         schema = SCHEMA_PATH.read_text(encoding="utf-8")

@@ -80,6 +80,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Backend e interface preparados para mostrar apenas recursos verificados e dentro do prazo de revisão.
 - [x] Catálogo inicial de rascunhos e importador idempotente preparados sem exigir a ativação pública do diretório.
 - [x] Recursos novos ou alterados regressam automaticamente a rascunho.
+- [x] A verificação recusa reuniões sem horário/contacto, emergências sem telefone e ligações que não usem HTTPS.
 - [x] Acesso direto pelo browser removido; gestão exige endpoint administrativo protegido.
 - [x] Linha SOS Álcool, contactos gerais da CCAD e telefones oficiais do Centro de Saúde de Tira Chapéu revistos em fontes públicas atuais; horários comunitários continuam claramente assinalados para confirmação.
 - [ ] Importar todos os contactos como rascunho, sem os tornar públicos.

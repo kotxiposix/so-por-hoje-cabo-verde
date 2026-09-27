@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from urllib.error import HTTPError
@@ -83,9 +84,29 @@ def clean_text(value: object, label: str, max_length: int, *, required: bool = F
 
 def clean_url(value: object, label: str) -> str | None:
     cleaned = clean_text(value, label, 500)
-    if cleaned and not cleaned.lower().startswith(("https://", "http://")):
-        raise HelpDirectoryInputError(f"{label} deve começar por https:// ou http://.")
+    if cleaned and not cleaned.lower().startswith("https://"):
+        raise HelpDirectoryInputError(f"{label} deve começar por https://.")
     return cleaned
+
+
+def clean_email(value: object) -> str | None:
+    cleaned = clean_text(value, "Email", 254)
+    if cleaned and not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", cleaned):
+        raise HelpDirectoryInputError("Email inválido.")
+    return cleaned
+
+
+def clean_phone(value: object) -> str | None:
+    cleaned = clean_text(value, "Telefone", 80)
+    if cleaned and len(re.sub(r"\D", "", cleaned)) < 6:
+        raise HelpDirectoryInputError("Telefone inválido.")
+    return cleaned
+
+
+def clean_boolean(value: object, label: str) -> bool:
+    if not isinstance(value, bool):
+        raise HelpDirectoryInputError(f"{label} deve ser verdadeiro ou falso.")
+    return value
 
 
 def normalize_uuid(value: str) -> str:
@@ -124,11 +145,11 @@ def normalize_resource(payload: dict[str, object]) -> dict[str, object]:
         "municipality": clean_text(payload.get("municipality"), "Município", 80),
         "category": category,
         "description": clean_text(payload.get("description"), "Descrição", 1000),
-        "phone": clean_text(payload.get("phone"), "Telefone", 80),
-        "email": clean_text(payload.get("email"), "Email", 254),
+        "phone": clean_phone(payload.get("phone")),
+        "email": clean_email(payload.get("email")),
         "website": clean_url(payload.get("website"), "Website"),
         "schedule": schedule,
-        "is_emergency": bool(payload.get("is_emergency", False)),
+        "is_emergency": clean_boolean(payload.get("is_emergency", False), "Emergência"),
         "source_url": clean_url(payload.get("source_url"), "Fonte"),
     }
 
@@ -136,7 +157,30 @@ def normalize_resource(payload: dict[str, object]) -> dict[str, object]:
 def public_resource(record: object) -> dict[str, object]:
     if not isinstance(record, dict):
         raise HelpDirectoryServiceError("O diretório devolveu uma resposta inválida.")
-    return {key: record[key] for key in PUBLIC_FIELDS if key in record}
+    normalized = normalize_resource(record)
+    visible = {
+        "id": normalize_uuid(str(record.get("id") or "")),
+        **normalized,
+        "verified_at": clean_text(record.get("verified_at"), "Data de verificação", 40),
+        "review_due_at": clean_text(record.get("review_due_at"), "Prazo de revisão", 10),
+    }
+    return {key: visible[key] for key in PUBLIC_FIELDS if key in visible}
+
+
+def validate_verifiable_resource(record: dict[str, object]) -> dict[str, object]:
+    normalized = normalize_resource(record)
+    if not normalized["source_url"]:
+        raise HelpDirectoryInputError("O recurso precisa de uma fonte HTTPS antes da verificação.")
+    if not normalized["description"]:
+        raise HelpDirectoryInputError("O recurso precisa de uma descrição antes da verificação.")
+    if normalized["is_emergency"] and not normalized["phone"]:
+        raise HelpDirectoryInputError("Um recurso de emergência precisa de telefone confirmado.")
+    if normalized["category"] in {"meeting", "family"}:
+        if not normalized["schedule"]:
+            raise HelpDirectoryInputError("Uma reunião precisa de horário confirmado.")
+        if not any(normalized[field] for field in ("phone", "email", "website")):
+            raise HelpDirectoryInputError("Uma reunião precisa de contacto confirmado.")
+    return normalized
 
 
 class SupabaseHelpDirectory:
@@ -157,7 +201,13 @@ class SupabaseHelpDirectory:
         )
         if not isinstance(records, list):
             raise HelpDirectoryServiceError("O diretório devolveu uma resposta inválida.")
-        return [public_resource(record) for record in records]
+        visible: list[dict[str, object]] = []
+        for record in records:
+            try:
+                visible.append(public_resource(record))
+            except (HelpDirectoryInputError, HelpDirectoryServiceError):
+                continue
+        return visible
 
     def list_for_review(self, limit: int = 200) -> list[dict[str, object]]:
         safe_limit = max(1, min(limit, 500))
@@ -190,10 +240,16 @@ class SupabaseHelpDirectory:
     def verify(self, resource_id: str, review_days: int) -> dict[str, object]:
         safe_days = max(1, min(review_days, 365))
         now = datetime.now(timezone.utc)
+        normalized_id = quote(normalize_uuid(resource_id), safe="")
+        existing = self._request(
+            "GET",
+            f"/rest/v1/help_resources?select=*&id=eq.{normalized_id}&limit=1",
+        )
+        record_to_verify = self._one(existing, "O recurso não foi encontrado.")
+        validate_verifiable_resource(record_to_verify)
         record = self._request(
             "PATCH",
-            "/rest/v1/help_resources"
-            f"?id=eq.{quote(normalize_uuid(resource_id), safe='')}&source_url=not.is.null",
+            f"/rest/v1/help_resources?id=eq.{normalized_id}",
             payload={
                 "is_verified": True,
                 "verification_status": "verified",
@@ -203,7 +259,7 @@ class SupabaseHelpDirectory:
             },
             prefer="return=representation",
         )
-        return self._one(record, "O recurso precisa de uma fonte antes da verificação.")
+        return self._one(record, "O recurso não foi encontrado.")
 
     def retire(self, resource_id: str) -> dict[str, object]:
         now = datetime.now(timezone.utc).isoformat()

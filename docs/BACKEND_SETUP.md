@@ -90,7 +90,7 @@ O diretório gerido permanece desligado por `HELP_DIRECTORY_READY=false`; nesse 
 
 A gestão de rascunhos exige `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY`, mas não exige ligar `HELP_DIRECTORY_READY`. Assim, a equipa pode importar e rever recursos sem anunciar o diretório ao browser. O catálogo inicial fica em `data/help_resources_drafts.json`; `PYTHONPATH=src python scripts/import_help_resources.py` valida-o localmente e a opção explícita `--apply` cria ou atualiza os rascunhos de forma idempotente.
 
-Criação e atualização administrativas colocam sempre o recurso em `draft`. A verificação é uma ação separada, exige `source_url` e define `review_due_at`. Uma alteração posterior retira imediatamente o recurso da listagem pública até nova verificação. A retirada usa o estado `retired` em vez de apagar o histórico.
+Criação e atualização administrativas colocam sempre o recurso em `draft`. A verificação é uma ação separada, exige fonte HTTPS e descrição, e define `review_due_at`. Recursos de emergência exigem telefone confirmado; reuniões e grupos exigem horário e pelo menos um contacto confirmado. Uma alteração posterior retira imediatamente o recurso da listagem pública até nova verificação. Registos antigos com URL, email, telefone ou formato inseguro são omitidos da resposta pública. A retirada usa o estado `retired` em vez de apagar o histórico.
 
 Antes de ativar:
 
