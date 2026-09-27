@@ -54,7 +54,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [ ] Guardar na Vercel Preview: `OPENAI_API_KEY`, `OPENAI_MODEL` e `AI_DAILY_LIMIT`.
 - [ ] Manter `AI_DELIVERY_READY=false` durante a configuração e os primeiros testes.
 - [ ] Confirmar no Supabase que `ai_daily_usage` guarda apenas conta, data, contador e atualização.
-- [ ] Testar utilizador sem conta, sessão inválida, limite atingido e falha da OpenAI; todos devem receber o catálogo local.
+- [x] Testes automatizados confirmam que utilizador sem conta, sessão inválida, limite atingido e falha da OpenAI recebem sempre o catálogo local.
 - [ ] Rever custos e definir o limite diário inicial; recomendado: `3`.
 - [ ] Mudar `AI_DELIVERY_READY=true` apenas em Preview e monitorizar custo, latência e falhas antes de produção.
 
