@@ -8,9 +8,10 @@
     <meta name="description" content="Área reservada da equipa Só Por Hoje Cabo Verde." />
     <title>Equipa · Só Por Hoje Cabo Verde</title>
     <link rel="icon" type="image/png" href="../favicon-32.png" />
-    <link rel="stylesheet" href="/admin/admin.css?v=6" />
+    <link rel="stylesheet" href="/admin/admin.css?v=7" />
   </head>
   <body>
+    <a class="skip-link" href="#admin-main">Ir para o conteúdo principal</a>
     <header class="admin-header">
       <a class="brand" href="../" aria-label="Voltar à plataforma">
         <img src="../icon-512.png" alt="" />
@@ -19,7 +20,7 @@
       <button id="signout" class="quiet-button" type="button" hidden>Terminar sessão</button>
     </header>
 
-    <main>
+    <main id="admin-main" tabindex="-1">
       <section id="auth-panel" class="auth-panel" aria-labelledby="auth-title">
         <span class="eyebrow">Acesso reservado</span>
         <h1 id="auth-title">Entrar na área da equipa</h1>
@@ -169,6 +170,6 @@
       </section>
     </main>
 
-    <script type="module" src="/admin/admin.js?v=6"></script>
+    <script type="module" src="/admin/admin.js?v=7"></script>
   </body>
 </html>

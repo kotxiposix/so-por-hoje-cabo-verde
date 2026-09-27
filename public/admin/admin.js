@@ -1,7 +1,15 @@
 import { SupabaseAccountClient } from "../account-client.mjs?staff=3";
 
 const SESSION_KEY = "sph-staff-session";
-const state = { client: null, session: loadSession(), roles: new Set(), resources: [], content: [] };
+const VALID_STAFF_ROLES = new Set(["admin", "moderator", "help_editor", "content_editor"]);
+const state = {
+  client: null,
+  session: loadSession(),
+  roles: new Set(),
+  resources: [],
+  content: [],
+  actionPending: false,
+};
 const els = Object.fromEntries([
   "auth-panel", "auth-summary", "auth-status", "email-form", "staff-email", "code-form", "staff-code",
   "workspace", "workspace-status", "signout", "role-list", "community-tab", "directory-tab", "content-tab", "operations-tab",
@@ -36,6 +44,20 @@ function setStatus(message, error = false) {
   target.classList.toggle("error", error);
 }
 
+async function runAdministrativeAction(button, action) {
+  if (state.actionPending) return;
+  state.actionPending = true;
+  els.workspace.setAttribute("aria-busy", "true");
+  button?.setAttribute("aria-disabled", "true");
+  try {
+    await action();
+  } finally {
+    state.actionPending = false;
+    els.workspace.removeAttribute("aria-busy");
+    button?.removeAttribute("aria-disabled");
+  }
+}
+
 async function activeSession() {
   state.session = await state.client.ensureSession(state.session);
   persistSession(state.session);
@@ -62,7 +84,11 @@ async function platformRequest(path, options = {}) {
 
 async function authenticate() {
   const profile = await platformRequest("/api/v1/admin/me");
-  state.roles = new Set(profile.roles || []);
+  const roles = Array.isArray(profile?.roles)
+    ? profile.roles.filter((role) => VALID_STAFF_ROLES.has(role))
+    : [];
+  if (!roles.length) throw new Error("Esta conta não tem um papel de equipa válido.");
+  state.roles = new Set(roles);
   els.auth_panel.hidden = true;
   els.workspace.hidden = false;
   els.signout.hidden = false;
@@ -157,10 +183,16 @@ function renderPost(post) {
   }
   const actions = document.createElement("div");
   actions.className = "record-actions";
+  const noteId = `moderation-note-${post.id}`;
+  const noteLabel = document.createElement("label");
+  noteLabel.className = "sr-only";
+  noteLabel.htmlFor = noteId;
+  noteLabel.textContent = `Nota interna para ${post.pseudonym || "esta partilha"}`;
   const note = document.createElement("input");
+  note.id = noteId;
   note.placeholder = "Nota interna opcional";
   note.maxLength = 500;
-  actions.append(note);
+  actions.append(noteLabel, note);
   [["Publicar", "published", "success-button"], ["Rejeitar", "rejected", "danger-button"], ["Ocultar", "hidden", "quiet-button"]]
     .forEach(([label, decision, className]) => {
       const button = document.createElement("button");
@@ -168,24 +200,26 @@ function renderPost(post) {
       button.className = className;
       button.textContent = label;
       if (decision === "published" && flags.length) button.disabled = true;
-      button.addEventListener("click", () => moderatePost(post.id, decision, note.value));
+      button.addEventListener("click", () => moderatePost(post.id, decision, note.value, button));
       actions.append(button);
     });
   article.append(actions);
   return article;
 }
 
-async function moderatePost(id, status, note) {
+async function moderatePost(id, status, note, button) {
   const labels = { published: "publicar", rejected: "rejeitar", hidden: "ocultar" };
   if (!window.confirm(`Confirmar: ${labels[status]} esta partilha?`)) return;
-  setStatus("A guardar a decisão...");
-  try {
-    await platformRequest(`/api/v1/admin/community/posts/${encodeURIComponent(id)}`, {
-      method: "PATCH",
-      body: JSON.stringify({ status, note: note.trim() || null }),
-    });
-    await loadCommunity();
-  } catch (error) { setStatus(error.message, true); }
+  await runAdministrativeAction(button, async () => {
+    setStatus("A guardar a decisão...");
+    try {
+      await platformRequest(`/api/v1/admin/community/posts/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status, note: note.trim() || null }),
+      });
+      await loadCommunity();
+    } catch (error) { setStatus(error.message, true); }
+  });
 }
 
 async function loadResources() {
@@ -255,38 +289,44 @@ async function saveResource(event) {
   const id = els.resource_id.value;
   const method = id ? "PUT" : "POST";
   const path = id ? `/api/v1/admin/help/resources/${encodeURIComponent(id)}` : "/api/v1/admin/help/resources";
-  setStatus("A guardar o rascunho...");
-  try {
-    const saved = await platformRequest(path, { method, body: JSON.stringify(resourcePayload()) });
-    await loadResources();
-    fillResource(saved);
-    setStatus("Rascunho guardado. Uma alteração exige nova verificação.");
-  } catch (error) { setStatus(error.message, true); }
+  await runAdministrativeAction(event.submitter, async () => {
+    setStatus("A guardar o rascunho...");
+    try {
+      const saved = await platformRequest(path, { method, body: JSON.stringify(resourcePayload()) });
+      await loadResources();
+      fillResource(saved);
+      setStatus("Rascunho guardado. Uma alteração exige nova verificação.");
+    } catch (error) { setStatus(error.message, true); }
+  });
 }
 
-async function verifyResource() {
+async function verifyResource(button) {
   const id = els.resource_id.value;
   if (!id || !window.confirm("Confirmar os dados e tornar este recurso público até à próxima revisão?")) return;
-  try {
-    const reviewDays = Number(els.review_days.value);
-    const saved = await platformRequest(`/api/v1/admin/help/resources/${encodeURIComponent(id)}/verify`, {
-      method: "POST", body: JSON.stringify({ review_days: reviewDays }),
-    });
-    await loadResources();
-    fillResource(saved);
-    setStatus("Recurso verificado.");
-  } catch (error) { setStatus(error.message, true); }
+  await runAdministrativeAction(button, async () => {
+    try {
+      const reviewDays = Number(els.review_days.value);
+      const saved = await platformRequest(`/api/v1/admin/help/resources/${encodeURIComponent(id)}/verify`, {
+        method: "POST", body: JSON.stringify({ review_days: reviewDays }),
+      });
+      await loadResources();
+      fillResource(saved);
+      setStatus("Recurso verificado.");
+    } catch (error) { setStatus(error.message, true); }
+  });
 }
 
-async function retireResource() {
+async function retireResource(button) {
   const id = els.resource_id.value;
   if (!id || !window.confirm("Retirar este recurso da lista pública?")) return;
-  try {
-    await platformRequest(`/api/v1/admin/help/resources/${encodeURIComponent(id)}/retire`, { method: "POST" });
-    await loadResources();
-    fillResource();
-    setStatus("Recurso retirado da lista pública.");
-  } catch (error) { setStatus(error.message, true); }
+  await runAdministrativeAction(button, async () => {
+    try {
+      await platformRequest(`/api/v1/admin/help/resources/${encodeURIComponent(id)}/retire`, { method: "POST" });
+      await loadResources();
+      fillResource();
+      setStatus("Recurso retirado da lista pública.");
+    } catch (error) { setStatus(error.message, true); }
+  });
 }
 
 async function loadContent() {
@@ -347,38 +387,44 @@ async function saveContent(event) {
   event.preventDefault();
   const id = els.content_id.value;
   const path = id ? `/api/v1/admin/content/${encodeURIComponent(id)}` : "/api/v1/admin/content";
-  setStatus("A guardar o rascunho...");
-  try {
-    const saved = await platformRequest(path, {
-      method: id ? "PUT" : "POST",
-      body: JSON.stringify(contentPayload()),
-    });
-    await loadContent();
-    fillContent(saved);
-    setStatus("Rascunho guardado. Revê a ligação antes de publicar.");
-  } catch (error) { setStatus(error.message, true); }
+  await runAdministrativeAction(event.submitter, async () => {
+    setStatus("A guardar o rascunho...");
+    try {
+      const saved = await platformRequest(path, {
+        method: id ? "PUT" : "POST",
+        body: JSON.stringify(contentPayload()),
+      });
+      await loadContent();
+      fillContent(saved);
+      setStatus("Rascunho guardado. Revê a ligação antes de publicar.");
+    } catch (error) { setStatus(error.message, true); }
+  });
 }
 
-async function publishContent() {
+async function publishContent(button) {
   const id = els.content_id.value;
   if (!id || !window.confirm("Publicar este conteúdo em Viver Saudável?")) return;
-  try {
-    const saved = await platformRequest(`/api/v1/admin/content/${encodeURIComponent(id)}/publish`, { method: "POST" });
-    await loadContent();
-    fillContent(saved);
-    setStatus("Conteúdo publicado.");
-  } catch (error) { setStatus(error.message, true); }
+  await runAdministrativeAction(button, async () => {
+    try {
+      const saved = await platformRequest(`/api/v1/admin/content/${encodeURIComponent(id)}/publish`, { method: "POST" });
+      await loadContent();
+      fillContent(saved);
+      setStatus("Conteúdo publicado.");
+    } catch (error) { setStatus(error.message, true); }
+  });
 }
 
-async function retireContent() {
+async function retireContent(button) {
   const id = els.content_id.value;
   if (!id || !window.confirm("Retirar este conteúdo da plataforma?")) return;
-  try {
-    await platformRequest(`/api/v1/admin/content/${encodeURIComponent(id)}/retire`, { method: "POST" });
-    await loadContent();
-    fillContent();
-    setStatus("Conteúdo retirado.");
-  } catch (error) { setStatus(error.message, true); }
+  await runAdministrativeAction(button, async () => {
+    try {
+      await platformRequest(`/api/v1/admin/content/${encodeURIComponent(id)}/retire`, { method: "POST" });
+      await loadContent();
+      fillContent();
+      setStatus("Conteúdo retirado.");
+    } catch (error) { setStatus(error.message, true); }
+  });
 }
 
 function summaryMetric(label, value) {
@@ -530,11 +576,11 @@ els.refresh_community.addEventListener("click", () => loadCommunity().catch((err
 els.refresh_operations.addEventListener("click", () => loadOperations().catch((error) => setStatus(error.message, true)));
 els.new_resource.addEventListener("click", () => fillResource());
 els.resource_form.addEventListener("submit", saveResource);
-els.verify_resource.addEventListener("click", verifyResource);
-els.retire_resource.addEventListener("click", retireResource);
+els.verify_resource.addEventListener("click", (event) => verifyResource(event.currentTarget));
+els.retire_resource.addEventListener("click", (event) => retireResource(event.currentTarget));
 els.new_content.addEventListener("click", () => fillContent());
 els.content_form.addEventListener("submit", saveContent);
-els.publish_content.addEventListener("click", publishContent);
-els.retire_content.addEventListener("click", retireContent);
+els.publish_content.addEventListener("click", (event) => publishContent(event.currentTarget));
+els.retire_content.addEventListener("click", (event) => retireContent(event.currentTarget));
 
 initialize();

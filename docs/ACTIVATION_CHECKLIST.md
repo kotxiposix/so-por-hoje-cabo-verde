@@ -125,6 +125,7 @@ Nao ativar antes de existirem moderadores identificados, horario e tempo de resp
 - [ ] Aprovar regras de publicação, motivos de denúncia, retenção e auditoria.
 - [ ] Aprovar e ensaiar o protocolo para conteúdo de risco antes de receber uma única partilha pública.
 - [x] Preparar a interface administrativa separada em `/admin`, com acesso por código e permissões individuais para moderação e diretório.
+- [x] Painel administrativo inclui navegação por teclado, atalho para conteúdo, nomes acessíveis em campos dinâmicos e bloqueio de mutações administrativas concorrentes.
 - [x] Limitar o resumo operacional de envios ao papel `admin` e omitir destinos, conteúdo, hashes e erros brutos da resposta ao browser.
 - [x] Registar alterações editoriais do painel por trigger atómico, sem copiar conteúdo privado para `staff_audit_events`.
 - [x] Preparar catálogo editorial de Viver Saudável com rascunho, publicação, retirada, papel `content_editor` e auditoria privada.
