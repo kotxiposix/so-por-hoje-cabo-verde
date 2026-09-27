@@ -219,25 +219,42 @@ class SupabaseHelpDirectory:
             raise HelpDirectoryServiceError("O diretório devolveu uma resposta inválida.")
         return records
 
-    def create_draft(self, payload: dict[str, object]) -> dict[str, object]:
+    def create_draft(
+        self,
+        payload: dict[str, object],
+        *,
+        actor_id: str | None = None,
+    ) -> dict[str, object]:
         record = self._request(
             "POST",
             "/rest/v1/help_resources",
-            payload=self._as_draft(normalize_resource(payload)),
+            payload=self._as_draft(normalize_resource(payload), actor_id),
             prefer="return=representation",
         )
         return self._one(record, "O recurso não foi criado.")
 
-    def update_draft(self, resource_id: str, payload: dict[str, object]) -> dict[str, object]:
+    def update_draft(
+        self,
+        resource_id: str,
+        payload: dict[str, object],
+        *,
+        actor_id: str | None = None,
+    ) -> dict[str, object]:
         record = self._request(
             "PATCH",
             f"/rest/v1/help_resources?id=eq.{quote(normalize_uuid(resource_id), safe='')}",
-            payload=self._as_draft(normalize_resource(payload)),
+            payload=self._as_draft(normalize_resource(payload), actor_id),
             prefer="return=representation",
         )
         return self._one(record, "O recurso não foi encontrado.")
 
-    def verify(self, resource_id: str, review_days: int) -> dict[str, object]:
+    def verify(
+        self,
+        resource_id: str,
+        review_days: int,
+        *,
+        actor_id: str | None = None,
+    ) -> dict[str, object]:
         safe_days = max(1, min(review_days, 365))
         now = datetime.now(timezone.utc)
         normalized_id = quote(normalize_uuid(resource_id), safe="")
@@ -255,13 +272,14 @@ class SupabaseHelpDirectory:
                 "verification_status": "verified",
                 "verified_at": now.isoformat(),
                 "review_due_at": (now.date() + timedelta(days=safe_days)).isoformat(),
+                "last_edited_by": normalize_uuid(actor_id) if actor_id else None,
                 "updated_at": now.isoformat(),
             },
             prefer="return=representation",
         )
         return self._one(record, "O recurso não foi encontrado.")
 
-    def retire(self, resource_id: str) -> dict[str, object]:
+    def retire(self, resource_id: str, *, actor_id: str | None = None) -> dict[str, object]:
         now = datetime.now(timezone.utc).isoformat()
         record = self._request(
             "PATCH",
@@ -270,6 +288,7 @@ class SupabaseHelpDirectory:
                 "is_verified": False,
                 "verification_status": "retired",
                 "review_due_at": None,
+                "last_edited_by": normalize_uuid(actor_id) if actor_id else None,
                 "updated_at": now,
             },
             prefer="return=representation",
@@ -277,12 +296,13 @@ class SupabaseHelpDirectory:
         return self._one(record, "O recurso não foi encontrado.")
 
     @staticmethod
-    def _as_draft(payload: dict[str, object]) -> dict[str, object]:
+    def _as_draft(payload: dict[str, object], actor_id: str | None = None) -> dict[str, object]:
         return payload | {
             "is_verified": False,
             "verification_status": "draft",
             "verified_at": None,
             "review_due_at": None,
+            "last_edited_by": normalize_uuid(actor_id) if actor_id else None,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
 

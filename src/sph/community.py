@@ -225,7 +225,14 @@ class SupabaseCommunity:
             )
         return pending
 
-    def moderate_post(self, post_id: str, status: str, note: str | None = None) -> dict[str, object]:
+    def moderate_post(
+        self,
+        post_id: str,
+        status: str,
+        note: str | None = None,
+        *,
+        actor_id: str | None = None,
+    ) -> dict[str, object]:
         normalized_status = status.strip().lower()
         if normalized_status not in self.MODERATION_STATUSES:
             raise CommunityInputError("Decisão de moderação inválida.")
@@ -257,6 +264,7 @@ class SupabaseCommunity:
             payload={
                 "status": normalized_status,
                 "moderated_at": datetime.now(timezone.utc).isoformat(),
+                "moderated_by": normalize_uuid(actor_id, "Moderador") if actor_id else None,
                 "moderation_note": normalize_details(note),
             },
             prefer="return=representation",

@@ -92,6 +92,47 @@ class AdminApiTests(unittest.TestCase):
         self.assertNotIn("private-destination", str(result))
         self.assertNotIn("provider detail", str(result))
 
+    def test_staff_audit_route_requires_admin(self) -> None:
+        with patch("sph.api.require_staff_access") as require_access, patch(
+            "sph.api.staff_audit_service"
+        ) as audit_service:
+            audit_service.return_value.list_events.return_value = []
+            result = api.staff_audit_events(limit=25, authorization="Bearer token")
+
+        self.assertEqual(result, [])
+        require_access.assert_called_once_with("Bearer token", {"admin"})
+        audit_service.return_value.list_events.assert_called_once_with(25)
+
+    def test_editorial_mutations_attach_the_authenticated_staff_identity(self) -> None:
+        identity = StaffIdentity(
+            user_id="7d40d2bb-6202-4e1f-9231-724d15fc8e02",
+            roles=("admin",),
+        )
+        with patch("sph.api.require_staff_access", return_value=identity), patch(
+            "sph.api.community_service"
+        ) as community_service:
+            api.moderate_community_post(
+                "7a0c9820-4e7a-40f6-a32b-6f5ce402ef68",
+                api.CommunityModerationPayload(status="rejected", note=None),
+                authorization="Bearer token",
+            )
+            community_service.return_value.moderate_post.assert_called_once_with(
+                "7a0c9820-4e7a-40f6-a32b-6f5ce402ef68",
+                "rejected",
+                None,
+                actor_id=identity.user_id,
+            )
+
+        resource_payload = api.HelpResourcePayload(name="Recurso", category="information")
+        with patch("sph.api.require_staff_access", return_value=identity), patch(
+            "sph.api.help_directory_service"
+        ) as help_service:
+            api.create_help_resource(resource_payload, authorization="Bearer token")
+            help_service.return_value.create_draft.assert_called_once_with(
+                resource_payload.model_dump(),
+                actor_id=identity.user_id,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

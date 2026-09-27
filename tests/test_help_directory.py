@@ -18,6 +18,7 @@ from sph.help_directory import (
 
 
 RESOURCE_ID = "4948b21e-facf-4bc8-a60e-8800b488dfee"
+EDITOR_ID = "7d40d2bb-6202-4e1f-9231-724d15fc8e02"
 SCHEMA_PATH = Path(__file__).resolve().parents[1] / "supabase" / "schema.sql"
 
 
@@ -147,18 +148,19 @@ class HelpDirectoryTests(unittest.TestCase):
     def test_create_and_update_always_return_resource_to_draft(self) -> None:
         returned = [payload() | {"id": RESOURCE_ID, "verification_status": "draft"}]
         with patch("sph.help_directory.urlopen", return_value=FakeResponse(returned)) as urlopen_mock:
-            SupabaseHelpDirectory(config()).create_draft(payload())
+            SupabaseHelpDirectory(config()).create_draft(payload(), actor_id=EDITOR_ID)
 
         request_payload = json.loads(urlopen_mock.call_args.args[0].data)
         self.assertFalse(request_payload["is_verified"])
         self.assertEqual(request_payload["verification_status"], "draft")
         self.assertIsNone(request_payload["verified_at"])
         self.assertIsNone(request_payload["review_due_at"])
+        self.assertEqual(request_payload["last_edited_by"], EDITOR_ID)
 
     def test_verification_requires_a_source_and_sets_review_deadline(self) -> None:
         returned = [payload() | {"id": RESOURCE_ID, "verification_status": "verified"}]
         with patch("sph.help_directory.urlopen", return_value=FakeResponse(returned)) as urlopen_mock:
-            SupabaseHelpDirectory(config()).verify(RESOURCE_ID, 90)
+            SupabaseHelpDirectory(config()).verify(RESOURCE_ID, 90, actor_id=EDITOR_ID)
 
         request = urlopen_mock.call_args.args[0]
         request_payload = json.loads(request.data)
@@ -166,6 +168,7 @@ class HelpDirectoryTests(unittest.TestCase):
         self.assertIn(f"id=eq.{RESOURCE_ID}", request.full_url)
         self.assertTrue(request_payload["is_verified"])
         self.assertEqual(request_payload["verification_status"], "verified")
+        self.assertEqual(request_payload["last_edited_by"], EDITOR_ID)
         self.assertRegex(request_payload["review_due_at"], r"^\d{4}-\d{2}-\d{2}$")
 
     def test_verification_requires_actionable_emergency_and_meeting_details(self) -> None:
@@ -194,6 +197,8 @@ class HelpDirectoryTests(unittest.TestCase):
         self.assertIn('drop policy if exists "Public reads verified help resources"', schema)
         self.assertNotIn('create policy "Public reads verified help resources"', schema)
         self.assertIn("review_due_at date", schema)
+        self.assertIn("last_edited_by uuid references auth.users(id) on delete set null", schema)
+        self.assertIn("create trigger help_resources_audit_trigger", schema)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-import { SupabaseAccountClient } from "../account-client.mjs?staff=2";
+import { SupabaseAccountClient } from "../account-client.mjs?staff=3";
 
 const SESSION_KEY = "sph-staff-session";
 const state = { client: null, session: loadSession(), roles: new Set(), resources: [] };
@@ -9,7 +9,7 @@ const els = Object.fromEntries([
   "resource-form", "resource-id", "resource-name", "resource-category", "resource-island", "resource-municipality",
   "resource-description", "resource-phone", "resource-email", "resource-website", "resource-source",
   "resource-schedule", "resource-emergency", "review-days", "verify-resource", "retire-resource",
-  "refresh-operations", "operations-summary", "operations-list",
+  "refresh-operations", "operations-summary", "operations-list", "audit-list",
 ].map((id) => [id.replaceAll("-", "_"), document.getElementById(id)]));
 
 let pendingEmail = "";
@@ -280,7 +280,10 @@ function summaryMetric(label, value) {
 
 async function loadOperations() {
   setStatus("A atualizar os envios...");
-  const payload = await platformRequest("/api/v1/admin/operations/send-logs?limit=100");
+  const [payload, auditEvents] = await Promise.all([
+    platformRequest("/api/v1/admin/operations/send-logs?limit=100"),
+    platformRequest("/api/v1/admin/operations/audit-events?limit=100"),
+  ]);
   const summary = payload?.summary || {};
   const entries = Array.isArray(payload?.entries) ? payload.entries : [];
   els.operations_summary.replaceChildren(
@@ -306,7 +309,39 @@ async function loadOperations() {
     article.append(date, channel, status, time);
     els.operations_list.append(article);
   });
-  setStatus(`${entries.length} registo(s) operacional(is).`);
+  const events = Array.isArray(auditEvents) ? auditEvents : [];
+  renderAuditEvents(events);
+  setStatus(`${entries.length} envio(s) e ${events.length} evento(s) editorial(is).`);
+}
+
+function renderAuditEvents(events) {
+  const actionLabels = {
+    "community.published": "Partilha publicada",
+    "community.hidden": "Partilha ocultada",
+    "community.rejected": "Partilha rejeitada",
+    "help.created": "Recurso criado",
+    "help.updated": "Recurso atualizado",
+    "help.verified": "Recurso verificado",
+    "help.retired": "Recurso retirado",
+    "help.stale": "Recurso expirado",
+  };
+  els.audit_list.replaceChildren();
+  if (!events.length) els.audit_list.append(emptyState("Ainda não existem eventos editoriais."));
+  events.forEach((event) => {
+    const article = document.createElement("article");
+    article.className = "operation-record audit-record";
+    const action = document.createElement("strong");
+    action.textContent = actionLabels[event.action] || "Ação editorial";
+    const actor = document.createElement("span");
+    actor.textContent = event.actor_ref || "Conta indisponível";
+    const target = document.createElement("span");
+    target.textContent = event.target_ref || "Item indisponível";
+    const time = document.createElement("time");
+    time.dateTime = event.created_at || "";
+    time.textContent = event.created_at ? new Date(event.created_at).toLocaleString("pt-CV") : "Hora indisponível";
+    article.append(action, actor, target, time);
+    els.audit_list.append(article);
+  });
 }
 
 async function initialize() {

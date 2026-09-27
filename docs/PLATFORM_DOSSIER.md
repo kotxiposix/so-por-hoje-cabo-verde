@@ -408,12 +408,12 @@ Permitir que a equipa mantenha conteudos sem depender sempre de programador.
 - Edição, verificação e retirada de reuniões e centros.
 - Fila de moderação para partilhas da comunidade.
 - Resumo sanitizado do histórico de envios, sem destinos nem conteúdo privado.
+- Auditoria atómica das decisões editoriais, sem copiar conteúdo privado.
 
 ### Funcionalidades futuras
 
 - Importar meditações pelo painel com validação restrita.
 - Gerir vídeos, podcast, exposições e eventos.
-- Criar auditoria operacional durável antes da ativação pública dos serviços.
 
 ### Sugestao de prioridade
 

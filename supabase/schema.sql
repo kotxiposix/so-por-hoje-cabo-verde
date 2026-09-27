@@ -98,8 +98,12 @@ create table if not exists public.anonymous_posts (
     check (status in ('pending', 'published', 'hidden', 'rejected')),
   created_at timestamptz not null default now(),
   moderated_at timestamptz,
+  moderated_by uuid references auth.users(id) on delete set null,
   moderation_note text
 );
+
+alter table public.anonymous_posts
+  add column if not exists moderated_by uuid references auth.users(id) on delete set null;
 
 create index if not exists anonymous_posts_status_created_idx
   on public.anonymous_posts (status, created_at desc);
@@ -131,6 +135,7 @@ create table if not exists public.help_resources (
   verification_status text not null default 'draft',
   verified_at timestamptz,
   review_due_at date,
+  last_edited_by uuid references auth.users(id) on delete set null,
   updated_at timestamptz not null default now(),
   constraint help_resources_schedule_array_check
     check (jsonb_typeof(schedule) = 'array'),
@@ -142,6 +147,8 @@ alter table public.help_resources add column if not exists source_url text;
 alter table public.help_resources
   add column if not exists verification_status text not null default 'draft';
 alter table public.help_resources add column if not exists review_due_at date;
+alter table public.help_resources
+  add column if not exists last_edited_by uuid references auth.users(id) on delete set null;
 
 do $$
 begin
@@ -164,6 +171,88 @@ $$;
 
 create index if not exists help_resources_public_idx
   on public.help_resources (is_verified, verification_status, review_due_at, is_emergency, name);
+
+create table if not exists public.staff_audit_events (
+  id bigint generated always as identity primary key,
+  actor_id uuid references auth.users(id) on delete set null,
+  action text not null check (action in (
+    'community.published', 'community.hidden', 'community.rejected',
+    'help.created', 'help.updated', 'help.verified', 'help.retired', 'help.stale'
+  )),
+  target_type text not null check (target_type in ('community_post', 'help_resource')),
+  target_id uuid not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists staff_audit_events_created_idx
+  on public.staff_audit_events (created_at desc, id desc);
+
+create or replace function public.audit_community_moderation()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.status is distinct from old.status
+    and new.moderated_by is not null
+    and new.status in ('published', 'hidden', 'rejected') then
+    insert into public.staff_audit_events (actor_id, action, target_type, target_id)
+    values (new.moderated_by, 'community.' || new.status, 'community_post', new.id);
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists anonymous_posts_audit_trigger on public.anonymous_posts;
+create trigger anonymous_posts_audit_trigger
+after update of status on public.anonymous_posts
+for each row execute function public.audit_community_moderation();
+
+revoke all on function public.audit_community_moderation()
+  from public, anon, authenticated;
+
+create or replace function public.audit_help_resource_change()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  event_action text;
+begin
+  if new.last_edited_by is null then
+    return new;
+  end if;
+
+  if tg_op = 'INSERT' then
+    event_action := 'help.created';
+  elsif new.verification_status is distinct from old.verification_status then
+    event_action := case new.verification_status
+      when 'verified' then 'help.verified'
+      when 'retired' then 'help.retired'
+      when 'stale' then 'help.stale'
+      else 'help.updated'
+    end;
+  elsif new.updated_at is distinct from old.updated_at then
+    event_action := 'help.updated';
+  end if;
+
+  if event_action is not null then
+    insert into public.staff_audit_events (actor_id, action, target_type, target_id)
+    values (new.last_edited_by, event_action, 'help_resource', new.id);
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists help_resources_audit_trigger on public.help_resources;
+create trigger help_resources_audit_trigger
+after insert or update on public.help_resources
+for each row execute function public.audit_help_resource_change();
+
+revoke all on function public.audit_help_resource_change()
+  from public, anon, authenticated;
 
 create table if not exists public.notification_preferences (
   user_id uuid primary key references auth.users(id) on delete cascade,
@@ -390,6 +479,7 @@ grant execute on function public.submit_anonymous_post(uuid, text, text, integer
 
 alter table public.journey_state enable row level security;
 alter table public.staff_roles enable row level security;
+alter table public.staff_audit_events enable row level security;
 alter table public.anonymous_posts enable row level security;
 alter table public.anonymous_reports enable row level security;
 alter table public.help_resources enable row level security;
@@ -427,6 +517,7 @@ drop policy if exists "Public reads moderated posts" on public.anonymous_posts;
 drop policy if exists "Members submit pending posts" on public.anonymous_posts;
 drop policy if exists "Members report published posts" on public.anonymous_reports;
 drop policy if exists "Users read staff roles" on public.staff_roles;
+drop policy if exists "Users read staff audit events" on public.staff_audit_events;
 
 drop policy if exists "Public reads verified help resources" on public.help_resources;
 

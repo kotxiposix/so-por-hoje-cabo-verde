@@ -8,7 +8,7 @@
     <meta name="description" content="Área reservada da equipa Só Por Hoje Cabo Verde." />
     <title>Equipa · Só Por Hoje Cabo Verde</title>
     <link rel="icon" type="image/png" href="../favicon-32.png" />
-    <link rel="stylesheet" href="admin.css?v=2" />
+    <link rel="stylesheet" href="admin.css?v=3" />
   </head>
   <body>
     <header class="admin-header">
@@ -118,10 +118,17 @@
           <p class="privacy-note">Esta vista mostra apenas metadados operacionais. Destinos, conteúdo, hashes e detalhes do fornecedor não são enviados para o browser.</p>
           <div id="operations-summary" class="operations-summary" aria-label="Resumo dos envios"></div>
           <div id="operations-list" class="operations-list"></div>
+          <section class="audit-block" aria-labelledby="audit-title">
+            <div class="section-heading">
+              <div><span class="eyebrow">Rastreabilidade</span><h3 id="audit-title">Atividade editorial</h3></div>
+            </div>
+            <p class="privacy-note">As contas e os itens usam referências abreviadas. O histórico não contém textos, contactos nem notas internas.</p>
+            <div id="audit-list" class="operations-list"></div>
+          </section>
         </section>
       </section>
     </main>
 
-    <script type="module" src="admin.js?v=2"></script>
+    <script type="module" src="admin.js?v=3"></script>
   </body>
 </html>

@@ -126,6 +126,8 @@ Os papéis são atribuídos diretamente no Supabase por uma pessoa administrador
 
 A interface da equipa está em `/admin` e não aparece na navegação pública. O login envia um código apenas para contas já existentes (`should_create_user=false`); depois, o servidor devolve somente os papéis ativos necessários para construir o espaço de trabalho. A página e os seus pedidos usam `no-store` e não entram na cache offline. O papel `admin` pode consultar um resumo sanitizado dos envios, sem destinos, conteúdo, hashes nem detalhes do fornecedor; os endpoints técnicos completos continuam protegidos por `ADMIN_API_SECRET` e não são chamados pelo browser.
 
+As mutações editoriais feitas pelo painel incluem o identificador da conta autorizada. Triggers criam, na mesma transação, eventos mínimos em `staff_audit_events`: ação, tipo e identificador do alvo, conta responsável e data. A tabela não guarda corpo da partilha, nota de moderação, nome, telefone, email, horário nem descrição do recurso. A resposta ao browser reduz os UUID a referências curtas. Importações iniciais executadas antes de existirem contas de equipa podem criar rascunhos sem autoria; esses rascunhos devem ser revistos e verificados posteriormente no painel.
+
 ## 7. Checklist antes de producao
 
 - Politica de privacidade aprovada e publicada.

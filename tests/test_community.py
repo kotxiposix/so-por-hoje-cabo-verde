@@ -141,9 +141,15 @@ class CommunityTests(unittest.TestCase):
         }]
         responses = [FakeResponse(returned), FakeResponse(returned)]
         with patch("sph.community.urlopen", side_effect=responses) as urlopen_mock:
-            result = SupabaseCommunity(config()).moderate_post(POST_ID, "published")
+            result = SupabaseCommunity(config()).moderate_post(
+                POST_ID,
+                "published",
+                actor_id=USER_ID,
+            )
 
         self.assertIn("status=eq.pending", urlopen_mock.call_args_list[1].args[0].full_url)
+        request_payload = json.loads(urlopen_mock.call_args_list[1].args[0].data)
+        self.assertEqual(request_payload["moderated_by"], USER_ID)
         self.assertEqual(result["status"], "published")
 
     def test_publishing_blocks_clear_contact_data(self) -> None:
@@ -210,6 +216,8 @@ class CommunityTests(unittest.TestCase):
         self.assertNotIn('create policy "Public reads moderated posts"', schema)
         self.assertNotIn('create policy "Members submit pending posts"', schema)
         self.assertNotIn('create policy "Members report published posts"', schema)
+        self.assertIn("moderated_by uuid references auth.users(id) on delete set null", schema)
+        self.assertIn("create trigger anonymous_posts_audit_trigger", schema)
 
 
 

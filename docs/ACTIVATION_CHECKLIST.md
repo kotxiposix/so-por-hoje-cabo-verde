@@ -108,6 +108,7 @@ Nao ativar antes de existirem moderadores identificados, horario e tempo de resp
 - [ ] Aprovar e ensaiar o protocolo para conteúdo de risco antes de receber uma única partilha pública.
 - [x] Preparar a interface administrativa separada em `/admin`, com acesso por código e permissões individuais para moderação e diretório.
 - [x] Limitar o resumo operacional de envios ao papel `admin` e omitir destinos, conteúdo, hashes e erros brutos da resposta ao browser.
+- [x] Registar alterações editoriais do painel por trigger atómico, sem copiar conteúdo privado para `staff_audit_events`.
 - [ ] Testar `/admin` com contas reais de cada papel antes de ativar `STAFF_ACCESS_READY=true`.
 - [ ] Testar publicação, rejeição, ocultação, denúncia duplicada e eliminação de conta em Preview.
 - [ ] Só depois destes passos ativar `COMMUNITY_READY=true` em Preview.

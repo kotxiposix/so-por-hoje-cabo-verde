@@ -97,6 +97,8 @@ As ações editoriais usam papéis individuais guardados em `staff_roles`: `mode
 
 O painel `/admin` é uma superfície operacional separada da aplicação pública. Não é apresentado no menu, não é indexável nem guardado pelo service worker. A interface pede autenticação individual, consulta `/api/v1/admin/me` e mostra apenas as ferramentas permitidas pelos papéis ativos. A vista de operação, exclusiva de `admin`, recebe apenas data, canal, estado e hora dos envios; identificadores de destino, conteúdo, hashes e erros brutos permanecem no lado do servidor.
 
+As decisões editoriais usam autoria mínima nas tabelas de origem e triggers PostgreSQL para inserir `staff_audit_events` atomicamente. O evento contém apenas ação, alvo técnico, conta e data; a API administrativa ainda abrevia os identificadores antes de os enviar ao browser. A tabela de auditoria tem RLS sem política direta e as funções de trigger não são executáveis por `anon` ou `authenticated`.
+
 ## 6. Portoes de ativacao
 
 ```text

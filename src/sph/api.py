@@ -42,6 +42,7 @@ from sph.staff_access import (
     StaffIdentity,
     SupabaseStaffAccess,
 )
+from sph.staff_audit import StaffAuditServiceError, SupabaseStaffAudit
 from sph.send_log import JsonlSendLog
 from sph.sender import DailySender
 from sph.service import DailyMeditationService
@@ -148,6 +149,13 @@ def help_directory_service() -> SupabaseHelpDirectory:
     try:
         return SupabaseHelpDirectory(HelpDirectoryConfig.from_environment())
     except HelpDirectoryServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+def staff_audit_service() -> SupabaseStaffAudit:
+    try:
+        return SupabaseStaffAudit(StaffAccessConfig.from_environment())
+    except (StaffAuditServiceError, StaffAccessServiceError) as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
@@ -279,9 +287,14 @@ def moderate_community_post(
     payload: CommunityModerationPayload,
     authorization: str | None = Header(default=None),
 ) -> dict[str, object]:
-    require_staff_access(authorization, {"moderator"})
+    identity = require_staff_access(authorization, {"moderator"})
     try:
-        return community_service().moderate_post(post_id, payload.status, payload.note)
+        return community_service().moderate_post(
+            post_id,
+            payload.status,
+            payload.note,
+            actor_id=identity.user_id,
+        )
     except CommunityInputError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except CommunityServiceError as exc:
@@ -313,9 +326,12 @@ def create_help_resource(
     payload: HelpResourcePayload,
     authorization: str | None = Header(default=None),
 ) -> dict[str, object]:
-    require_staff_access(authorization, {"help_editor"})
+    identity = require_staff_access(authorization, {"help_editor"})
     try:
-        return help_directory_service().create_draft(payload.model_dump())
+        return help_directory_service().create_draft(
+            payload.model_dump(),
+            actor_id=identity.user_id,
+        )
     except HelpDirectoryInputError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except HelpDirectoryServiceError as exc:
@@ -328,9 +344,13 @@ def update_help_resource(
     payload: HelpResourcePayload,
     authorization: str | None = Header(default=None),
 ) -> dict[str, object]:
-    require_staff_access(authorization, {"help_editor"})
+    identity = require_staff_access(authorization, {"help_editor"})
     try:
-        return help_directory_service().update_draft(resource_id, payload.model_dump())
+        return help_directory_service().update_draft(
+            resource_id,
+            payload.model_dump(),
+            actor_id=identity.user_id,
+        )
     except HelpDirectoryInputError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except HelpDirectoryServiceError as exc:
@@ -343,9 +363,13 @@ def verify_help_resource(
     payload: HelpVerificationPayload,
     authorization: str | None = Header(default=None),
 ) -> dict[str, object]:
-    require_staff_access(authorization, {"help_editor"})
+    identity = require_staff_access(authorization, {"help_editor"})
     try:
-        return help_directory_service().verify(resource_id, payload.review_days)
+        return help_directory_service().verify(
+            resource_id,
+            payload.review_days,
+            actor_id=identity.user_id,
+        )
     except HelpDirectoryInputError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except HelpDirectoryServiceError as exc:
@@ -357,9 +381,9 @@ def retire_help_resource(
     resource_id: str,
     authorization: str | None = Header(default=None),
 ) -> dict[str, object]:
-    require_staff_access(authorization, {"help_editor"})
+    identity = require_staff_access(authorization, {"help_editor"})
     try:
-        return help_directory_service().retire(resource_id)
+        return help_directory_service().retire(resource_id, actor_id=identity.user_id)
     except HelpDirectoryInputError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except HelpDirectoryServiceError as exc:
@@ -438,6 +462,18 @@ def staff_send_logs(
         },
         "entries": public_entries,
     }
+
+
+@app.get("/api/v1/admin/operations/audit-events")
+def staff_audit_events(
+    limit: int = Query(default=100, ge=1, le=200),
+    authorization: str | None = Header(default=None),
+) -> list[dict[str, str]]:
+    require_staff_access(authorization, {"admin"})
+    try:
+        return staff_audit_service().list_events(limit)
+    except StaffAuditServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @app.post("/api/v1/admin/send-test")
