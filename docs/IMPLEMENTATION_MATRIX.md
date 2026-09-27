@@ -28,7 +28,7 @@ A navegação principal é fixa no fundo em ecrãs pequenos. O conteúdo reserva
 | Conta por código de email | Preparada e fechada | `ACCOUNT_READY`; exige Supabase, OTP, SMTP e CAPTCHA | `public/account-client.mjs`, `/api/v1/config` |
 | Sincronização da Jornada | Preparada e fechada | Escolha explícita entre cópia local e remota; allowlist de campos; preferências do dispositivo preservadas; cursor por conta deteta alteração ou eliminação remota; RLS por conta | `save_journey_state`, testes de conflito, cursor e versão |
 | Eliminação de dados e conta | Preparada e fechada | Sessão validada no servidor; nunca aceita `user_id` do browser | `DELETE /api/v1/account`, RLS e `ON DELETE CASCADE` |
-| PWA e offline parcial | Ativa localmente | Instalação e atualização final dependem do navegador/dispositivo | `manifest.webmanifest`, `sw.js`, `docs/PWA_DEVICE_TEST.md` |
+| PWA e offline parcial | Ativa localmente | Manifesto com ícones 192/512; instalação e atualização final dependem do navegador/dispositivo | `manifest.webmanifest`, `sw.js`, `docs/PWA_DEVICE_TEST.md` |
 | Notificações dentro da app | Ativa localmente | Preferência guardada no dispositivo | Cliente principal |
 | Web Push real | Preparada e fechada | `PUSH_DELIVERY_READY`; reconcilia permissão, escolha local, sessão e subscrição; VAPID, cron e teste em dois dispositivos | emissor protegido, reserva atómica e service worker |
 

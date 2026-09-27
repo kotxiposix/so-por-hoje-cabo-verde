@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import struct
 import unittest
 from collections import Counter
 from html.parser import HTMLParser
@@ -180,14 +181,24 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertEqual(manifest["start_url"], "/#meditacao")
         self.assertEqual(manifest["display"], "standalone")
         self.assertNotIn("orientation", manifest)
-        self.assertEqual(manifest["icons"][1]["purpose"], "any")
+        install_icons = {
+            icon["sizes"]: icon
+            for icon in manifest["icons"]
+            if icon.get("purpose") == "any"
+        }
+        self.assertEqual(set(install_icons), {"192x192", "512x512"})
+        self.assertEqual(install_icons["192x192"]["src"], "/icon-192.png")
+        self.assertEqual(install_icons["512x512"]["src"], "/icon-512.png")
+        icon_192 = (PUBLIC / "icon-192.png").read_bytes()
+        self.assertEqual(icon_192[:8], b"\x89PNG\r\n\x1a\n")
+        self.assertEqual(struct.unpack(">II", icon_192[16:24]), (192, 192))
         self.assertEqual(
             {shortcut["url"] for shortcut in manifest["shortcuts"]},
             {"/#meditacao", "/#jornada", "/#ajuda"},
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v65"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v66"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
