@@ -20,6 +20,7 @@ const viewHashes = {
   help: "ajuda",
   about: "sobre",
 };
+const SUPPORT_CACHE_VERSION = "v2";
 
 const els = {
   appContent: document.querySelector("#app-content"),
@@ -304,6 +305,16 @@ function persistAccountSession(session) {
 function clearAiSupportCache() {
   Object.keys(localStorage)
     .filter((key) => key.startsWith("sph-ai-support:"))
+    .forEach((key) => localStorage.removeItem(key));
+}
+
+function clearLegacySupportCache() {
+  const currentPrefix = `sph-ai-support:${SUPPORT_CACHE_VERSION}:`;
+  Object.keys(localStorage)
+    .filter((key) => (
+      key.startsWith("sph-ai-support:")
+      && (!key.startsWith(currentPrefix) || key.startsWith(`${currentPrefix}local:`))
+    ))
     .forEach((key) => localStorage.removeItem(key));
 }
 
@@ -2054,8 +2065,13 @@ async function getDailySupport() {
       authorization = "";
     }
   }
-  const supportMode = authorization ? "ai" : "local";
-  const cacheKey = `sph-ai-support:${supportMode}:${cacheOwner}:${state.daily.date}:${payload.user_state}:${payload.clean_days}:${payload.reading_streak}`;
+  if (!authorization) {
+    const support = await loadLocalDailySupport(payload);
+    currentSupport = support;
+    return support;
+  }
+
+  const cacheKey = `sph-ai-support:${SUPPORT_CACHE_VERSION}:ai:${cacheOwner}:${state.daily.date}:${payload.user_state}:${payload.clean_days}:${payload.reading_streak}`;
 
   try {
     const cached = JSON.parse(localStorage.getItem(cacheKey));
@@ -2065,13 +2081,6 @@ async function getDailySupport() {
     }
   } catch {
     currentSupport = null;
-  }
-
-  if (!authorization) {
-    const support = await loadLocalDailySupport(payload);
-    currentSupport = support;
-    localStorage.setItem(cacheKey, JSON.stringify(support));
-    return support;
   }
 
   if (!navigator.onLine) return loadLocalDailySupport(payload);
@@ -2370,6 +2379,7 @@ document.addEventListener("keydown", (event) => {
   trapModalFocus(event);
 });
 
+clearLegacySupportCache();
 showView(getViewFromHash(), { scroll: false });
 renderAccount();
 setupAccount();

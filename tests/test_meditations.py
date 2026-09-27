@@ -111,6 +111,28 @@ class MeditationTests(unittest.TestCase):
             {"standard", "ansioso", "risco", "consumo"},
         )
 
+    def test_support_catalog_is_contextual_and_within_display_limits(self) -> None:
+        records = json.loads(SUPPORT_DATA_PATH.read_text(encoding="utf-8"))
+        meditations = {
+            record["month_day"]: record
+            for record in json.loads(DATA_PATH.read_text(encoding="utf-8"))
+        }
+
+        for record in records:
+            with self.subTest(month_day=record["month_day"], state=record["state"]):
+                title = meditations[record["month_day"]]["title"]
+                self.assertIn(title, record["activity"])
+                self.assertIn(title, record["mental_challenge"])
+                self.assertLessEqual(len(record["activity"]), 420)
+                self.assertLessEqual(len(record["phrase"]), 180)
+                self.assertLessEqual(len(record["mental_challenge"]), 420)
+                self.assertLessEqual(len(record["safety_note"]), 240)
+
+        for state in ("standard", "ansioso", "risco", "consumo"):
+            state_records = [record for record in records if record["state"] == state]
+            self.assertGreaterEqual(len({record["activity"] for record in state_records}), 340)
+            self.assertGreaterEqual(len({record["mental_challenge"] for record in state_records}), 340)
+
     def test_local_ai_support_uses_catalog(self) -> None:
         service = DailyMeditationService(MeditationRepository(DATA_PATH), "Atlantic/Cape_Verde")
         daily = service.for_date(date(2026, 1, 3))

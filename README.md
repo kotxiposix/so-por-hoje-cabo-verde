@@ -111,7 +111,7 @@ Publicação e denúncia na comunidade exigem a sessão da própria pessoa e só
 
 Os botoes "Atividade do dia", "Frase do dia" e "Desafio mental" podem usar AI para gerar apoio complementar de acordo com a meditacao, estado do utilizador e progresso local.
 
-Sem chave configurada, o sistema usa `data/daily_support.json`: uma base local fixa com 4 respostas para cada meditacao do ano:
+Sem chave configurada, o sistema usa `data/daily_support.json`: uma base local fixa com 4 respostas para cada meditacao do ano. O gerador classifica o tema dando prioridade ao titulo e a reflexao, e contextualiza atividade e desafio com o titulo exato da meditacao:
 
 - `standard`
 - `ansioso`
@@ -123,6 +123,8 @@ Para regenerar esta base local:
 ```bash
 PYTHONPATH=src python scripts/generate_support_catalog.py
 ```
+
+As respostas locais nao sao duplicadas no `localStorage`: o service worker assegura o uso offline e a versao do cache PWA distribui atualizacoes editoriais. Apenas respostas de AI podem ficar em cache por dia, estado e conta para evitar pedidos repetidos.
 
 O servidor simples mantém sempre o catálogo local. Para testar a integração OpenAI com os mesmos controlos usados em produção, use FastAPI, uma conta Supabase válida e o esquema atualizado:
 

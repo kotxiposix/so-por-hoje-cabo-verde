@@ -348,6 +348,8 @@ Gerar atividades, frases e desafios alinhados com a meditacao do dia e o estado 
 ### Estado implementado
 
 - Catálogo local com quatro estados para os 366 dias, disponível sem conta e offline.
+- A atividade e o desafio referem o título exato da meditação; testes exigem pelo menos 340 combinações distintas por estado e respeitam os limites de apresentação.
+- O catálogo local é distribuído pelo cache versionado da PWA, sem uma segunda cópia persistente por dia no navegador.
 - OpenAI fechada por defeito através de `AI_DELIVERY_READY=false`.
 - Quando ativada, exige sessão Supabase válida e quota diária atómica por conta.
 - A identidade da conta não é enviada à OpenAI; falhas regressam ao catálogo local.

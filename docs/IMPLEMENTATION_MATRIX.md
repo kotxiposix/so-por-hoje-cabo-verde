@@ -36,7 +36,7 @@ A navegação principal é fixa no fundo em ecrãs pequenos. O conteúdo reserva
 
 | Capacidade | Estado | Porta ou limite | Evidência |
 | --- | --- | --- | --- |
-| Atividade, frase e desafio locais | Ativa localmente | Catálogo fixo por dia e estado; fallback obrigatório | `public/data/daily_support.json` e testes de seleção |
+| Atividade, frase e desafio locais | Ativa localmente | 366 dias × 4 estados, contexto pelo título, diversidade mínima e fallback obrigatório | `public/data/daily_support.json` e testes de seleção/qualidade |
 | Apoio diário com AI | Preparada e fechada | `AI_DELIVERY_READY`; conta, quota, OpenAI e revisão de custos | `/api/v1/ai/daily-support`, validação e fallback local |
 | Catálogo editorial | Preparada e fechada | `EDITORIAL_CONTENT_READY` + `STAFF_ACCESS_READY` | CRUD administrativo, publicação, retirada e auditoria |
 | Exposição fotográfica | Ativa localmente | Conteúdo público independente das integrações privadas | `/expo` e assets na mesma origem |

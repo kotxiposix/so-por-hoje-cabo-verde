@@ -202,22 +202,45 @@ TEMPLATES = {
 
 
 def detect_theme(record: dict[str, str]) -> str:
-    text = " ".join(
-        [
-            record.get("title", ""),
-            record.get("body", "")[:900],
-            record.get("reflection", ""),
-        ]
-    ).lower()
-    for theme, keywords in THEMES:
-        if any(keyword in text for keyword in keywords):
-            return theme
-    return "geral"
+    title = record.get("title", "").lower()
+    reflection = record.get("reflection", "").lower()
+    body = record.get("body", "")[:1400].lower()
+    scores = {
+        theme: (
+            7 * sum(keyword in title for keyword in keywords)
+            + 3 * sum(keyword in reflection for keyword in keywords)
+            + sum(keyword in body for keyword in keywords)
+        )
+        for theme, keywords in THEMES
+    }
+    theme, score = max(scores.items(), key=lambda item: item[1])
+    return theme if score else "geral"
+
+
+def lower_first(value: str) -> str:
+    return value[:1].lower() + value[1:]
+
+
+def contextualize(template: dict[str, str], record: dict[str, str], state: str) -> dict[str, str]:
+    title = record["title"].strip()
+    if state in {"risco", "consumo"}:
+        activity = (
+            f'{template["activity"]} Depois de procurares apoio, volta ao tema '
+            f'“{title}” acompanhado por uma pessoa segura.'
+        )
+    else:
+        activity = f'Com a meditação “{title}” em mente, {lower_first(template["activity"])}'
+    mental_challenge = f'À luz de “{title}”, {lower_first(template["mental_challenge"])}'
+    return {
+        "activity": activity,
+        "phrase": template["phrase"],
+        "mental_challenge": mental_challenge,
+    }
 
 
 def build_entry(record: dict[str, str], state: str) -> dict[str, str]:
     theme = detect_theme(record)
-    template = TEMPLATES[theme][state]
+    template = contextualize(TEMPLATES[theme][state], record, state)
     note = CARE_NOTE if state in {"risco", "consumo", "ansioso"} else SAFETY_NOTE
     return {
         "month_day": record["month_day"],
