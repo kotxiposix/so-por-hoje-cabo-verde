@@ -37,6 +37,8 @@ EDITORIAL_CONTENT_READY=false  # usar os conteúdos estáticos até rever o cat�
 
 A URL, a chave pública do Supabase e a site key do Turnstile só são enviadas ao cliente quando `ACCOUNT_READY=true` e todas estão presentes. A `SERVICE_ROLE_KEY` ignora RLS e fica exclusivamente no ambiente seguro da Vercel. A secret key do Turnstile é configurada apenas no Supabase e nunca entra no código ou na configuração pública da plataforma.
 
+Depois de configurar SMTP próprio, aplicar o assunto e o HTML de `docs/OTP_EMAIL_TEMPLATE.md` ao template **Magic Link**. O cliente verifica `{{ .Token }}` como OTP; o email não deve incluir `{{ .ConfirmationURL }}` nem qualquer link rastreado.
+
 Para rever a configuração sem imprimir qualquer valor secreto, executar `PYTHONPATH=src python scripts/check_readiness.py`. O relatório mostra apenas se cada integração está fechada ou ativa e os nomes das variáveis ainda em falta.
 
 Depois de executar `supabase/schema.sql`, confirmar por leitura que as tabelas e funções RPC esperadas estão expostas à chave de serviço:
