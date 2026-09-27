@@ -4,6 +4,10 @@
 
 Este documento serve para alinhar equipa, parceiros e decisores sobre a evolucao da plataforma So Por Hoje Cabo Verde. O objetivo e juntar num unico sitio a visao funcional, as decisoes tecnicas, as sugestoes de experiencia de utilizador e os pontos que precisam de validacao antes de crescer.
 
+**Ultima atualizacao:** 27 de setembro de 2026.
+
+Este dossie apresenta a visao do produto. O estado verificavel de cada capacidade esta em `IMPLEMENTATION_MATRIX.md`, os passos de ativacao estao em `ACTIVATION_CHECKLIST.md` e as responsabilidades ainda por decidir devem ser registadas em `OPERATIONS_DECISIONS.md`. Nenhuma descricao neste documento substitui essas portas de seguranca.
+
 ## 1. Visao
 
 A plataforma nasce para apoiar pessoas em recuperacao, disponibilizando diariamente a meditacao "So Por Hoje" e criando uma experiencia complementar de acompanhamento, inspiracao, ajuda e comunidade.
@@ -37,8 +41,9 @@ Secoes atuais:
 
 - Meditacao
 - Jornada
-- Recuperacao
+- Viver Saudavel
 - Ajuda
+- Sobre
 
 Funcoes principais:
 
@@ -46,10 +51,14 @@ Funcoes principais:
 - Marcar meditacao como lida.
 - Abrir Oracao da Serenidade.
 - Partilhar texto no formato do grupo.
+- Gerar e partilhar uma imagem vertical para stories/status.
 - Ativar notificacao.
 - Ver atividade do dia, frase do dia e desafio mental.
+- Guardar gratidao e plano pessoal apenas no dispositivo.
 - Acompanhar dias limpos/sobrios.
 - Fazer check-in pessoal.
+- Consultar o arquivo anual sem alterar o progresso do dia.
+- Exportar e importar uma copia versionada da Jornada.
 - Ver recursos de ajuda.
 
 ### Pagina da exposicao
@@ -85,6 +94,8 @@ Regra principal:
 - O ano so aparece quando o sistema gera a mensagem do dia.
 
 Esta decisao evita duplicacao anual e permite usar o mesmo conteudo em:
+
+Os canais abaixo representam destinos possiveis da mesma base; apenas a web app, a API e os fluxos descritos como ativos na matriz estao implementados atualmente.
 
 - Web app.
 - Messenger.
@@ -160,14 +171,15 @@ Recompensas recomendadas:
 - Sem rankings publicos.
 - Sem comparacao entre pessoas.
 
-### Decisoes a validar
+### Decisoes tomadas e validacoes pendentes
 
-- Guardar dados apenas no dispositivo ou permitir conta?
-- Se houver login, usar telefone/token, email ou outra opcao?
-- Que dados nunca devem ser recolhidos?
-- Como apagar dados pessoais facilmente?
+- O modo local e anonimo e o comportamento por defeito.
+- A conta opcional por codigo de email e a sincronizacao seletiva estao implementadas, mas fechadas por `ACCOUNT_READY=false` ate existir Supabase, SMTP, CAPTCHA e teste com duas contas.
+- Partilhas da Sala Anonima local, instalacao e permissoes do dispositivo nao entram na sincronizacao da Jornada.
+- Exportacao, eliminacao local, eliminacao da copia remota e eliminacao da conta estao preparadas.
+- A politica de privacidade continua preliminar ate revisao juridica e validacao operacional.
 
-## 8. Recuperacao
+## 8. Viver Saudavel
 
 ### Objetivo
 
@@ -177,7 +189,8 @@ Reunir conteudos de inspiracao, exposicao, podcast, testemunhos e partilhas que 
 
 - Existe secao da exposicao dentro da app.
 - A pagina `/expo` apresenta catalogo, videos, podcast, exposicoes, bio e contacto.
-- Existe sala anonima em prototipo na app principal.
+- Existe uma Sala Anonima local, apresentada explicitamente como diario privado no dispositivo.
+- O catálogo editorial gerido está preparado, mas fechado por `EDITORIAL_CONTENT_READY=false`.
 
 ### Sugestoes
 
@@ -189,11 +202,11 @@ Reunir conteudos de inspiracao, exposicao, podcast, testemunhos e partilhas que 
 
 ### Sala anonima
 
-Ideia:
+Estado:
 
 - Qualquer pessoa pode partilhar anonimamente.
 - O sistema atribui um nome aleatorio por sessao, por exemplo `Guerreiro238`.
-- A primeira versao pode guardar apenas no navegador.
+- A versao atual guarda apenas no navegador e permite eliminar cada partilha.
 - Uma versao publica exige moderacao, regras claras e protecao contra abuso.
 
 Riscos:
@@ -217,7 +230,9 @@ Dar acesso rapido a reunioes, contactos, centros, linhas de apoio e recursos pre
 ### Estado atual
 
 - A secao Ajuda existe na app.
-- Foram pensados centros e reunioes em Cabo Verde para validacao.
+- O botao SOS abre contactos acionaveis e uma mensagem curta para pedir companhia.
+- A lista estatica distingue contactos oficiais de horarios indicados pela comunidade.
+- O diretorio gerido, com fonte e prazo de revisao, esta implementado mas fechado por `HELP_DIRECTORY_READY=false`.
 
 ### Sugestoes
 
@@ -255,13 +270,13 @@ Dar acesso rapido a reunioes, contactos, centros, linhas de apoio e recursos pre
 
 Lembrar a pessoa da meditacao diaria e de momentos de cuidado sem ser invasivo.
 
-### Abordagens possiveis
+### Estado atual
 
-- Browser push notifications.
-- PWA instalada no Android.
-- Notificacoes no iOS via PWA, com limitacoes.
-- Email diario.
-- WhatsApp/Telegram no futuro.
+- O lembrete local respeita a hora escolhida enquanto a aplicacao esta aberta.
+- Cliente, preferencias, subscricao, service worker e emissor de Web Push estao preparados.
+- O ecrã bloqueado recebe apenas uma mensagem generica, sem dados da Jornada.
+- Web Push permanece fechado por `PUSH_DELIVERY_READY=false` ate configurar VAPID, cron e testes em dois dispositivos.
+- Email diario, WhatsApp e Telegram nao fazem parte do fluxo atual.
 
 ### Sugestoes
 
@@ -285,7 +300,8 @@ Permitir partilhar a meditacao no formato usado pelo grupo, sem alterar o conteu
 ### Estado atual
 
 - Existe botao de partilha com icone.
-- A mensagem pode ser formatada com data, titulo, corpo e "So por hoje".
+- A mensagem inclui saudacao, data, titulo, corpo, reflexao "So por hoje", dominio curto, fonte e permissao.
+- O URL da pagina da fonte nao entra no texto copiado, evitando duplicacao automatica de previews no Messenger.
 
 ### Sugestoes
 
@@ -303,17 +319,25 @@ MEDITACAO DO DIA
 
 Terça-feira, 02 de Junho de 2026
 
+
 TITULO
+
 
 [texto oficial intacto]
 
+
 SO POR HOJE:
+
 [reflexao oficial]
+
+soporhoje.cv
+
 
 Fonte oficial: Narcoticos Anonimos Portugal
 © NA World Services, Inc. Reprinted by permission.
-https://na-pt.erlog.pt/sph.php
 ```
+
+O gerador preserva duas linhas vazias antes do titulo, antes do corpo, antes de `SO POR HOJE` e antes do dominio/fonte conforme o formato aprovado para o grupo.
 
 ## 12. Conteudo complementar inteligente
 
@@ -455,34 +479,12 @@ Permitir que a equipa mantenha conteudos sem depender sempre de programador.
 - Validacao automatica de backend, estrutura web, PWA e cliente de conta em GitHub Actions.
 - Vercel como destino de publicacao; GitHub Pages desativado por nao executar a API.
 
-### Evolucao sugerida
+### Estado da evolucao
 
-Fase 1:
-
-- Continuar estatico com dados locais.
-- Melhorar UX e conteudo.
-- Validar lista de ajuda.
-
-Fase 2:
-
-- Backend leve com API.
-- Base de dados PostgreSQL/Supabase.
-- Autenticacao opcional.
-- Painel administrativo.
-
-Fase 3:
-
-- PWA completa.
-- Notificacoes push.
-- Scheduler de envios.
-- Integracoes WhatsApp/Telegram/email.
-
-Fase 4:
-
-- App mobile.
-- Conteudo audio/video estruturado.
-- Sala anonima moderada.
-- Relatorios e impacto comunitario.
+- A base local, as cinco areas, a PWA parcial, o arquivo e a exportacao/importacao estao implementados.
+- A API FastAPI, o esquema Supabase, a conta opcional, o painel administrativo, o diretorio, a comunidade moderada, o catálogo editorial, a AI e o Web Push estao preparados e testados com flags fechadas.
+- A ativacao depende de projeto Supabase, SMTP/CAPTCHA, VAPID/cron, chaves OpenAI, contas reais, moderadores, validacao de contactos, revisao juridica e testes em dispositivos.
+- App mobile nativa, canais WhatsApp/Telegram/email, loja e doacao nao estao iniciados e exigem decisoes proprias antes de desenvolvimento.
 
 ## 17. Riscos
 
@@ -495,14 +497,14 @@ Fase 4:
 
 ## 18. Recomendacoes imediatas
 
-1. Validar juridicamente a exibicao das meditacoes oficiais.
-2. Validar lista de reunioes e centros em Cabo Verde.
-3. Definir politica de privacidade simples.
-4. Criar texto claro: "nao substitui ajuda profissional".
-5. Fechar MVP da app principal.
-6. Melhorar pagina `/expo` como pagina publica institucional.
-7. Decidir se a Jornada fica so local ou com login.
-8. Preparar conteudo para primeira versao PWA.
+1. Validar juridicamente a exibicao das meditacoes oficiais e a politica de privacidade preliminar.
+2. Confirmar diretamente contactos, horarios e responsaveis dos recursos de Ajuda.
+3. Criar o projeto Supabase de Preview, aplicar o esquema e testar RLS com duas contas.
+4. Configurar Email OTP, SMTP e CAPTCHA sem enviar segredos por mensagens ou guardar no Git.
+5. Nomear responsaveis por privacidade, suporte, moderacao e incidentes; preencher `OPERATIONS_DECISIONS.md`.
+6. Testar PWA, atualizacao, VoiceOver/TalkBack e Web Push em dispositivos reais.
+7. Rever o catálogo editorial e o conteudo complementar com autoria, consentimento e apoio clinico/comunitario.
+8. Ativar cada flag primeiro em Preview; promover para producao apenas depois da checklist respetiva.
 
 ## 19. Perguntas para a equipa
 
@@ -519,27 +521,22 @@ Fase 4:
 
 ### Curto prazo
 
-- Ajustar UX da meditacao.
-- Fechar Jornada com dias limpos e check-in.
-- Melhorar Ajuda com dados validados.
-- Consolidar Expo.
-- Publicar politica de privacidade.
+- Confirmar Ajuda e concluir revisoes juridica, editorial e de acessibilidade em dispositivos.
+- Configurar e testar Supabase/OTP no ambiente Preview.
+- Validar conta, sincronizacao, eliminacao e painel com contas reais e papéis minimos.
 
 ### Medio prazo
 
-- PWA instalavel.
-- Notificacoes.
-- Painel simples.
-- Reunioes atualizaveis.
-- Conteudo audio.
+- Ativar, uma por vez, conta, diretorio de Ajuda e catálogo editorial em Preview.
+- Configurar e testar Web Push e AI com limites, custos e observabilidade.
+- Abrir comunidade apenas depois de equipa, regras, retencao e protocolo de crise aprovados.
 
 ### Longo prazo
 
 - App mobile.
-- Login seguro.
-- Sala anonima moderada.
-- Integracoes com canais.
+- Integracoes com canais, se houver operacao e consentimento adequados.
 - Dashboard de impacto.
+- Loja e doacao apenas com entidade, pagamentos, entregas, devolucoes e transparencia definidos.
 
 ## 21. Criterios de sucesso
 
