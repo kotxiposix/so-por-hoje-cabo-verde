@@ -15,6 +15,7 @@ class PublicConfigTests(unittest.TestCase):
     def test_only_public_supabase_values_are_exposed(self) -> None:
         config = public_runtime_config(
             {
+                "ACCOUNT_READY": "true",
                 "SUPABASE_URL": "https://project.supabase.co/",
                 "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_example",
                 "SUPABASE_SERVICE_ROLE_KEY": "must-not-leak",
@@ -26,8 +27,20 @@ class PublicConfigTests(unittest.TestCase):
         self.assertEqual(config["supabase"]["publishableKey"], "sb_publishable_example")
         self.assertNotIn("must-not-leak", repr(config))
 
+    def test_account_stays_hidden_while_supabase_is_being_configured(self) -> None:
+        config = public_runtime_config(
+            {
+                "SUPABASE_URL": "https://project.supabase.co",
+                "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_example",
+            }
+        )
+
+        self.assertFalse(config["features"]["account"])
+        self.assertNotIn("supabase", config)
+
     def test_push_requires_account_public_key_and_delivery_readiness(self) -> None:
         base = {
+            "ACCOUNT_READY": "true",
             "SUPABASE_URL": "https://project.supabase.co",
             "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_example",
             "VAPID_PUBLIC_KEY": "public-vapid-key",
@@ -48,6 +61,7 @@ class PublicConfigTests(unittest.TestCase):
 
     def test_ai_requires_account_private_keys_and_explicit_delivery_flag(self) -> None:
         environment = {
+            "ACCOUNT_READY": "true",
             "SUPABASE_URL": "https://project.supabase.co",
             "SUPABASE_PUBLISHABLE_KEY": "public-key",
             "SUPABASE_SERVICE_ROLE_KEY": "service-role",
@@ -65,6 +79,7 @@ class PublicConfigTests(unittest.TestCase):
 
     def test_community_requires_account_service_role_and_explicit_readiness(self) -> None:
         environment = {
+            "ACCOUNT_READY": "true",
             "SUPABASE_URL": "https://project.supabase.co",
             "SUPABASE_PUBLISHABLE_KEY": "public-key",
             "SUPABASE_SERVICE_ROLE_KEY": "service-role",

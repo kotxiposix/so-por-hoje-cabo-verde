@@ -16,6 +16,7 @@ Valores necessarios para a integracao:
 SUPABASE_URL=https://PROJECT_REF.supabase.co
 SUPABASE_PUBLISHABLE_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...  # apenas servidor, nunca no browser
+ACCOUNT_READY=false            # manter a conta escondida durante a configuracao
 VAPID_PUBLIC_KEY=...           # pode ser enviada ao browser
 VAPID_PRIVATE_KEY=...          # apenas no emissor seguro
 VAPID_SUBJECT=mailto:equipa@exemplo.cv
@@ -31,7 +32,7 @@ COMMUNITY_DAILY_POST_LIMIT=3   # limite por conta e dia, entre 1 e 20
 HELP_DIRECTORY_READY=false     # usar a lista estática até validar e importar os recursos
 ```
 
-A URL e a chave publica podem ser usadas pelo cliente depois de as regras RLS estarem ativas. A `SERVICE_ROLE_KEY` ignora RLS e fica exclusivamente no ambiente seguro da Vercel.
+A URL e a chave publica só são enviadas ao cliente quando `ACCOUNT_READY=true`, depois de as regras RLS, Email OTP, SMTP e CAPTCHA estarem validados. A `SERVICE_ROLE_KEY` ignora RLS e fica exclusivamente no ambiente seguro da Vercel.
 
 O endpoint `DELETE /api/v1/account` valida o token de acesso no Supabase antes de eliminar a conta resolvida pelo servidor. Nunca aceita um `user_id` indicado pelo browser. As tabelas pessoais usam `ON DELETE CASCADE` para eliminar Jornada, preferencias e subscricoes associadas.
 

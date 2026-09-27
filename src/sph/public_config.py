@@ -11,7 +11,8 @@ def public_runtime_config(environment: Mapping[str, str] | None = None) -> dict[
         env.get("SUPABASE_PUBLISHABLE_KEY", "").strip()
         or env.get("SUPABASE_ANON_KEY", "").strip()
     )
-    account_enabled = bool(supabase_url and publishable_key)
+    account_ready = env.get("ACCOUNT_READY", "").strip().lower() in {"1", "true", "yes"}
+    account_enabled = bool(account_ready and supabase_url and publishable_key)
     vapid_public_key = env.get("VAPID_PUBLIC_KEY", "").strip()
     delivery_ready = env.get("PUSH_DELIVERY_READY", "").strip().lower() in {"1", "true", "yes"}
     push_enabled = bool(account_enabled and vapid_public_key and delivery_ready)

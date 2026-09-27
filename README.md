@@ -54,7 +54,7 @@ Sem rede, atividade, frase e desafio continuam a usar a entrada do catálogo cor
 
 Jornada, gratidoes, check-ins, plano pessoal e Sala Anonima usam `localStorage`. A pessoa pode exportar uma copia JSON versionada e voltar a importa-la no mesmo ou noutro dispositivo. A importacao aceita ficheiros ate 1 MB, valida a versao, datas e campos permitidos e pede confirmacao antes de substituir os dados locais.
 
-O cliente de conta opcional esta preparado para Supabase Email OTP. So fica visivel quando `SUPABASE_URL` e `SUPABASE_PUBLISHABLE_KEY` estiverem configurados. A sincronizacao exige uma escolha explicita entre a copia local e a copia da conta; a Sala Anonima local e as preferencias de notificacao nunca entram nessa sincronizacao.
+O cliente de conta opcional esta preparado para Supabase Email OTP. So fica visivel quando `ACCOUNT_READY=true`, `SUPABASE_URL` e `SUPABASE_PUBLISHABLE_KEY` estiverem configurados. A sincronizacao exige uma escolha explicita entre a copia local e a copia da conta; a Sala Anonima local e as preferencias de notificacao nunca entram nessa sincronizacao.
 
 Abrir `public/index.html` diretamente com `file://` serve apenas para inspecao visual. API, PWA, cache offline e alguns recursos do navegador exigem o servidor local:
 
@@ -113,6 +113,7 @@ O servidor simples mantém sempre o catálogo local. Para testar a integração 
 ```bash
 export SUPABASE_URL="https://PROJECT_REF.supabase.co"
 export SUPABASE_PUBLISHABLE_KEY="..."
+export ACCOUNT_READY="false"
 export SUPABASE_SERVICE_ROLE_KEY="..."
 export OPENAI_API_KEY="sk-..."
 export OPENAI_MODEL="gpt-4.1-mini"
