@@ -1,4 +1,4 @@
-const CACHE_NAME = "sph-shell-v31";
+const CACHE_NAME = "sph-shell-v32";
 const CORE_ASSETS = [
   "/",
   "/index.html",

@@ -97,6 +97,10 @@ class WebAppStructureTests(unittest.TestCase):
 
         script = (PUBLIC / "app.js").read_text(encoding="utf-8")
         self.assertIn("function loadLocalDailySupport", script)
+        self.assertRegex(
+            script,
+            r"if \(!authorization\) \{[\s\S]*?loadLocalDailySupport\(payload\)[\s\S]*?return support;\s*\}",
+        )
         self.assertIn("function watchServiceWorkerRegistration", script)
         self.assertIn("function trackInstallingServiceWorker", script)
         self.assertIn("trackInstallingServiceWorker(registration.installing)", script)

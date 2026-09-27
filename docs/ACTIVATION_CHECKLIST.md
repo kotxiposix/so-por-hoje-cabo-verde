@@ -46,6 +46,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 ## 4. Apoio diário com AI
 
 - [x] Manter o catálogo local disponível para todas as pessoas e como fallback automático.
+- [x] Sem AI ativa e sessão válida, atividade, frase e desafio são escolhidos inteiramente no navegador, sem enviar check-in ou métricas ao servidor.
 - [x] Exigir conta validada e reclamar a quota diária de forma atómica antes de chamar a OpenAI.
 - [ ] Guardar na Vercel Preview: `OPENAI_API_KEY`, `OPENAI_MODEL` e `AI_DAILY_LIMIT`.
 - [ ] Manter `AI_DELIVERY_READY=false` durante a configuração e os primeiros testes.

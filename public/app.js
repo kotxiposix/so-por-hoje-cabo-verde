@@ -1798,6 +1798,13 @@ async function getDailySupport() {
     currentSupport = null;
   }
 
+  if (!authorization) {
+    const support = await loadLocalDailySupport(payload);
+    currentSupport = support;
+    localStorage.setItem(cacheKey, JSON.stringify(support));
+    return support;
+  }
+
   if (!navigator.onLine) return loadLocalDailySupport(payload);
 
   try {
