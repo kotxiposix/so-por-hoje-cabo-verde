@@ -44,6 +44,7 @@ class DocumentReferenceParser(HTMLParser):
         super().__init__()
         self.ids: set[str] = set()
         self.references: list[str] = []
+        self.unsafe_blank_references: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         values = dict(attrs)
@@ -52,6 +53,8 @@ class DocumentReferenceParser(HTMLParser):
         for name in ("href", "src"):
             if values.get(name):
                 self.references.append(values[name] or "")
+        if values.get("target") == "_blank" and "noreferrer" not in (values.get("rel") or "").split():
+            self.unsafe_blank_references.append(values.get("href") or "")
 
 
 class WebAppStructureTests(unittest.TestCase):
@@ -140,6 +143,7 @@ class WebAppStructureTests(unittest.TestCase):
         virtual_app_hashes = {"meditacao", "jornada", "viver-saudavel", "ajuda", "sobre"}
 
         for route, (html_path, parser) in documents.items():
+            self.assertFalse(parser.unsafe_blank_references, str(html_path))
             base_url = f"https://local.test{route}"
             for reference in parser.references:
                 parsed_reference = urlparse(reference)
@@ -162,6 +166,14 @@ class WebAppStructureTests(unittest.TestCase):
                 target_document = documents.get(target_route)
                 self.assertIsNotNone(target_document, f"{html_path}: {reference}")
                 self.assertIn(resolved.fragment, target_document[1].ids, f"{html_path}: {reference}")
+
+        for css_path in PUBLIC.rglob("*.css"):
+            css = css_path.read_text(encoding="utf-8")
+            for reference in re.findall(r"url\([\"']?([^\"')]+)", css):
+                if urlparse(reference).scheme or reference.startswith("data:"):
+                    continue
+                target = (css_path.parent / reference.split("?", 1)[0]).resolve()
+                self.assertTrue(target.is_file(), f"{css_path}: {reference}")
 
     def test_manifest_and_service_worker_assets_exist(self) -> None:
         manifest = json.loads((PUBLIC / "manifest.webmanifest").read_text(encoding="utf-8"))
