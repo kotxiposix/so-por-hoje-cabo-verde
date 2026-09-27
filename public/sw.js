@@ -1,4 +1,4 @@
-const CACHE_NAME = "sph-shell-v53";
+const CACHE_NAME = "sph-shell-v54";
 const PUSH_TITLE = "Só Por Hoje";
 const PUSH_BODY = "A meditação de hoje está pronta. Um dia de cada vez.";
 const PUSH_DEFAULT_URL = "/#meditacao";
@@ -74,32 +74,37 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate") {
     const fallback = navigationFallback(url.pathname);
     event.respondWith(
-      fetch(request)
-        .then((response) => {
+      (async () => {
+        try {
+          const response = await fetch(request);
           if (response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(fallback, copy));
+            const cache = await caches.open(CACHE_NAME);
+            await cache.put(fallback, response.clone());
           }
           return response;
-        })
-        .catch(async () => (await caches.match(fallback)) || caches.match("/index.html")),
+        } catch {
+          return (await caches.match(fallback)) || caches.match("/index.html");
+        }
+      })(),
     );
     return;
   }
 
   event.respondWith(
-    caches.match(request).then((cached) => {
+    (async () => {
+      const cached = await caches.match(request);
       const network = fetch(request)
-        .then((response) => {
+        .then(async (response) => {
           if (response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+            const cache = await caches.open(CACHE_NAME);
+            await cache.put(request, response.clone());
           }
           return response;
-        })
-        .catch(() => cached);
-      return cached || network;
-    }),
+        });
+      if (!cached) return network;
+      event.waitUntil(network.then(() => undefined).catch(() => undefined));
+      return cached;
+    })(),
   );
 });
 

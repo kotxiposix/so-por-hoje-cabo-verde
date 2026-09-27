@@ -185,7 +185,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v53"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v54"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -198,6 +198,8 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn('pathname.startsWith("/privacidade")', worker)
         self.assertIn('event.data?.type === "SKIP_WAITING"', worker)
         self.assertIn("await self.clients.claim()", worker)
+        self.assertIn("await cache.put(fallback, response.clone())", worker)
+        self.assertIn("event.waitUntil(network.then(() => undefined).catch(() => undefined))", worker)
         self.assertNotIn("\n  self.clients.claim();", worker)
 
         script = (PUBLIC / "app.js").read_text(encoding="utf-8")
