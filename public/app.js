@@ -544,6 +544,7 @@ function renderPrivacyState() {
     accountEnabled: accountState.enabled,
     signedIn: accountState.enabled && Boolean(accountState.session),
     syncEnabled: accountState.syncEnabled,
+    pushAvailable: accountState.pushEnabled,
   });
   els.privacyPrincipleCopy.textContent = copy.principle;
   els.privacyStorageSummary.textContent = copy.summary;
@@ -2154,7 +2155,7 @@ async function disableNotifications() {
     flashStatus(
       "Notificações desativadas",
       remoteUpdatePending
-        ? "Foram desligadas neste dispositivo; o servidor será atualizado quando voltares a iniciar sessão."
+        ? "Foram desligadas neste dispositivo, mas não foi possível confirmar imediatamente a atualização do serviço em segundo plano."
         : "O navegador pode manter a permissão, mas a plataforma deixou de enviar lembretes.",
     );
   }

@@ -1,4 +1,9 @@
-export function getPrivacyCopy({ accountEnabled = false, signedIn = false, syncEnabled = false } = {}) {
+export function getPrivacyCopy({
+  accountEnabled = false,
+  signedIn = false,
+  syncEnabled = false,
+  pushAvailable = false,
+} = {}) {
   if (!accountEnabled) {
     return {
       principle: "A Jornada e a Sala Anónima ficam apenas neste dispositivo enquanto a conta segura não estiver ativa.",
@@ -32,12 +37,19 @@ export function getPrivacyCopy({ accountEnabled = false, signedIn = false, syncE
     };
   }
 
+  const devicePreferences = pushAvailable
+    ? "A Sala Anónima continua apenas neste dispositivo. Se ativares notificações em segundo plano, a hora, o fuso horário e a subscrição técnica são tratados separadamente no servidor e não fazem parte da cópia da Jornada."
+    : "A Sala Anónima e as preferências de notificação continuam apenas neste dispositivo.";
+  const faqDevicePreferences = pushAvailable
+    ? "A Sala Anónima continua local. As notificações em segundo plano, quando ativadas, usam um registo técnico separado da Jornada."
+    : "A Sala Anónima e as preferências do dispositivo continuam locais.";
+
   return {
     principle: "A Jornada pode ser sincronizada com a tua conta; a Sala Anónima e as preferências deste dispositivo não entram nessa cópia.",
     summary: "Com a sincronização ativa, leituras, check-ins, gratidões, data de sobriedade e plano pessoal podem ser guardados na tua conta para uso noutros dispositivos.",
-    detail: "A Sala Anónima e as preferências de notificação continuam apenas neste dispositivo. Podes apagar a cópia da conta, terminar a sessão ou eliminar a conta no menu Mais.",
+    detail: `${devicePreferences} Podes apagar a cópia da conta, terminar a sessão ou eliminar a conta no menu Mais.`,
     journeyIntro: "Um espaço pessoal para acompanhar a recuperação diária. A Jornada está ligada à tua conta e pode ser usada noutros dispositivos.",
     gratitudeNote: "Uma frase é suficiente. Com a sincronização ativa, pode ser guardada na tua conta.",
-    faqAnswer: "A Jornada e as gratidões podem ser sincronizadas quando ativares essa opção. A Sala Anónima e as preferências do dispositivo continuam locais.",
+    faqAnswer: `A Jornada e as gratidões podem ser sincronizadas quando ativares essa opção. ${faqDevicePreferences}`,
   };
 }

@@ -41,3 +41,17 @@ test("privacy copy distinguishes synchronized and device-only data", () => {
   assert.match(copy.gratitudeNote, /guardada na tua conta/);
   assert.match(copy.faqAnswer, /Sala Anónima.*continuam locais/);
 });
+
+test("privacy copy describes push as a separate technical record when available", () => {
+  const copy = getPrivacyCopy({
+    accountEnabled: true,
+    signedIn: true,
+    syncEnabled: true,
+    pushAvailable: true,
+  });
+
+  assert.match(copy.detail, /hora, o fuso horário e a subscrição técnica/);
+  assert.match(copy.detail, /não fazem parte da cópia da Jornada/);
+  assert.match(copy.faqAnswer, /registo técnico separado da Jornada/);
+  assert.doesNotMatch(copy.detail, /preferências de notificação continuam apenas neste dispositivo/);
+});

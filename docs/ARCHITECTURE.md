@@ -69,7 +69,7 @@ Sem conta, os dados pessoais permanecem no dispositivo em `localStorage`:
 
 A pessoa pode exportar e importar uma copia JSON versionada. A importacao valida tamanho, versao, datas e campos permitidos antes de substituir os dados.
 
-Com conta ativa, o cliente usa Supabase Email OTP. A sincronizacao e explicita: a pessoa escolhe qual copia conservar quando existe conflito. Campos exclusivos do dispositivo, incluindo a Sala Anonima local e preferencias de notificacao, nao sao sincronizados.
+Com conta ativa, o cliente usa Supabase Email OTP. A sincronizacao e explicita: a pessoa escolhe qual copia conservar quando existe conflito. Campos exclusivos do dispositivo, incluindo a Sala Anonima local e preferencias de notificacao, nao entram na copia da Jornada. Quando o push real e escolhido, hora, fuso e subscricao tecnica usam um registo separado no servidor.
 
 ## 5. Backend e integracoes
 
