@@ -1356,10 +1356,16 @@ async function importJourneyData(file) {
       return;
     }
     state.progress = normalizeProgress(progress);
-    saveProgress();
+    saveProgress({ sync: false });
+    const syncWasActive = accountState.syncEnabled;
+    if (syncWasActive) {
+      pauseJourneySync("A sincronização foi pausada depois da importação. Escolhe novamente qual cópia da Jornada queres usar.");
+    }
     renderProgress();
     renderAnonymousRoom();
-    els.importStatus.textContent = "Dados importados com sucesso.";
+    els.importStatus.textContent = syncWasActive
+      ? "Dados importados neste dispositivo. A sincronização foi pausada para não alterar a cópia da conta sem uma nova escolha."
+      : "Dados importados com sucesso neste dispositivo.";
   } catch {
     els.importStatus.textContent = "Não foi possível importar esta cópia.";
   } finally {

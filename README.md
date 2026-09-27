@@ -52,7 +52,7 @@ A interface principal inclui manifesto e service worker. Quando servida por `loc
 
 Sem rede, atividade, frase e desafio continuam a usar a entrada do catálogo correspondente ao dia e ao check-in escolhido. Quando existe uma nova versão do service worker, a área Mais mostra uma ação explícita para atualizar, evitando uma recarga inesperada durante a utilização.
 
-Jornada, gratidoes, check-ins, plano pessoal e Sala Anonima usam `localStorage`. A pessoa pode exportar uma copia JSON versionada e voltar a importa-la no mesmo ou noutro dispositivo. A importacao aceita ficheiros ate 1 MB, valida a versao, datas e campos permitidos e pede confirmacao antes de substituir os dados locais.
+Jornada, gratidoes, check-ins, plano pessoal e Sala Anonima usam `localStorage`. A pessoa pode exportar uma copia JSON versionada e voltar a importa-la no mesmo ou noutro dispositivo. A importacao aceita ficheiros ate 1 MB, valida a versao, datas e campos permitidos e pede confirmacao antes de substituir os dados locais. Se a sincronizacao estiver ativa, a importacao pausa-a e permanece local ate existir uma nova escolha explicita.
 
 O cliente de conta opcional esta preparado para Supabase Email OTP. So fica visivel quando `ACCOUNT_READY=true`, `SUPABASE_URL` e `SUPABASE_PUBLISHABLE_KEY` estiverem configurados. A sincronizacao exige uma escolha explicita entre a copia local e a copia da conta; a Sala Anonima local e as preferencias de notificacao nunca entram nessa sincronizacao.
 

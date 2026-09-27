@@ -185,7 +185,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v51"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v52"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -468,12 +468,23 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("cópia JSON versionada", privacy)
         self.assertIn("aceita até 1 MB", privacy)
         self.assertIn("pede confirmação antes de substituir os dados locais", privacy)
+        self.assertIn("nunca é enviada automaticamente para a conta", privacy)
         self.assertIn("Por defeito", privacy)
         self.assertIn("escolheres sincronizar a Jornada", privacy)
         self.assertIn("modo de privacidade reforçada do YouTube", privacy)
         self.assertIn("ignora qualquer texto de meditação enviado pelo navegador", privacy)
         self.assertIn("Nenhum outro campo entra nessa cópia", privacy)
         self.assertIn("não integra publicidade nem ferramentas próprias de análise", privacy)
+
+    def test_import_stays_local_until_sync_is_chosen_again(self) -> None:
+        script = (PUBLIC / "app.js").read_text(encoding="utf-8")
+        import_flow = script.split("async function importJourneyData", 1)[1].split(
+            "function updateConnectivityStatus", 1
+        )[0]
+
+        self.assertIn("saveProgress({ sync: false })", import_flow)
+        self.assertIn("pauseJourneySync", import_flow)
+        self.assertIn("não alterar a cópia da conta sem uma nova escolha", import_flow)
 
 
 if __name__ == "__main__":
