@@ -11,6 +11,7 @@ from sph.staff_access import (
     StaffAccessServiceError,
     StaffAuthenticationError,
     StaffForbiddenError,
+    StaffIdentity,
 )
 
 
@@ -53,6 +54,17 @@ class AdminApiTests(unittest.TestCase):
             help_service.return_value.list_for_review.return_value = []
             api.help_resources_for_review(limit=10, authorization="Bearer token")
             require_access.assert_called_once_with("Bearer token", {"help_editor"})
+
+    def test_staff_profile_exposes_roles_without_user_identity(self) -> None:
+        identity = StaffIdentity(
+            user_id="7d40d2bb-6202-4e1f-9231-724d15fc8e02",
+            roles=("help_editor",),
+        )
+        with patch("sph.api.require_staff_access", return_value=identity):
+            result = api.staff_profile("Bearer token")
+
+        self.assertEqual(result, {"roles": ["help_editor"]})
+        self.assertNotIn("user_id", result)
 
 
 if __name__ == "__main__":

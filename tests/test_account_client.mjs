@@ -32,6 +32,22 @@ test("sendOtp uses the official email OTP endpoint", async () => {
   assert.equal(request.options.headers.apikey, "public-key");
 });
 
+test("staff OTP can refuse automatic account creation", async () => {
+  let request;
+  const client = new SupabaseAccountClient({
+    url: "https://project.supabase.co",
+    publishableKey: "public-key",
+    fetchImpl: async (url, options) => {
+      request = { url, options };
+      return jsonResponse({});
+    },
+  });
+
+  await client.sendOtp("staff@example.cv", { createUser: false });
+
+  assert.equal(JSON.parse(request.options.body).create_user, false);
+});
+
 test("verifyOtp requests an email session", async () => {
   const client = new SupabaseAccountClient({
     url: "https://project.supabase.co",

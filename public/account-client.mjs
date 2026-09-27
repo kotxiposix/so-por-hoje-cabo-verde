@@ -11,10 +11,10 @@ export class SupabaseAccountClient {
     }
   }
 
-  async sendOtp(email) {
+  async sendOtp(email, { createUser = true } = {}) {
     return this.request("/auth/v1/otp", {
       method: "POST",
-      body: { email, create_user: true },
+      body: { email, create_user: Boolean(createUser) },
     });
   }
 

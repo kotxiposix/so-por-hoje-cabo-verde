@@ -39,6 +39,7 @@ from sph.staff_access import (
     StaffAccessServiceError,
     StaffAuthenticationError,
     StaffForbiddenError,
+    StaffIdentity,
     SupabaseStaffAccess,
 )
 from sph.send_log import JsonlSendLog
@@ -111,9 +112,9 @@ def require_technical_admin_access(authorization: str | None) -> None:
         raise HTTPException(status_code=401, detail="Não autorizado")
 
 
-def require_staff_access(authorization: str | None, allowed_roles: set[str]) -> None:
+def require_staff_access(authorization: str | None, allowed_roles: set[str]) -> StaffIdentity:
     try:
-        SupabaseStaffAccess(StaffAccessConfig.from_environment()).authorize(
+        return SupabaseStaffAccess(StaffAccessConfig.from_environment()).authorize(
             authorization,
             allowed_roles,
         )
@@ -158,6 +159,15 @@ def health() -> dict[str, str]:
 @app.get("/api/v1/config")
 def runtime_config() -> dict[str, object]:
     return public_runtime_config()
+
+
+@app.get("/api/v1/admin/me")
+def staff_profile(authorization: str | None = Header(default=None)) -> dict[str, list[str]]:
+    identity = require_staff_access(
+        authorization,
+        {"admin", "moderator", "help_editor"},
+    )
+    return {"roles": list(identity.roles)}
 
 
 @app.get("/api/v1/today")

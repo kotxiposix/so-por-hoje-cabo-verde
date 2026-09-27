@@ -1,4 +1,4 @@
-const CACHE_NAME = "sph-shell-v39";
+const CACHE_NAME = "sph-shell-v40";
 const PUSH_TITLE = "Só Por Hoje";
 const PUSH_BODY = "A meditação de hoje está pronta. Um dia de cada vez.";
 const PUSH_DEFAULT_URL = "/#meditacao";
@@ -60,6 +60,11 @@ self.addEventListener("fetch", (event) => {
 
   if (url.pathname.startsWith("/api/")) {
     event.respondWith(fetch(request));
+    return;
+  }
+
+  if (url.pathname.startsWith("/admin")) {
+    event.respondWith(fetch(request, { cache: "no-store" }));
     return;
   }
 

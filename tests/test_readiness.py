@@ -11,6 +11,7 @@ class ReadinessTests(unittest.TestCase):
 
         self.assertTrue(all(not item["public"] for item in report.values()))
         self.assertIn("SUPABASE_URL", report["account"]["missing"])
+        self.assertIn("SUPABASE_URL", report["staffAdmin"]["missing"])
         self.assertIn("OPENAI_API_KEY", report["ai"]["missing"])
         self.assertIn("VAPID_PRIVATE_KEY", report["push"]["missing"])
 

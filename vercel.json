@@ -31,6 +31,24 @@
       ]
     },
     {
+      "source": "/admin",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store"
+        }
+      ]
+    },
+    {
+      "source": "/admin/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store"
+        }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {
@@ -72,6 +90,10 @@
     {
       "src": "/privacidade/?",
       "dest": "/public/privacidade/index.html"
+    },
+    {
+      "src": "/admin/?",
+      "dest": "/public/admin/index.html"
     },
     {
       "src": "/",

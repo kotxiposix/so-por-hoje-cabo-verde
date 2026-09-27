@@ -95,6 +95,8 @@ O catalogo estatico continua disponivel enquanto `HELP_DIRECTORY_READY=false`. O
 
 As ações editoriais usam papéis individuais guardados em `staff_roles`: `moderator` para a comunidade, `help_editor` para o diretório e `admin` para ambas. `STAFF_ACCESS_READY=false` mantém estes acessos fechados até existirem contas reais testadas; `ADMIN_API_SECRET` fica reservado aos endpoints técnicos internos.
 
+O painel `/admin` é uma superfície operacional separada da aplicação pública. Não é apresentado no menu, não é indexável nem guardado pelo service worker. A interface pede autenticação individual, consulta `/api/v1/admin/me` e mostra apenas as ferramentas permitidas pelos papéis ativos.
+
 ## 6. Portoes de ativacao
 
 ```text

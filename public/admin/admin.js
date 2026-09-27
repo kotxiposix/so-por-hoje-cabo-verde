@@ -1,0 +1,309 @@
+import { SupabaseAccountClient } from "../account-client.mjs?staff=1";
+
+const SESSION_KEY = "sph-staff-session";
+const state = { client: null, session: loadSession(), roles: new Set(), resources: [] };
+const els = Object.fromEntries([
+  "auth-panel", "auth-summary", "auth-status", "email-form", "staff-email", "code-form", "staff-code",
+  "workspace", "workspace-status", "signout", "role-list", "community-tab", "directory-tab",
+  "community-view", "directory-view", "refresh-community", "community-list", "new-resource", "resource-list",
+  "resource-form", "resource-id", "resource-name", "resource-category", "resource-island", "resource-municipality",
+  "resource-description", "resource-phone", "resource-email", "resource-website", "resource-source",
+  "resource-schedule", "resource-emergency", "review-days", "verify-resource", "retire-resource",
+].map((id) => [id.replaceAll("-", "_"), document.getElementById(id)]));
+
+let pendingEmail = "";
+
+function loadSession() {
+  try {
+    const session = JSON.parse(sessionStorage.getItem(SESSION_KEY));
+    return session?.access_token && session?.refresh_token && session?.user?.id ? session : null;
+  } catch { return null; }
+}
+
+function persistSession(session) {
+  state.session = session;
+  if (session) sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  else sessionStorage.removeItem(SESSION_KEY);
+}
+
+function setStatus(message, error = false) {
+  const target = els.workspace.hidden ? els.auth_status : els.workspace_status;
+  target.textContent = message;
+  target.classList.toggle("error", error);
+}
+
+async function activeSession() {
+  state.session = await state.client.ensureSession(state.session);
+  persistSession(state.session);
+  return state.session;
+}
+
+async function platformRequest(path, options = {}) {
+  const session = await activeSession();
+  const response = await fetch(path, {
+    ...options,
+    headers: {
+      Accept: "application/json",
+      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      Authorization: `Bearer ${session.access_token}`,
+      ...options.headers,
+    },
+    cache: "no-store",
+  });
+  let payload = null;
+  try { payload = await response.json(); } catch { /* Preserve the generic message. */ }
+  if (!response.ok) throw new Error(payload?.detail || "Pedido administrativo não concluído.");
+  return payload;
+}
+
+async function authenticate() {
+  const profile = await platformRequest("/api/v1/admin/me");
+  state.roles = new Set(profile.roles || []);
+  els.auth_panel.hidden = true;
+  els.workspace.hidden = false;
+  els.signout.hidden = false;
+  els.role_list.replaceChildren(...[...state.roles].map((role) => {
+    const badge = document.createElement("span");
+    badge.textContent = role;
+    return badge;
+  }));
+  const canModerate = state.roles.has("admin") || state.roles.has("moderator");
+  const canEditHelp = state.roles.has("admin") || state.roles.has("help_editor");
+  els.community_tab.hidden = !canModerate;
+  els.directory_tab.hidden = !canEditHelp;
+  if (canModerate) await showView("community");
+  else if (canEditHelp) await showView("directory");
+}
+
+async function showView(view) {
+  const community = view === "community";
+  els.community_view.hidden = !community;
+  els.directory_view.hidden = community;
+  els.community_tab.setAttribute("aria-selected", String(community));
+  els.directory_tab.setAttribute("aria-selected", String(!community));
+  if (community) await loadCommunity();
+  else await loadResources();
+}
+
+function emptyState(message) {
+  const node = document.createElement("p");
+  node.className = "empty-state";
+  node.textContent = message;
+  return node;
+}
+
+async function loadCommunity() {
+  setStatus("A atualizar a fila...");
+  const posts = await platformRequest("/api/v1/admin/community/pending?limit=100");
+  els.community_list.replaceChildren();
+  if (!posts.length) els.community_list.append(emptyState("Não existem partilhas pendentes."));
+  posts.forEach((post) => els.community_list.append(renderPost(post)));
+  setStatus(`${posts.length} partilha(s) pendente(s).`);
+}
+
+function renderPost(post) {
+  const article = document.createElement("article");
+  article.className = "moderation-record";
+  const heading = document.createElement("div");
+  heading.className = "record-heading";
+  const name = document.createElement("strong");
+  name.textContent = post.pseudonym || "Pseudónimo indisponível";
+  const time = document.createElement("time");
+  time.dateTime = post.created_at || "";
+  time.textContent = post.created_at ? new Date(post.created_at).toLocaleString("pt-CV") : "Data indisponível";
+  heading.append(name, time);
+  const body = document.createElement("p");
+  body.textContent = post.body || "";
+  article.append(heading, body);
+  const flags = Array.isArray(post.review_flags) ? post.review_flags : [];
+  if (flags.length) {
+    const warning = document.createElement("p");
+    warning.className = "flag";
+    warning.textContent = `Revisão obrigatória: ${flags.join(", ")}`;
+    article.append(warning);
+  }
+  const actions = document.createElement("div");
+  actions.className = "record-actions";
+  const note = document.createElement("input");
+  note.placeholder = "Nota interna opcional";
+  note.maxLength = 500;
+  actions.append(note);
+  [["Publicar", "published", "success-button"], ["Rejeitar", "rejected", "danger-button"], ["Ocultar", "hidden", "quiet-button"]]
+    .forEach(([label, decision, className]) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = className;
+      button.textContent = label;
+      if (decision === "published" && flags.length) button.disabled = true;
+      button.addEventListener("click", () => moderatePost(post.id, decision, note.value));
+      actions.append(button);
+    });
+  article.append(actions);
+  return article;
+}
+
+async function moderatePost(id, status, note) {
+  const labels = { published: "publicar", rejected: "rejeitar", hidden: "ocultar" };
+  if (!window.confirm(`Confirmar: ${labels[status]} esta partilha?`)) return;
+  setStatus("A guardar a decisão...");
+  try {
+    await platformRequest(`/api/v1/admin/community/posts/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status, note: note.trim() || null }),
+    });
+    await loadCommunity();
+  } catch (error) { setStatus(error.message, true); }
+}
+
+async function loadResources() {
+  setStatus("A atualizar os recursos...");
+  state.resources = await platformRequest("/api/v1/admin/help/resources?limit=500");
+  renderResourceList();
+  setStatus(`${state.resources.length} recurso(s) no diretório.`);
+}
+
+function renderResourceList() {
+  const selectedId = els.resource_id.value;
+  els.resource_list.replaceChildren();
+  if (!state.resources.length) els.resource_list.append(emptyState("Ainda não existem recursos."));
+  state.resources.forEach((resource) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "resource-item";
+    button.setAttribute("aria-current", String(resource.id === selectedId));
+    const name = document.createElement("strong");
+    name.textContent = resource.name || "Sem nome";
+    const status = document.createElement("small");
+    status.textContent = `${resource.verification_status || "draft"} · ${resource.category || "other"}`;
+    button.append(name, status);
+    button.addEventListener("click", () => fillResource(resource));
+    els.resource_list.append(button);
+  });
+}
+
+function fillResource(resource = null) {
+  const value = resource || {};
+  els.resource_id.value = value.id || "";
+  els.resource_name.value = value.name || "";
+  els.resource_category.value = value.category || "information";
+  els.resource_island.value = value.island || "";
+  els.resource_municipality.value = value.municipality || "";
+  els.resource_description.value = value.description || "";
+  els.resource_phone.value = value.phone || "";
+  els.resource_email.value = value.email || "";
+  els.resource_website.value = value.website || "";
+  els.resource_source.value = value.source_url || "";
+  els.resource_schedule.value = Array.isArray(value.schedule) ? value.schedule.join("\n") : "";
+  els.resource_emergency.checked = Boolean(value.is_emergency);
+  els.verify_resource.disabled = !value.id;
+  els.retire_resource.disabled = !value.id;
+  renderResourceList();
+  els.resource_name.focus();
+}
+
+function resourcePayload() {
+  return {
+    name: els.resource_name.value.trim(),
+    category: els.resource_category.value,
+    island: els.resource_island.value.trim() || null,
+    municipality: els.resource_municipality.value.trim() || null,
+    description: els.resource_description.value.trim() || null,
+    phone: els.resource_phone.value.trim() || null,
+    email: els.resource_email.value.trim() || null,
+    website: els.resource_website.value.trim() || null,
+    source_url: els.resource_source.value.trim() || null,
+    schedule: els.resource_schedule.value.split("\n").map((line) => line.trim()).filter(Boolean),
+    is_emergency: els.resource_emergency.checked,
+  };
+}
+
+async function saveResource(event) {
+  event.preventDefault();
+  const id = els.resource_id.value;
+  const method = id ? "PUT" : "POST";
+  const path = id ? `/api/v1/admin/help/resources/${encodeURIComponent(id)}` : "/api/v1/admin/help/resources";
+  setStatus("A guardar o rascunho...");
+  try {
+    const saved = await platformRequest(path, { method, body: JSON.stringify(resourcePayload()) });
+    await loadResources();
+    fillResource(saved);
+    setStatus("Rascunho guardado. Uma alteração exige nova verificação.");
+  } catch (error) { setStatus(error.message, true); }
+}
+
+async function verifyResource() {
+  const id = els.resource_id.value;
+  if (!id || !window.confirm("Confirmar os dados e tornar este recurso público até à próxima revisão?")) return;
+  try {
+    const reviewDays = Number(els.review_days.value);
+    const saved = await platformRequest(`/api/v1/admin/help/resources/${encodeURIComponent(id)}/verify`, {
+      method: "POST", body: JSON.stringify({ review_days: reviewDays }),
+    });
+    await loadResources();
+    fillResource(saved);
+    setStatus("Recurso verificado.");
+  } catch (error) { setStatus(error.message, true); }
+}
+
+async function retireResource() {
+  const id = els.resource_id.value;
+  if (!id || !window.confirm("Retirar este recurso da lista pública?")) return;
+  try {
+    await platformRequest(`/api/v1/admin/help/resources/${encodeURIComponent(id)}/retire`, { method: "POST" });
+    await loadResources();
+    fillResource();
+    setStatus("Recurso retirado da lista pública.");
+  } catch (error) { setStatus(error.message, true); }
+}
+
+async function initialize() {
+  try {
+    const response = await fetch("/api/v1/config", { cache: "no-store" });
+    const config = await response.json();
+    if (!config.features?.staffAdmin || !config.supabase) {
+      els.email_form.hidden = true;
+      els.auth_summary.textContent = "A área da equipa ainda não está configurada neste ambiente.";
+      return;
+    }
+    state.client = new SupabaseAccountClient(config.supabase);
+    if (state.session) await authenticate();
+  } catch (error) {
+    persistSession(null);
+    setStatus(error.message || "Não foi possível iniciar a área da equipa.", true);
+  }
+}
+
+els.email_form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  pendingEmail = els.staff_email.value.trim().toLowerCase();
+  try {
+    setStatus("A enviar o código...");
+    await state.client.sendOtp(pendingEmail, { createUser: false });
+    els.code_form.hidden = false;
+    els.staff_code.focus();
+    setStatus("Código enviado para a conta autorizada.");
+  } catch (error) { setStatus(error.message, true); }
+});
+
+els.code_form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  try {
+    persistSession(await state.client.verifyOtp(pendingEmail, els.staff_code.value.trim()));
+    await authenticate();
+  } catch (error) { persistSession(null); setStatus(error.message, true); }
+});
+
+els.signout.addEventListener("click", async () => {
+  try { await state.client?.signOut(state.session); } catch { /* Local sign-out still proceeds. */ }
+  persistSession(null);
+  window.location.reload();
+});
+els.community_tab.addEventListener("click", () => showView("community").catch((error) => setStatus(error.message, true)));
+els.directory_tab.addEventListener("click", () => showView("directory").catch((error) => setStatus(error.message, true)));
+els.refresh_community.addEventListener("click", () => loadCommunity().catch((error) => setStatus(error.message, true)));
+els.new_resource.addEventListener("click", () => fillResource());
+els.resource_form.addEventListener("submit", saveResource);
+els.verify_resource.addEventListener("click", verifyResource);
+els.retire_resource.addEventListener("click", retireResource);
+
+initialize();

@@ -140,6 +140,7 @@ class WebAppStructureTests(unittest.TestCase):
 
         self.assertEqual(routes[0]["src"], "/api/(.*)")
         self.assertEqual(routes[0]["dest"], "/api/index.py")
+        self.assertIn({"src": "/admin/?", "dest": "/public/admin/index.html"}, routes)
         self.assertIn({"src": "/expo/?", "dest": "/public/expo/index.html"}, routes)
         self.assertIn({"src": "/privacidade/?", "dest": "/public/privacidade/index.html"}, routes)
 
@@ -149,6 +150,8 @@ class WebAppStructureTests(unittest.TestCase):
 
         self.assertEqual(rules["/sw.js"]["Cache-Control"], "public, max-age=0, must-revalidate")
         self.assertEqual(rules["/api/(.*)"]["Cache-Control"], "private, no-store")
+        self.assertEqual(rules["/admin"]["Cache-Control"], "private, no-store")
+        self.assertEqual(rules["/admin/(.*)"]["Cache-Control"], "private, no-store")
         security = rules["/(.*)"]
         self.assertIn("frame-ancestors 'none'", security["Content-Security-Policy"])
         self.assertIn("https://*.supabase.co", security["Content-Security-Policy"])
@@ -245,6 +248,29 @@ class WebAppStructureTests(unittest.TestCase):
         expo_script = (PUBLIC / "expo" / "page.js").read_text(encoding="utf-8")
         self.assertIn("youtube-nocookie.com/embed", expo_script)
         self.assertNotIn("youtube.com/embed", expo_script)
+
+    def test_staff_admin_is_separate_and_never_cached_offline(self) -> None:
+        admin_html = (PUBLIC / "admin" / "index.html").read_text(encoding="utf-8")
+        admin_styles = (PUBLIC / "admin" / "admin.css").read_text(encoding="utf-8")
+        admin_script = (PUBLIC / "admin" / "admin.js").read_text(encoding="utf-8")
+        service_worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
+
+        self.assertIn('name="robots" content="noindex, nofollow, noarchive"', admin_html)
+        self.assertIn('id="email-form"', admin_html)
+        self.assertIn('id="community-view"', admin_html)
+        self.assertIn('id="directory-view"', admin_html)
+        self.assertIn('sendOtp(pendingEmail, { createUser: false })', admin_script)
+        self.assertIn('platformRequest("/api/v1/admin/me")', admin_script)
+        self.assertIn('from "../account-client.mjs?staff=1"', admin_script)
+        self.assertIn("sessionStorage.getItem(SESSION_KEY)", admin_script)
+        self.assertNotIn("localStorage", admin_script)
+        self.assertIn("[hidden] { display: none !important; }", admin_styles)
+        self.assertIn('url.pathname.startsWith("/admin")', service_worker)
+        self.assertIn('fetch(request, { cache: "no-store" })', service_worker)
+
+        core_assets = service_worker.split("const CORE_ASSETS = [", 1)[1].split("];", 1)[0]
+        self.assertNotIn("/admin", core_assets)
+        self.assertNotIn('href="/admin', self.index_text)
 
     def test_privacy_page_matches_local_backup_behavior(self) -> None:
         privacy = (PUBLIC / "privacidade" / "index.html").read_text(encoding="utf-8")

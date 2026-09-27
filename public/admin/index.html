@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-CV">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#073457" />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="description" content="Área reservada da equipa Só Por Hoje Cabo Verde." />
+    <title>Equipa · Só Por Hoje Cabo Verde</title>
+    <link rel="icon" type="image/png" href="../favicon-32.png" />
+    <link rel="stylesheet" href="admin.css?v=1" />
+  </head>
+  <body>
+    <header class="admin-header">
+      <a class="brand" href="../" aria-label="Voltar à plataforma">
+        <img src="../icon-512.png" alt="" />
+        <span><strong>Só Por Hoje</strong><small>Área da equipa</small></span>
+      </a>
+      <button id="signout" class="quiet-button" type="button" hidden>Terminar sessão</button>
+    </header>
+
+    <main>
+      <section id="auth-panel" class="auth-panel" aria-labelledby="auth-title">
+        <span class="eyebrow">Acesso reservado</span>
+        <h1 id="auth-title">Entrar na área da equipa</h1>
+        <p id="auth-summary">Usa a conta previamente autorizada pela administração.</p>
+        <form id="email-form">
+          <label for="staff-email">Email</label>
+          <div class="inline-form">
+            <input id="staff-email" name="email" type="email" autocomplete="email" required />
+            <button type="submit">Enviar código</button>
+          </div>
+        </form>
+        <form id="code-form" hidden>
+          <label for="staff-code">Código recebido</label>
+          <div class="inline-form">
+            <input id="staff-code" name="code" inputmode="numeric" autocomplete="one-time-code" required />
+            <button type="submit">Confirmar</button>
+          </div>
+        </form>
+        <p id="auth-status" class="status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section id="workspace" class="workspace" hidden>
+        <header class="workspace-header">
+          <div>
+            <span class="eyebrow">Operação</span>
+            <h1>Painel da equipa</h1>
+          </div>
+          <div id="role-list" class="role-list" aria-label="Papéis ativos"></div>
+        </header>
+
+        <nav class="admin-tabs" aria-label="Áreas administrativas">
+          <button id="community-tab" type="button" data-admin-view="community">Moderação</button>
+          <button id="directory-tab" type="button" data-admin-view="directory">Diretório de ajuda</button>
+        </nav>
+
+        <p id="workspace-status" class="status" role="status" aria-live="polite"></p>
+
+        <section id="community-view" class="admin-view" aria-labelledby="community-title" hidden>
+          <div class="section-heading">
+            <div><span class="eyebrow">Sala Anónima</span><h2 id="community-title">Fila de moderação</h2></div>
+            <button id="refresh-community" class="quiet-button" type="button">Atualizar</button>
+          </div>
+          <div id="community-list" class="record-list"></div>
+        </section>
+
+        <section id="directory-view" class="admin-view" aria-labelledby="directory-title" hidden>
+          <div class="section-heading">
+            <div><span class="eyebrow">Ajuda verificada</span><h2 id="directory-title">Recursos e revisão</h2></div>
+            <button id="new-resource" class="quiet-button" type="button">Novo recurso</button>
+          </div>
+          <div class="directory-layout">
+            <div id="resource-list" class="resource-list" aria-label="Recursos existentes"></div>
+            <form id="resource-form" class="resource-form">
+              <input id="resource-id" type="hidden" />
+              <div class="field-grid">
+                <label>Nome<input id="resource-name" maxlength="120" required /></label>
+                <label>Categoria
+                  <select id="resource-category" required>
+                    <option value="information">Informação</option>
+                    <option value="emergency">Emergência</option>
+                    <option value="health">Saúde</option>
+                    <option value="treatment">Tratamento</option>
+                    <option value="meeting">Reunião</option>
+                    <option value="family">Família</option>
+                    <option value="other">Outro</option>
+                  </select>
+                </label>
+                <label>Ilha<input id="resource-island" maxlength="60" /></label>
+                <label>Município<input id="resource-municipality" maxlength="80" /></label>
+              </div>
+              <label>Descrição<textarea id="resource-description" rows="4" maxlength="1000"></textarea></label>
+              <div class="field-grid">
+                <label>Telefone<input id="resource-phone" maxlength="80" /></label>
+                <label>Email<input id="resource-email" type="email" maxlength="254" /></label>
+                <label>Website HTTPS<input id="resource-website" type="url" maxlength="500" /></label>
+                <label>Fonte HTTPS<input id="resource-source" type="url" maxlength="500" /></label>
+              </div>
+              <label>Horários, um por linha<textarea id="resource-schedule" rows="4"></textarea></label>
+              <label class="check-field"><input id="resource-emergency" type="checkbox" /> Recurso de emergência</label>
+              <div class="form-actions">
+                <button type="submit">Guardar rascunho</button>
+                <label class="review-days">Rever em <input id="review-days" type="number" min="1" max="365" value="90" /> dias</label>
+                <button id="verify-resource" class="success-button" type="button" disabled>Verificar</button>
+                <button id="retire-resource" class="danger-button" type="button" disabled>Retirar</button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script type="module" src="admin.js?v=1"></script>
+  </body>
+</html>

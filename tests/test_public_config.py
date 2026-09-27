@@ -38,6 +38,21 @@ class PublicConfigTests(unittest.TestCase):
         self.assertFalse(config["features"]["account"])
         self.assertNotIn("supabase", config)
 
+    def test_staff_admin_is_separate_from_the_optional_public_account(self) -> None:
+        environment = {
+            "STAFF_ACCESS_READY": "true",
+            "SUPABASE_URL": "https://project.supabase.co",
+            "SUPABASE_PUBLISHABLE_KEY": "public-key",
+            "SUPABASE_SERVICE_ROLE_KEY": "service-role",
+        }
+
+        config = public_runtime_config(environment)
+
+        self.assertFalse(config["features"]["account"])
+        self.assertTrue(config["features"]["staffAdmin"])
+        self.assertIn("supabase", config)
+        self.assertNotIn("service-role", repr(config))
+
     def test_push_requires_account_public_key_and_delivery_readiness(self) -> None:
         base = {
             "ACCOUNT_READY": "true",

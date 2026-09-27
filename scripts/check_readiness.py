@@ -22,6 +22,10 @@ def readiness_report(environment: Mapping[str, str] | None = None) -> dict[str, 
             "ACCOUNT_READY",
             ("SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY", "SUPABASE_SERVICE_ROLE_KEY"),
         ),
+        "staffAdmin": (
+            "STAFF_ACCESS_READY",
+            ("SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY", "SUPABASE_SERVICE_ROLE_KEY"),
+        ),
         "ai": (
             "AI_DELIVERY_READY",
             (
@@ -63,7 +67,7 @@ def readiness_report(environment: Mapping[str, str] | None = None) -> dict[str, 
     account_flag = is_enabled(env, "ACCOUNT_READY")
     for feature, (flag, required) in definitions.items():
         missing = missing_values(env, required)
-        dependencies_ready = feature in {"account", "helpDirectory"} or account_flag
+        dependencies_ready = feature in {"account", "staffAdmin", "helpDirectory"} or account_flag
         report[feature] = {
             "flag": flag,
             "enabled": is_enabled(env, flag),
@@ -79,6 +83,7 @@ def main() -> int:
     report = readiness_report()
     labels = {
         "account": "Conta",
+        "staffAdmin": "Área da equipa",
         "ai": "AI",
         "push": "Push",
         "community": "Comunidade",

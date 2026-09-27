@@ -13,6 +13,13 @@ def public_runtime_config(environment: Mapping[str, str] | None = None) -> dict[
     )
     account_ready = env.get("ACCOUNT_READY", "").strip().lower() in {"1", "true", "yes"}
     account_enabled = bool(account_ready and supabase_url and publishable_key)
+    staff_access_ready = env.get("STAFF_ACCESS_READY", "").strip().lower() in {"1", "true", "yes"}
+    staff_admin_enabled = bool(
+        staff_access_ready
+        and supabase_url
+        and publishable_key
+        and env.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    )
     vapid_public_key = env.get("VAPID_PUBLIC_KEY", "").strip()
     delivery_ready = env.get("PUSH_DELIVERY_READY", "").strip().lower() in {"1", "true", "yes"}
     push_enabled = bool(
@@ -32,7 +39,6 @@ def public_runtime_config(environment: Mapping[str, str] | None = None) -> dict[
         and env.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
     )
     community_ready = env.get("COMMUNITY_READY", "").strip().lower() in {"1", "true", "yes"}
-    staff_access_ready = env.get("STAFF_ACCESS_READY", "").strip().lower() in {"1", "true", "yes"}
     community_enabled = bool(
         account_enabled
         and community_ready
@@ -50,13 +56,14 @@ def public_runtime_config(environment: Mapping[str, str] | None = None) -> dict[
     payload: dict[str, object] = {
         "features": {
             "account": account_enabled,
+            "staffAdmin": staff_admin_enabled,
             "community": community_enabled,
             "helpDirectory": help_directory_enabled,
             "push": push_enabled,
             "ai": ai_enabled,
         }
     }
-    if account_enabled:
+    if account_enabled or staff_admin_enabled:
         payload["supabase"] = {
             "url": supabase_url,
             "publishableKey": publishable_key,

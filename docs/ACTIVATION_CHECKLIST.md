@@ -106,7 +106,8 @@ Nao ativar antes de existirem moderadores identificados, horario e tempo de resp
 - [ ] Nomear pelo menos dois moderadores e definir escalas, permissões e substituição.
 - [ ] Aprovar regras de publicação, motivos de denúncia, retenção e auditoria.
 - [ ] Aprovar e ensaiar o protocolo para conteúdo de risco antes de receber uma única partilha pública.
-- [ ] Construir a interface administrativa e testá-la com contas individuais; o backend por papéis já está preparado e não usa o segredo técnico partilhado.
+- [x] Preparar a interface administrativa separada em `/admin`, com acesso por código e permissões individuais para moderação e diretório.
+- [ ] Testar `/admin` com contas reais de cada papel antes de ativar `STAFF_ACCESS_READY=true`.
 - [ ] Testar publicação, rejeição, ocultação, denúncia duplicada e eliminação de conta em Preview.
 - [ ] Só depois destes passos ativar `COMMUNITY_READY=true` em Preview.
 
