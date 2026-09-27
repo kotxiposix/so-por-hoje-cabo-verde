@@ -28,6 +28,7 @@ class PushSender(Protocol):
 
 @dataclass(frozen=True)
 class PushDeliveryConfig:
+    enabled: bool
     supabase_url: str
     service_role_key: str
     vapid_private_key: str
@@ -37,6 +38,7 @@ class PushDeliveryConfig:
     @classmethod
     def from_environment(cls) -> "PushDeliveryConfig":
         return cls(
+            enabled=os.getenv("PUSH_DELIVERY_READY", "").strip().lower() in {"1", "true", "yes"},
             supabase_url=os.getenv("SUPABASE_URL", "").strip().rstrip("/"),
             service_role_key=os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip(),
             vapid_private_key=os.getenv("VAPID_PRIVATE_KEY", "").strip(),
@@ -45,6 +47,8 @@ class PushDeliveryConfig:
         )
 
     def validate(self) -> None:
+        if not self.enabled:
+            raise RuntimeError("A entrega push ainda não está ativa.")
         missing = [
             name
             for name, value in {

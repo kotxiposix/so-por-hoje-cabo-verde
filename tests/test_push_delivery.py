@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
+import os
 import unittest
 from datetime import datetime, timezone
+from unittest.mock import patch
 
 from sph.push_delivery import PushDeliveryConfig, deliver_due_notifications, is_authorized
 
@@ -15,12 +17,32 @@ class ExpiredPushError(Exception):
 class PushDeliveryTests(unittest.TestCase):
     def setUp(self) -> None:
         self.config = PushDeliveryConfig(
+            enabled=True,
             supabase_url="https://project.supabase.co",
             service_role_key="service-secret",
             vapid_private_key="private-vapid",
             vapid_subject="mailto:team@example.com",
             cron_secret="cron-secret",
         )
+
+    def test_delivery_flag_blocks_transport_even_when_secrets_exist(self) -> None:
+        environment = {
+            "SUPABASE_URL": "https://project.supabase.co",
+            "SUPABASE_SERVICE_ROLE_KEY": "service-secret",
+            "VAPID_PRIVATE_KEY": "private-vapid",
+            "VAPID_SUBJECT": "mailto:team@example.com",
+            "PUSH_CRON_SECRET": "cron-secret",
+        }
+        with patch.dict(os.environ, environment, clear=True):
+            config = PushDeliveryConfig.from_environment()
+
+        self.assertFalse(config.enabled)
+        with self.assertRaisesRegex(RuntimeError, "ainda não está ativa"):
+            deliver_due_notifications(
+                config,
+                transport=lambda *_args, **_kwargs: self.fail("Supabase não deve ser consultado"),
+                send_push=lambda *_args, **_kwargs: self.fail("Push não deve ser enviado"),
+            )
 
     def test_authorization_requires_exact_bearer_secret(self) -> None:
         self.assertTrue(is_authorized("Bearer cron-secret", "cron-secret"))

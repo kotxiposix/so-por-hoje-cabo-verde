@@ -40,6 +40,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [ ] Gerar um par VAPID fora do repositorio.
 - [ ] Guardar na Vercel Preview: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` e `PUSH_CRON_SECRET`.
 - [ ] Manter `PUSH_DELIVERY_READY=false` durante os primeiros testes.
+- [x] `PUSH_DELIVERY_READY=false` bloqueia o emissor no servidor, mesmo com Supabase, VAPID e segredo do cron configurados.
 - [ ] Guardar o endpoint e o segredo do cron no Supabase Vault.
 - [ ] Agendar `POST /api/v1/internal/push/deliver` a cada minuto com `Authorization: Bearer $PUSH_CRON_SECRET`.
 - [ ] Testar subscricao, hora/fuso, entrega com app fechada, cancelamento e endpoint expirado em dois dispositivos.

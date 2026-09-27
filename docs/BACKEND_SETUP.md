@@ -133,6 +133,6 @@ Os endpoints `/api/v1/admin/send-logs`, `/api/v1/admin/send-test`, `/api/v1/admi
 
 O cliente, o registo de subscricao, as preferencias e o service worker estao preparados. A API publica so anuncia push quando conta, `VAPID_PUBLIC_KEY` e `PUSH_DELIVERY_READY=true` estiverem presentes. A chave privada nunca e devolvida ao browser.
 
-O endpoint `POST /api/v1/internal/push/deliver` implementa a entrega e exige `Authorization: Bearer $PUSH_CRON_SECRET`. Seleciona preferencias pela hora e fuso local, evita um segundo envio no mesmo dia e desativa endpoints que respondam `404` ou `410`. A mensagem de bloqueio e generica e nao inclui dados da Jornada.
+O endpoint `POST /api/v1/internal/push/deliver` implementa a entrega, exige `Authorization: Bearer $PUSH_CRON_SECRET` e recusa qualquer envio enquanto `PUSH_DELIVERY_READY=false`, mesmo que as restantes chaves já estejam configuradas. Seleciona preferencias pela hora e fuso local, evita um segundo envio no mesmo dia e desativa endpoints que respondam `404` ou `410`. A mensagem de bloqueio e generica e nao inclui dados da Jornada.
 
 No plano Hobby, o Vercel Cron so pode executar uma vez por dia e sem precisao ao minuto. Para respeitar a hora escolhida, usar Supabase Cron (`pg_cron` + `pg_net`) para invocar este endpoint a cada minuto. Guardar o segredo no Supabase Vault. So mudar `PUSH_DELIVERY_READY=true` depois de testar subscricao, entrega, cancelamento e expiracao de endpoint em dois dispositivos.
