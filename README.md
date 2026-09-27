@@ -92,6 +92,15 @@ POST /api/v1/internal/push/deliver
 
 O painel reservado em `/admin` permite gerir o diretório de ajuda, a moderação e o catálogo editorial conforme os papéis atribuídos. O catálogo de Viver Saudável só fica público quando `EDITORIAL_CONTENT_READY=true`; até lá, a secção continua a usar os conteúdos estáticos existentes.
 
+O catálogo inicial pode ser validado sem credenciais ou importado como rascunho depois de configurar o Supabase:
+
+```bash
+PYTHONPATH=src python scripts/import_editorial_content.py
+PYTHONPATH=src python scripts/import_editorial_content.py --apply
+```
+
+`--apply` nunca publica os itens: conteúdos novos ou atualizados ficam em rascunho para revisão no painel.
+
 Publicação e denúncia na comunidade exigem a sessão da própria pessoa e só funcionam quando `COMMUNITY_READY=true`. A eliminação exige a mesma validação de sessão e a entrega push exige o segredo do agendador.
 
 ## Apoio diario com AI

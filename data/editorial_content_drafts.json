@@ -1,0 +1,47 @@
+[
+  {
+    "kind": "podcast",
+    "title": "Podcast Só Por Hoje Cabo Verde",
+    "summary": "Conversas sobre recuperação, vida saudável, experiência vivida e caminhos de apoio em Cabo Verde.",
+    "url": "https://www.youtube.com/playlist?list=PL0OE86edjnSn8OtYM5ypta80L_dye1p58",
+    "image_url": "https://soporhoje.cv/icon-512.png",
+    "display_date": "Conteúdo permanente",
+    "sort_order": 10
+  },
+  {
+    "kind": "video",
+    "title": "A evidência é clara: investir na prevenção",
+    "summary": "Documentário apresentado no âmbito do Dia Mundial contra a Droga, dedicado à prevenção e à resposta comunitária.",
+    "url": "https://www.youtube.com/watch?v=Ba1wMazi4Tg",
+    "image_url": "https://soporhoje.cv/icon-512.png",
+    "display_date": "Documentário",
+    "sort_order": 20
+  },
+  {
+    "kind": "exhibition",
+    "title": "Só Por Hoje: Sobriu, un kaminhada de rekuperasãu",
+    "summary": "Exposição fotográfica de Sandro Fonseca sobre sobriedade, recuperação, memória e esperança.",
+    "url": "https://soporhoje.cv/expo",
+    "image_url": "https://soporhoje.cv/expo/hero-banner.jpg",
+    "display_date": "Coleção 2024",
+    "sort_order": 30
+  },
+  {
+    "kind": "story",
+    "title": "Sandro Fonseca: experiência transformada em serviço",
+    "summary": "Conhece o percurso do artista audiovisual cabo-verdiano e a ligação entre fotografia, recuperação e comunidade.",
+    "url": "https://soporhoje.cv/expo#bio",
+    "image_url": "https://soporhoje.cv/expo/sandro-profile.png",
+    "display_date": "Biografia",
+    "sort_order": 40
+  },
+  {
+    "kind": "resource",
+    "title": "Privacidade e segurança",
+    "summary": "Consulta como a plataforma trata dados locais, conta opcional, sincronização e funcionalidades sensíveis.",
+    "url": "https://soporhoje.cv/privacidade",
+    "image_url": null,
+    "display_date": "Informação da plataforma",
+    "sort_order": 50
+  }
+]

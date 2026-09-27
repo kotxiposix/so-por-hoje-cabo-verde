@@ -157,7 +157,7 @@ class SupabaseEditorialCatalog:
             raise EditorialServiceError("O catálogo editorial devolveu uma resposta inválida.")
         return records
 
-    def create_draft(self, payload: dict[str, object], *, actor_id: str) -> dict[str, object]:
+    def create_draft(self, payload: dict[str, object], *, actor_id: str | None = None) -> dict[str, object]:
         record = self._request(
             "POST",
             "/rest/v1/editorial_content",
@@ -166,7 +166,13 @@ class SupabaseEditorialCatalog:
         )
         return self._one(record, "O conteúdo não foi criado.")
 
-    def update_draft(self, item_id: str, payload: dict[str, object], *, actor_id: str) -> dict[str, object]:
+    def update_draft(
+        self,
+        item_id: str,
+        payload: dict[str, object],
+        *,
+        actor_id: str | None = None,
+    ) -> dict[str, object]:
         record = self._request(
             "PATCH",
             f"/rest/v1/editorial_content?id=eq.{quote(normalize_uuid(item_id), safe='')}",
@@ -209,12 +215,12 @@ class SupabaseEditorialCatalog:
         return self._one(record, "O conteúdo não foi encontrado.")
 
     @staticmethod
-    def _as_draft(payload: dict[str, object], actor_id: str) -> dict[str, object]:
+    def _as_draft(payload: dict[str, object], actor_id: str | None) -> dict[str, object]:
         return {
             **payload,
             "status": "draft",
             "published_at": None,
-            "last_edited_by": normalize_uuid(actor_id),
+            "last_edited_by": normalize_uuid(actor_id) if actor_id else None,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
 

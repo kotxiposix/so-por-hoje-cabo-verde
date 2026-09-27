@@ -111,6 +111,8 @@ Nao ativar antes de existirem moderadores identificados, horario e tempo de resp
 - [x] Limitar o resumo operacional de envios ao papel `admin` e omitir destinos, conteúdo, hashes e erros brutos da resposta ao browser.
 - [x] Registar alterações editoriais do painel por trigger atómico, sem copiar conteúdo privado para `staff_audit_events`.
 - [x] Preparar catálogo editorial de Viver Saudável com rascunho, publicação, retirada, papel `content_editor` e auditoria privada.
+- [x] Preparar catálogo inicial validado e importador idempotente que mantém todos os conteúdos em rascunho.
+- [ ] Importar o catálogo editorial inicial em Preview e rever cada título, resumo, ligação, imagem, autoria e consentimento.
 - [ ] Testar criação, edição, publicação e retirada de conteúdos editoriais com uma conta real em Preview.
 - [ ] Ativar `EDITORIAL_CONTENT_READY=true` apenas depois de rever todas as ligações e confirmar autoria/consentimento dos conteúdos publicados.
 - [ ] Testar `/admin` com contas reais de cada papel antes de ativar `STAFF_ACCESS_READY=true`.
