@@ -21,6 +21,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Exportacao local versionada e importacao da Jornada validada, limitada a 1 MB e confirmada antes da substituicao.
 - [x] Sincronizacao preparada para recusar versoes futuras, pausar quando outra copia remota for mais recente e excluir dados exclusivos do dispositivo.
 - [x] Testes automaticos no GitHub Actions para `dev`, `production` e pull requests.
+- [x] Referências locais, rotas limpas, âncoras entre páginas, assets CSS e isolamento de links externos são validados automaticamente.
 - [ ] Confirmar instalacao e atualizacao da PWA em Android Chrome e iPhone Safari seguindo `docs/PWA_DEVICE_TEST.md`.
 - [ ] Confirmar os contactos e horarios comunitarios diretamente com cada entidade.
 
