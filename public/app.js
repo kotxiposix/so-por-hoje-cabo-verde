@@ -1386,7 +1386,11 @@ function closeModal(modal) {
   activeModal = null;
   activeModalClose = null;
   modalReturnFocus = null;
-  if (returnFocus?.isConnected) returnFocus.focus();
+  if (returnFocus?.isConnected) {
+    window.requestAnimationFrame(() => {
+      if (!activeModal && returnFocus.isConnected) returnFocus.focus();
+    });
+  }
 }
 
 function getModalFocusableElements(modal) {
@@ -2410,7 +2414,7 @@ function handleBottomNavigationKeydown(event) {
 
 els.retry.addEventListener("click", loadToday);
 els.complete.addEventListener("click", completeToday);
-els.prayer.addEventListener("click", openPrayer);
+els.prayer.addEventListener("click", () => openPrayer());
 els.prayerClose.addEventListener("click", closePrayer);
 els.prayerModal.addEventListener("click", (event) => {
   if (event.target === els.prayerModal) {

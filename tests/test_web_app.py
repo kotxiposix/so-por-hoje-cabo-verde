@@ -198,7 +198,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v69"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v71"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
         self.assertIsNotNone(assets_block)
         assets = re.findall(r'"([^"]+)"', assets_block.group(1))
@@ -246,6 +246,9 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("if (accountState.operationPending) return", script)
         self.assertIn('container.setAttribute("aria-busy", String(pending))', script)
         self.assertIn("runAccountOperation(deleteCurrentAccount)", script)
+        self.assertIn('els.prayer.addEventListener("click", () => openPrayer())', script)
+        self.assertNotIn('els.prayer.addEventListener("click", openPrayer)', script)
+        self.assertIn("if (!activeModal && returnFocus.isConnected) returnFocus.focus()", script)
         self.assertIn('from "./share-format.mjs"', script)
         self.assertIn('<script type="module" src="app.js"></script>', self.index_text)
 
