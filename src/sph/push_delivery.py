@@ -42,7 +42,7 @@ class PushDeliveryConfig:
             supabase_url=os.getenv("SUPABASE_URL", "").strip().rstrip("/"),
             service_role_key=os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip(),
             vapid_private_key=os.getenv("VAPID_PRIVATE_KEY", "").strip(),
-            vapid_subject=os.getenv("VAPID_SUBJECT", "mailto:sandrofonseca@lentilhas.com").strip(),
+            vapid_subject=os.getenv("VAPID_SUBJECT", "").strip(),
             cron_secret=os.getenv("PUSH_CRON_SECRET", "").strip(),
         )
 

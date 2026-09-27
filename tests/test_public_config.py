@@ -43,7 +43,11 @@ class PublicConfigTests(unittest.TestCase):
             "ACCOUNT_READY": "true",
             "SUPABASE_URL": "https://project.supabase.co",
             "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_example",
+            "SUPABASE_SERVICE_ROLE_KEY": "service-role",
             "VAPID_PUBLIC_KEY": "public-vapid-key",
+            "VAPID_PRIVATE_KEY": "private-vapid-key",
+            "VAPID_SUBJECT": "mailto:team@example.cv",
+            "PUSH_CRON_SECRET": "cron-secret",
         }
         self.assertFalse(public_runtime_config(base)["features"]["push"])
 
@@ -58,6 +62,23 @@ class PublicConfigTests(unittest.TestCase):
         self.assertTrue(config["features"]["push"])
         self.assertEqual(config["push"]["vapidPublicKey"], "public-vapid-key")
         self.assertNotIn("must-stay-private", repr(config))
+
+    def test_push_stays_hidden_when_any_delivery_secret_is_missing(self) -> None:
+        environment = {
+            "ACCOUNT_READY": "true",
+            "SUPABASE_URL": "https://project.supabase.co",
+            "SUPABASE_PUBLISHABLE_KEY": "public-key",
+            "SUPABASE_SERVICE_ROLE_KEY": "service-role",
+            "PUSH_DELIVERY_READY": "true",
+            "VAPID_PUBLIC_KEY": "public-vapid-key",
+            "VAPID_PRIVATE_KEY": "private-vapid-key",
+            "VAPID_SUBJECT": "mailto:team@example.cv",
+        }
+
+        self.assertFalse(public_runtime_config(environment)["features"]["push"])
+
+        environment["PUSH_CRON_SECRET"] = "cron-secret"
+        self.assertTrue(public_runtime_config(environment)["features"]["push"])
 
     def test_ai_requires_account_private_keys_and_explicit_delivery_flag(self) -> None:
         environment = {

@@ -113,7 +113,7 @@ O servidor simples mantém sempre o catálogo local. Para testar a integração 
 ```bash
 export SUPABASE_URL="https://PROJECT_REF.supabase.co"
 export SUPABASE_PUBLISHABLE_KEY="..."
-export ACCOUNT_READY="false"
+export ACCOUNT_READY="true"
 export SUPABASE_SERVICE_ROLE_KEY="..."
 export OPENAI_API_KEY="sk-..."
 export OPENAI_MODEL="gpt-4.1-mini"
@@ -121,6 +121,8 @@ export AI_DAILY_LIMIT="3"
 export AI_DELIVERY_READY="true"
 uvicorn sph.api:app --reload
 ```
+
+Usar este bloco apenas num ambiente de teste onde RLS, Email OTP, SMTP e CAPTCHA ja tenham sido validados. Fora desse ensaio controlado, manter `ACCOUNT_READY=false` e `AI_DELIVERY_READY=false`.
 
 Na Vercel:
 
@@ -134,6 +136,12 @@ Redeploy
 ```
 
 Manter `AI_DELIVERY_READY=false` até executar `supabase/schema.sql`, validar o acesso por email e testar a quota. Depois do teste integral, mudar para `true` primeiro em Preview. Pessoas sem conta continuam a receber o catálogo local.
+
+O estado das integrações pode ser auditado sem revelar valores com:
+
+```bash
+PYTHONPATH=src python scripts/check_readiness.py
+```
 
 Implicacoes:
 

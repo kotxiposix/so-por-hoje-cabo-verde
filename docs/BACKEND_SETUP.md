@@ -34,6 +34,8 @@ HELP_DIRECTORY_READY=false     # usar a lista estática até validar e importar 
 
 A URL e a chave publica só são enviadas ao cliente quando `ACCOUNT_READY=true`, depois de as regras RLS, Email OTP, SMTP e CAPTCHA estarem validados. A `SERVICE_ROLE_KEY` ignora RLS e fica exclusivamente no ambiente seguro da Vercel.
 
+Para rever a configuração sem imprimir qualquer valor secreto, executar `PYTHONPATH=src python scripts/check_readiness.py`. O relatório mostra apenas se cada integração está fechada ou ativa e os nomes das variáveis ainda em falta.
+
 O endpoint `DELETE /api/v1/account` valida o token de acesso no Supabase antes de eliminar a conta resolvida pelo servidor. Nunca aceita um `user_id` indicado pelo browser. As tabelas pessoais usam `ON DELETE CASCADE` para eliminar Jornada, preferencias e subscricoes associadas.
 
 ## 2. Modelo minimo
@@ -132,7 +134,7 @@ Os endpoints `/api/v1/admin/send-logs`, `/api/v1/admin/send-test`, `/api/v1/admi
 
 ## 8. Entrega Web Push
 
-O cliente, o registo de subscricao, as preferencias e o service worker estao preparados. A API publica so anuncia push quando conta, `VAPID_PUBLIC_KEY` e `PUSH_DELIVERY_READY=true` estiverem presentes. A chave privada nunca e devolvida ao browser.
+O cliente, o registo de subscricao, as preferencias e o service worker estao preparados. A API publica so anuncia push quando a conta está ativa, `PUSH_DELIVERY_READY=true` e todas as variáveis de entrega estão presentes: service role, par VAPID, assunto e segredo do cron. Os valores privados nunca são devolvidos ao browser.
 
 O endpoint `POST /api/v1/internal/push/deliver` implementa a entrega, exige `Authorization: Bearer $PUSH_CRON_SECRET` e recusa qualquer envio enquanto `PUSH_DELIVERY_READY=false`, mesmo que as restantes chaves já estejam configuradas. Seleciona preferencias pela hora e fuso local, evita um segundo envio no mesmo dia e desativa endpoints que respondam `404` ou `410`. A mensagem de bloqueio e generica e nao inclui dados da Jornada.
 
