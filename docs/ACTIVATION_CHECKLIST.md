@@ -44,7 +44,8 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [ ] Executar `PYTHONPATH=src python scripts/check_supabase_schema.py` e corrigir qualquer tabela ou RPC em falta.
 - [x] Integrar Cloudflare Turnstile no pedido OTP público e da equipa; token de uso único e bloqueio seguro validados localmente com a chave oficial de teste.
 - [x] Configurar SMTP próprio no Supabase com o remetente aprovado `Só Por Hoje Viver Saudável <viversaudavel@soporhoje.cv>` e aplicar `docs/OTP_EMAIL_TEMPLATE.md` apenas com `{{ .Token }}`, sem link mágico.
-- [ ] Validar a entrega real do código OTP, o limite por utilizador e a apresentação em Gmail, Outlook e num endereço fora da equipa Supabase.
+- [x] Validar no Gmail a entrega real do código OTP com assunto personalizado, corpo token-only e logótipo Viver Saudável no rodapé.
+- [ ] Validar o limite por utilizador e a apresentação do código OTP em Outlook e num endereço fora da equipa Supabase.
 - [x] Criar o widget Turnstile para os domínios autorizados, guardar a secret key em `Authentication > Attack Protection` no Supabase e `TURNSTILE_SITE_KEY` na Vercel.
 - [x] Isolar o teste de conta: Preview usa as chaves oficiais de teste Turnstile e `ACCOUNT_READY=true`; Production conserva a chave real e `ACCOUNT_READY=false`.
 - [ ] Antes de ativar contas em produção, restaurar a secret key real no Supabase, validar o hostname definitivo e testar novamente com a site key real.
