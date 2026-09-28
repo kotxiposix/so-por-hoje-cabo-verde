@@ -62,6 +62,21 @@ test("sendOtp uses the official email OTP endpoint", async () => {
   assert.equal(request.options.headers.apikey, "public-key");
 });
 
+test("binds browser fetch implementations to the global object", async () => {
+  let receiver;
+  const client = new SupabaseAccountClient({
+    url: "https://project.supabase.co",
+    publishableKey: "public-key",
+    fetchImpl(url, options) {
+      receiver = this;
+      return jsonResponse({ url, method: options.method });
+    },
+  });
+
+  await client.sendOtp("person@example.com");
+  assert.equal(receiver, globalThis);
+});
+
 test("staff OTP can refuse automatic account creation", async () => {
   let request;
   const client = new SupabaseAccountClient({

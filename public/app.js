@@ -420,7 +420,7 @@ async function setupAccount() {
     }
 
     const [{ SupabaseAccountClient }, { TurnstileWidget }] = await Promise.all([
-      import("./account-client.mjs"),
+      import("./account-client.mjs?account=2"),
       import("./turnstile.mjs"),
     ]);
     accountState.client = new SupabaseAccountClient(config.supabase);

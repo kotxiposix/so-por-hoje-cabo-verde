@@ -37,8 +37,8 @@ export class SupabaseAccountClient {
   constructor({ url, publishableKey, fetchImpl = fetch, platformFetchImpl = fetch }) {
     this.url = normalizeSupabaseOrigin(url);
     this.publishableKey = normalizePublishableKey(publishableKey);
-    this.fetchImpl = fetchImpl;
-    this.platformFetchImpl = platformFetchImpl;
+    this.fetchImpl = fetchImpl.bind(globalThis);
+    this.platformFetchImpl = platformFetchImpl.bind(globalThis);
     if (!this.url || !this.publishableKey) {
       throw new Error("Configuração Supabase inválida ou incompleta.");
     }
