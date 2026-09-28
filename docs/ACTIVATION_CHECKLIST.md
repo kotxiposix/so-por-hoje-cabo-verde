@@ -46,6 +46,8 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Configurar SMTP próprio no Supabase com o remetente aprovado `Só Por Hoje Viver Saudável <viversaudavel@soporhoje.cv>` e aplicar `docs/OTP_EMAIL_TEMPLATE.md` apenas com `{{ .Token }}`, sem link mágico.
 - [ ] Validar a entrega real do código OTP, o limite por utilizador e a apresentação em Gmail, Outlook e num endereço fora da equipa Supabase.
 - [x] Criar o widget Turnstile para os domínios autorizados, guardar a secret key em `Authentication > Attack Protection` no Supabase e `TURNSTILE_SITE_KEY` na Vercel.
+- [x] Isolar o teste de conta: Preview usa as chaves oficiais de teste Turnstile e `ACCOUNT_READY=true`; Production conserva a chave real e `ACCOUNT_READY=false`.
+- [ ] Antes de ativar contas em produção, restaurar a secret key real no Supabase, validar o hostname definitivo e testar novamente com a site key real.
 - [x] Configurar Site URL `https://soporhoje.cv` e Redirect URLs para produção, Vercel e preview local autorizado.
 - [x] Guardar na Vercel Production, Preview e Development: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` e `SUPABASE_SERVICE_ROLE_KEY`.
 - [x] Guardar `TURNSTILE_SITE_KEY` nos três ambientes da Vercel depois de criar o widget definitivo.
