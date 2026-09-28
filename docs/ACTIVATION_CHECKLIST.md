@@ -60,6 +60,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [ ] Atribuir papéis mínimos a contas reais da equipa e ativar `STAFF_ACCESS_READY=true` apenas depois de testar suspensão e acesso negado.
 - [x] Confirmar com as duas contas reais que a RLS da Jornada devolve apenas a linha da identidade autenticada e nenhuma linha da outra conta.
 - [x] Testar escolha entre copia local e copia da conta nos dois sentidos.
+- [x] Apagar uma cópia remota da Jornada e confirmar no Supabase que a linha não é recriada automaticamente.
 - [ ] Testar eliminacao da Jornada, eliminacao da conta e limpeza local com duas contas reais.
 
 ## 3. Notificacoes em segundo plano
