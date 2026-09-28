@@ -33,6 +33,22 @@ class JourneySyncSchemaTests(unittest.TestCase):
         self.assertIn(f"revoke all on function {signature}\n  from public, anon;", self.schema)
         self.assertIn(f"grant execute on function {signature}\n  to authenticated;", self.schema)
 
+    def test_personal_tables_have_minimal_authenticated_grants(self) -> None:
+        for table in (
+            "journey_state",
+            "notification_preferences",
+            "push_subscriptions",
+        ):
+            with self.subTest(table=table):
+                self.assertIn(
+                    f"revoke all on table public.{table} from anon, authenticated;",
+                    self.schema,
+                )
+                self.assertIn(
+                    f"grant select, insert, update, delete on table public.{table} to authenticated;",
+                    self.schema,
+                )
+
     def test_push_delivery_claim_is_atomic_and_service_role_only(self) -> None:
         self.assertIn("create or replace function public.claim_push_delivery", self.schema)
         self.assertIn("delivery_claimed_at < p_claimed_at - interval '5 minutes'", self.schema)

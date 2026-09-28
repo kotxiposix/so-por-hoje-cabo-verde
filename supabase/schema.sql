@@ -585,6 +585,18 @@ alter table public.push_subscriptions enable row level security;
 alter table public.ai_daily_usage enable row level security;
 alter table public.community_daily_usage enable row level security;
 
+-- Browser roles need table privileges before PostgreSQL evaluates RLS. Keep
+-- anonymous visitors out and grant authenticated users only the operations
+-- covered by the per-user policies below.
+revoke all on table public.journey_state from anon, authenticated;
+grant select, insert, update, delete on table public.journey_state to authenticated;
+
+revoke all on table public.notification_preferences from anon, authenticated;
+grant select, insert, update, delete on table public.notification_preferences to authenticated;
+
+revoke all on table public.push_subscriptions from anon, authenticated;
+grant select, insert, update, delete on table public.push_subscriptions to authenticated;
+
 -- Supabase may install this event-trigger helper to enable RLS on new tables.
 -- Event triggers do not need browser roles to execute the helper directly.
 do $$
