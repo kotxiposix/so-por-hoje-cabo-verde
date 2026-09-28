@@ -2,6 +2,14 @@
 
 Usar em `Authentication > Email Templates > Magic Link` no Supabase depois de configurar SMTP próprio.
 
+Remetente aprovado para os códigos de acesso:
+
+```text
+Só Por Hoje Viver Saudável <viversaudavel@soporhoje.cv>
+```
+
+O endereço recebe mensagens através do Cloudflare Email Routing e está verificado como remetente na conta Google do projeto. O encaminhamento de entrada não substitui o SMTP de saída exigido pelo Supabase.
+
 ## Assunto
 
 ```text
