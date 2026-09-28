@@ -59,7 +59,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Papéis individuais `admin`, `moderator` e `help_editor` preparados no esquema e validados pelo servidor sem exposição ao browser.
 - [ ] Atribuir papéis mínimos a contas reais da equipa e ativar `STAFF_ACCESS_READY=true` apenas depois de testar suspensão e acesso negado.
 - [x] Confirmar com as duas contas reais que a RLS da Jornada devolve apenas a linha da identidade autenticada e nenhuma linha da outra conta.
-- [ ] Testar escolha entre copia local e copia da conta nos dois sentidos.
+- [x] Testar escolha entre copia local e copia da conta nos dois sentidos.
 - [ ] Testar eliminacao da Jornada, eliminacao da conta e limpeza local com duas contas reais.
 
 ## 3. Notificacoes em segundo plano
