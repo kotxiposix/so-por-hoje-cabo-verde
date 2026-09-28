@@ -41,7 +41,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 
 - [x] Criar o projeto Supabase na regiao escolhida pela equipa (`Só Por Hoje Dev`, West Europe/London).
 - [x] Rever e executar `supabase/schema.sql`; 11 tabelas confirmadas com RLS ativo e Security Advisor sem erros ou avisos.
-- [ ] Executar `PYTHONPATH=src python scripts/check_supabase_schema.py` e corrigir qualquer tabela ou RPC em falta.
+- [x] Verificar o esquema real no catálogo Supabase: 11 tabelas com RLS e todas as tabelas e RPCs esperadas presentes, sem objetos em falta.
 - [x] Integrar Cloudflare Turnstile no pedido OTP público e da equipa; token de uso único e bloqueio seguro validados localmente com a chave oficial de teste.
 - [x] Configurar SMTP próprio no Supabase com o remetente aprovado `Só Por Hoje Viver Saudável <viversaudavel@soporhoje.cv>` e aplicar `docs/OTP_EMAIL_TEMPLATE.md` apenas com `{{ .Token }}`, sem link mágico.
 - [x] Validar no Gmail a entrega real do código OTP com assunto personalizado, corpo token-only e logótipo Viver Saudável no rodapé.
@@ -58,7 +58,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [ ] Gerar e guardar `ADMIN_API_SECRET` para os endpoints tecnicos; nao o reutilizar noutros servicos.
 - [x] Papéis individuais `admin`, `moderator` e `help_editor` preparados no esquema e validados pelo servidor sem exposição ao browser.
 - [ ] Atribuir papéis mínimos a contas reais da equipa e ativar `STAFF_ACCESS_READY=true` apenas depois de testar suspensão e acesso negado.
-- [ ] Entrar com duas contas diferentes e confirmar que a RLS impede acesso cruzado.
+- [x] Confirmar com as duas contas reais que a RLS da Jornada devolve apenas a linha da identidade autenticada e nenhuma linha da outra conta.
 - [ ] Testar escolha entre copia local e copia da conta nos dois sentidos.
 - [ ] Testar eliminacao da Jornada, eliminacao da conta e limpeza local com duas contas reais.
 
