@@ -61,7 +61,8 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Confirmar com as duas contas reais que a RLS da Jornada devolve apenas a linha da identidade autenticada e nenhuma linha da outra conta.
 - [x] Testar escolha entre copia local e copia da conta nos dois sentidos.
 - [x] Apagar uma cópia remota da Jornada e confirmar no Supabase que a linha não é recriada automaticamente.
-- [ ] Testar eliminacao da Jornada, eliminacao da conta e limpeza local com duas contas reais.
+- [x] Eliminar uma conta de teste e confirmar que o utilizador desaparece sem afetar a Jornada da outra conta.
+- [ ] Testar a limpeza local do dispositivo sem afetar a cópia remota da outra conta.
 
 ## 3. Notificacoes em segundo plano
 
