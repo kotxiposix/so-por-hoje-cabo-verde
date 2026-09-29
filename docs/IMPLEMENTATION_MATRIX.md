@@ -14,7 +14,7 @@ Esta matriz traduz o mapa funcional da plataforma em estado técnico, porta de a
 | Área | Estado | Implementação e proteção | Próximo passo |
 | --- | --- | --- | --- |
 | Meditação | Ativa localmente | Meditação canónica diária, reflexão, atividade, frase, desafio, gratidão, histórico e partilha; funciona offline | Rever periodicamente conteúdo complementar e permissão da fonte oficial |
-| Jornada | Ativa localmente | Dias limpos, check-in, histórico, marcos, plano pessoal e backup JSON ficam no dispositivo | Testar a sincronização opcional com duas contas antes de ativar `ACCOUNT_READY` |
+| Jornada | Ativa localmente e sincronizável | Dias limpos, check-in, histórico, marcos, plano pessoal e backup JSON ficam no dispositivo; a conta permite sincronização opcional | Monitorizar a sincronização e manter testes de regressão com duas contas |
 | Viver Saudável | Ativa localmente | Podcast e vídeos sob escolha explícita, história, exposição e recursos estáticos; ligações editoriais são revalidadas no navegador | Rever e publicar o catálogo gerido antes de ativar `EDITORIAL_CONTENT_READY` |
 | Ajuda | Ativa localmente | SOS, orientação de risco, 17 recursos locais e acesso acionável; falha ou resposta vazia do diretório preserva o fallback e os links são revalidados no navegador | Confirmar contactos/horários e testar o diretório gerido antes de ativar `HELP_DIRECTORY_READY` |
 | Sobre | Ativa localmente | Missão, visão, história, equipa, privacidade, contacto e FAQ | Concluir revisão jurídica e confirmar parceiros antes de os identificar publicamente |
@@ -25,9 +25,9 @@ A navegação principal é fixa no fundo em ecrãs pequenos. O conteúdo reserva
 
 | Capacidade | Estado | Porta ou limite | Evidência |
 | --- | --- | --- | --- |
-| Conta por código de email | Preparada e fechada | `ACCOUNT_READY`; exige Supabase, OTP, SMTP e CAPTCHA | `public/account-client.mjs`, `/api/v1/config` |
-| Sincronização da Jornada | Preparada e fechada | Escolha explícita entre cópia local e remota; allowlist de campos; preferências do dispositivo preservadas; cursor por conta deteta alteração ou eliminação remota; RLS por conta | `save_journey_state`, testes de conflito, cursor e versão |
-| Eliminação de dados e conta | Preparada e fechada | Sessão validada no servidor; nunca aceita `user_id` do browser | `DELETE /api/v1/account`, RLS e `ON DELETE CASCADE` |
+| Conta por código de email | Ativa em produção | `ACCOUNT_READY=true`; Supabase, OTP, SMTP e CAPTCHA validados com endereços Gmail e Hotmail | `public/account-client.mjs`, `/api/v1/config` |
+| Sincronização da Jornada | Ativa em produção | Escolha explícita entre cópia local e remota; allowlist de campos; preferências do dispositivo preservadas; cursor por conta deteta alteração ou eliminação remota; RLS por conta | `save_journey_state`, testes de conflito, cursor e versão |
+| Eliminação de dados e conta | Ativa em produção | Sessão validada no servidor; nunca aceita `user_id` do browser | `DELETE /api/v1/account`, RLS e `ON DELETE CASCADE` |
 | PWA e offline parcial | Ativa localmente | Manifesto com ícones 192/512; instalação e atualização final dependem do navegador/dispositivo | `manifest.webmanifest`, `sw.js`, `docs/PWA_DEVICE_TEST.md` |
 | Notificações dentro da app | Ativa localmente | Preferência guardada no dispositivo | Cliente principal |
 | Web Push real | Preparada e fechada | `PUSH_DELIVERY_READY`; reconcilia permissão, escolha local, sessão e subscrição; VAPID, cron e teste em dois dispositivos | emissor protegido, reserva atómica e service worker |

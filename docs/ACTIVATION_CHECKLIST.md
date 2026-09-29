@@ -49,7 +49,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Validar no Outlook/Hotmail a entrega e apresentação real do código OTP, assunto personalizado e logótipo num endereço fora da equipa Supabase.
 - [x] Validar o limite de pedidos OTP por utilizador: repetição imediata bloqueada com espera de 45 segundos.
 - [x] Criar o widget Turnstile para os domínios autorizados, guardar a secret key em `Authentication > Attack Protection` no Supabase e `TURNSTILE_SITE_KEY` na Vercel.
-- [x] Isolar o teste de conta: Preview usa as chaves oficiais de teste Turnstile e `ACCOUNT_READY=true`; Production conserva a chave real e `ACCOUNT_READY=false`.
+- [x] Isolar o ensaio inicial de conta: Preview usou as chaves oficiais de teste Turnstile e `ACCOUNT_READY=true`; Production conservou a chave real e `ACCOUNT_READY=false` durante o ensaio.
 - [x] Restaurar a secret key real do Turnstile em `Authentication > Attack Protection` no Supabase.
 - [x] Confirmar no widget real os hostnames `soporhoje.cv`, `www.soporhoje.cv` e `so-por-hoje-cabo-verde.vercel.app`.
 - [x] Testar o pedido OTP com a site key real em `www.soporhoje.cv`: desafio concluído e pedido aceite para um endereço Hotmail externo; `ACCOUNT_READY=false` restaurado depois do ensaio.
@@ -57,7 +57,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Guardar na Vercel Production, Preview e Development: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` e `SUPABASE_SERVICE_ROLE_KEY`.
 - [x] Guardar `TURNSTILE_SITE_KEY` nos três ambientes da Vercel depois de criar o widget definitivo.
 - [x] `ACCOUNT_READY=false` mantém conta, sincronização, AI, push e comunidade ocultos enquanto o Supabase está em configuração.
-- [ ] Mudar `ACCOUNT_READY=true` apenas depois de validar RLS, Email OTP, SMTP, CAPTCHA e os fluxos com duas contas.
+- [x] Ativar `ACCOUNT_READY=true` em Production depois de validar RLS, Email OTP, SMTP, CAPTCHA e os fluxos com duas contas; acesso OTP confirmado novamente em `www.soporhoje.cv` após o deploy definitivo.
 - [ ] Gerar e guardar `ADMIN_API_SECRET` para os endpoints tecnicos; nao o reutilizar noutros servicos.
 - [x] Papéis individuais `admin`, `moderator` e `help_editor` preparados no esquema e validados pelo servidor sem exposição ao browser.
 - [ ] Atribuir papéis mínimos a contas reais da equipa e ativar `STAFF_ACCESS_READY=true` apenas depois de testar suspensão e acesso negado.

@@ -141,7 +141,7 @@ export AI_DELIVERY_READY="true"
 uvicorn sph.api:app --reload
 ```
 
-Usar este bloco apenas num ambiente de teste onde RLS, Email OTP, SMTP e CAPTCHA ja tenham sido validados. Fora desse ensaio controlado, manter `ACCOUNT_READY=false` e `AI_DELIVERY_READY=false`.
+Usar este bloco apenas depois de validar RLS, Email OTP, SMTP e CAPTCHA. A conta está ativa em produção com `ACCOUNT_READY=true`; manter `AI_DELIVERY_READY=false` até concluir a validação própria da entrega AI.
 
 Na Vercel:
 

@@ -4,7 +4,7 @@
 
 Este documento serve para alinhar equipa, parceiros e decisores sobre a evolucao da plataforma So Por Hoje Cabo Verde. O objetivo e juntar num unico sitio a visao funcional, as decisoes tecnicas, as sugestoes de experiencia de utilizador e os pontos que precisam de validacao antes de crescer.
 
-**Ultima atualizacao:** 27 de setembro de 2026.
+**Ultima atualizacao:** 29 de setembro de 2026.
 
 Este dossie apresenta a visao do produto. O estado verificavel de cada capacidade esta em `IMPLEMENTATION_MATRIX.md`, os passos de ativacao estao em `ACTIVATION_CHECKLIST.md` e as responsabilidades ainda por decidir devem ser registadas em `OPERATIONS_DECISIONS.md`. Nenhuma descricao neste documento substitui essas portas de seguranca.
 
@@ -174,7 +174,8 @@ Recompensas recomendadas:
 ### Decisoes tomadas e validacoes pendentes
 
 - O modo local e anonimo e o comportamento por defeito.
-- A conta opcional por codigo de email e a sincronizacao seletiva estao implementadas, mas fechadas por `ACCOUNT_READY=false` ate existir Supabase, SMTP, CAPTCHA e teste com duas contas.
+- A conta opcional por codigo de email e a sincronizacao seletiva estao ativas em producao com `ACCOUNT_READY=true`, depois da validacao de Supabase, SMTP, CAPTCHA, RLS e fluxos com duas contas.
+- `ACCOUNT_READY=false` continua a ser a porta de reversao segura: oculta conta e sincronizacao sem afetar a Jornada local.
 - Partilhas da Sala Anonima local, instalacao e permissoes do dispositivo nao entram na sincronizacao da Jornada.
 - Exportacao, eliminacao local, eliminacao da copia remota e eliminacao da conta estao preparadas.
 - A politica de privacidade continua preliminar ate revisao juridica e validacao operacional.
@@ -485,8 +486,8 @@ Permitir que a equipa mantenha conteudos sem depender sempre de programador.
 ### Estado da evolucao
 
 - A base local, as cinco areas, a PWA parcial, o arquivo e a exportacao/importacao estao implementados.
-- A API FastAPI, o esquema Supabase, a conta opcional, o painel administrativo, o diretorio, a comunidade moderada, o catálogo editorial, a AI e o Web Push estao preparados e testados com flags fechadas.
-- A ativacao depende de projeto Supabase, SMTP/CAPTCHA, VAPID/cron, chaves OpenAI, contas reais, moderadores, validacao de contactos, revisao juridica e testes em dispositivos.
+- A API FastAPI, o esquema Supabase e a conta opcional com sincronizacao estao ativos em producao; o painel administrativo, o diretorio, a comunidade moderada, o catálogo editorial, a AI e o Web Push continuam preparados e protegidos pelas respetivas flags.
+- As ativacoes restantes dependem de VAPID/cron, chaves OpenAI, papéis reais da equipa, moderadores, validacao de contactos, revisao juridica e testes em dispositivos.
 - App mobile nativa, canais WhatsApp/Telegram/email, loja e doacao nao estao iniciados e exigem decisoes proprias antes de desenvolvimento.
 
 ## 17. Riscos
@@ -525,12 +526,12 @@ Permitir que a equipa mantenha conteudos sem depender sempre de programador.
 ### Curto prazo
 
 - Confirmar Ajuda e concluir revisoes juridica, editorial e de acessibilidade em dispositivos.
-- Configurar e testar Supabase/OTP no ambiente Preview.
-- Validar conta, sincronizacao, eliminacao e painel com contas reais e papéis minimos.
+- Monitorizar Supabase/OTP, sincronizacao e eliminacao agora ativos em producao.
+- Validar o painel administrativo com contas reais e papéis minimos.
 
 ### Medio prazo
 
-- Ativar, uma por vez, conta, diretorio de Ajuda e catálogo editorial em Preview.
+- Ativar, uma por vez, o diretorio de Ajuda e o catálogo editorial em Preview.
 - Configurar e testar Web Push e AI com limites, custos e observabilidade.
 - Abrir comunidade apenas depois de equipa, regras, retencao e protocolo de crise aprovados.
 
@@ -565,13 +566,13 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 | Bloco | Estado atual | Proximo passo |
 | --- | --- | --- |
 | Meditacao | Funcional, com gratidao diaria | Rever conteudo complementar com equipa clinica/comunitaria |
-| Jornada | Funcional no dispositivo, com historico, plano pessoal, marcos, exportacao e preferencias | Ativar e validar sincronizacao opcional no Supabase |
+| Jornada | Funcional no dispositivo e com sincronizacao opcional ativa no Supabase | Monitorizar conflitos e manter testes de regressao com duas contas |
 | Viver Saudavel | Podcast, documentario, historia do projeto, exposicao e recursos educativos | Adicionar novos testemunhos apenas com consentimento |
 | Catálogo editorial | Gestão por rascunho/publicação preparada e fechada por flag | Testar o papel `content_editor` em Preview e rever autoria/consentimento |
 | Ajuda | Fluxo SOS, contactos oficiais acionaveis e estado de verificacao por recurso | Confirmar horarios e restantes respostas diretamente com cada entidade |
 | Sala anonima | Diário local ativo; backend e cliente público moderado preparados atrás de `COMMUNITY_READY=false` | Não ativar sem equipa, regras, retenção e protocolo de crise |
 | Sobre | Missao, visao, historia, coordenacao, privacidade, contactos e FAQ | Identificar parceiros apenas depois de confirmacao |
-| Conta/login | Cliente Email OTP e escolha de sincronizacao implementados, ocultos sem configuracao | Criar projeto Supabase, SMTP e CAPTCHA; testar com duas contas |
+| Conta/login | Email OTP e escolha de sincronizacao ativos em producao | Monitorizar entrega SMTP, CAPTCHA, RLS e erros de sincronizacao |
 | Notificacoes push | Cliente, emissor protegido, fusos horarios, cancelamento e service worker preparados atras de feature flag | Configurar VAPID e Supabase Cron; testar em dois dispositivos antes de ativar a flag |
 | PWA | Instalacao, atalhos e fallbacks offline separados para app, privacidade e exposicao | Verificar instalacao e atualizacao do service worker em producao |
 | Loja e doacao | Nao iniciado | Definir operacao, pagamentos, entregas e transparencia |
