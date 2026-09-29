@@ -47,7 +47,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Validar no Gmail a entrega real do código OTP com assunto personalizado, corpo token-only e logótipo Viver Saudável no rodapé.
 - [x] Conceder às contas autenticadas os privilégios mínimos das tabelas pessoais e validar uma gravação real da Jornada com RLS ativa.
 - [x] Validar no Outlook/Hotmail a entrega e apresentação real do código OTP, assunto personalizado e logótipo num endereço fora da equipa Supabase.
-- [ ] Validar o limite de pedidos OTP por utilizador antes de aumentar os limites de produção.
+- [x] Validar o limite de pedidos OTP por utilizador: repetição imediata bloqueada com espera de 45 segundos.
 - [x] Criar o widget Turnstile para os domínios autorizados, guardar a secret key em `Authentication > Attack Protection` no Supabase e `TURNSTILE_SITE_KEY` na Vercel.
 - [x] Isolar o teste de conta: Preview usa as chaves oficiais de teste Turnstile e `ACCOUNT_READY=true`; Production conserva a chave real e `ACCOUNT_READY=false`.
 - [ ] Antes de ativar contas em produção, restaurar a secret key real no Supabase, validar o hostname definitivo e testar novamente com a site key real.
