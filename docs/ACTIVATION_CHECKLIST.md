@@ -130,7 +130,8 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [ ] Confirmar cada contacto e horário diretamente com a entidade responsável.
 - [ ] Completar a fonte e definir o prazo de revisão dos 7 recursos que permanecem em rascunho.
 - [x] Cobrir automaticamente expiração, retirada sem apagar o histórico e indisponibilidade do serviço gerido.
-- [ ] Repetir o ensaio de expiração, retirada e indisponibilidade no Preview protegido da Vercel.
+- [x] Confirmar no Preview autenticado que `HELP_DIRECTORY_READY=false` mantém o endpoint gerido fechado e preserva os 17 recursos locais como fallback.
+- [ ] Repetir em Preview, com um registo temporário isolado, os ensaios de expiração e retirada antes da ativação pública.
 - [ ] Mudar `HELP_DIRECTORY_READY=true` apenas depois de todos os recursos visíveis estarem confirmados.
 
 ## 6. Funcionalidades que ficam fechadas
