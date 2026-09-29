@@ -52,7 +52,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Isolar o teste de conta: Preview usa as chaves oficiais de teste Turnstile e `ACCOUNT_READY=true`; Production conserva a chave real e `ACCOUNT_READY=false`.
 - [x] Restaurar a secret key real do Turnstile em `Authentication > Attack Protection` no Supabase.
 - [x] Confirmar no widget real os hostnames `soporhoje.cv`, `www.soporhoje.cv` e `so-por-hoje-cabo-verde.vercel.app`.
-- [ ] Antes de ativar contas em produção, testar novamente o pedido OTP com a site key real num hostname autorizado.
+- [x] Testar o pedido OTP com a site key real em `www.soporhoje.cv`: desafio concluído e pedido aceite para um endereço Hotmail externo; `ACCOUNT_READY=false` restaurado depois do ensaio.
 - [x] Configurar Site URL `https://soporhoje.cv` e Redirect URLs para produção, Vercel e preview local autorizado.
 - [x] Guardar na Vercel Production, Preview e Development: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` e `SUPABASE_SERVICE_ROLE_KEY`.
 - [x] Guardar `TURNSTILE_SITE_KEY` nos três ambientes da Vercel depois de criar o widget definitivo.
