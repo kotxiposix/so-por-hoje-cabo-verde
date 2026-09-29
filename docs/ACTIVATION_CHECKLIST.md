@@ -129,7 +129,8 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Aceitar provisoriamente a informação existente e verificar os 10 recursos que cumprem os requisitos mínimos, com revisão marcada para 28 de dezembro de 2026; manter 7 reuniões sem horário/contacto suficiente em rascunho.
 - [ ] Confirmar cada contacto e horário diretamente com a entidade responsável.
 - [ ] Completar a fonte e definir o prazo de revisão dos 7 recursos que permanecem em rascunho.
-- [ ] Testar expiração, retirada e indisponibilidade do diretório em Preview.
+- [x] Cobrir automaticamente expiração, retirada sem apagar o histórico e indisponibilidade do serviço gerido.
+- [ ] Repetir o ensaio de expiração, retirada e indisponibilidade no Preview protegido da Vercel.
 - [ ] Mudar `HELP_DIRECTORY_READY=true` apenas depois de todos os recursos visíveis estarem confirmados.
 
 ## 6. Funcionalidades que ficam fechadas

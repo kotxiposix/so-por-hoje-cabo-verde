@@ -145,6 +145,14 @@ class HelpDirectoryTests(unittest.TestCase):
 
         self.assertEqual([item["id"] for item in result], [safe["id"]])
 
+    def test_public_listing_reports_directory_unavailability(self) -> None:
+        with patch("sph.help_directory.urlopen", side_effect=OSError("offline")):
+            with self.assertRaisesRegex(
+                HelpDirectoryServiceError,
+                "Não foi possível contactar o diretório",
+            ):
+                SupabaseHelpDirectory(config()).list_verified()
+
     def test_create_and_update_always_return_resource_to_draft(self) -> None:
         returned = [payload() | {"id": RESOURCE_ID, "verification_status": "draft"}]
         with patch("sph.help_directory.urlopen", return_value=FakeResponse(returned)) as urlopen_mock:
@@ -190,6 +198,26 @@ class HelpDirectoryTests(unittest.TestCase):
                 "email": None,
                 "website": None,
             })
+
+    def test_retirement_removes_public_eligibility_without_deleting_history(self) -> None:
+        returned = [payload() | {
+            "id": RESOURCE_ID,
+            "is_verified": False,
+            "verification_status": "retired",
+            "review_due_at": None,
+        }]
+        with patch("sph.help_directory.urlopen", return_value=FakeResponse(returned)) as urlopen_mock:
+            retired = SupabaseHelpDirectory(config()).retire(RESOURCE_ID, actor_id=EDITOR_ID)
+
+        request = urlopen_mock.call_args.args[0]
+        request_payload = json.loads(request.data)
+        self.assertEqual(request.method, "PATCH")
+        self.assertIn(f"id=eq.{RESOURCE_ID}", request.full_url)
+        self.assertFalse(request_payload["is_verified"])
+        self.assertEqual(request_payload["verification_status"], "retired")
+        self.assertIsNone(request_payload["review_due_at"])
+        self.assertEqual(request_payload["last_edited_by"], EDITOR_ID)
+        self.assertEqual(retired["id"], RESOURCE_ID)
 
     def test_browser_has_no_direct_help_directory_policy(self) -> None:
         schema = SCHEMA_PATH.read_text(encoding="utf-8")
