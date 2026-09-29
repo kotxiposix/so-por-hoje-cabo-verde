@@ -61,6 +61,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Gerar e guardar `ADMIN_API_SECRET` para os endpoints tecnicos; segredo configurado nos ambientes Vercel sem reutilizacao noutros servicos.
 - [x] Papéis individuais `admin`, `moderator` e `help_editor` preparados no esquema e validados pelo servidor sem exposição ao browser.
 - [x] Atribuir o papel `admin` a uma conta real da equipa e ativar `STAFF_ACCESS_READY=true`; acesso permitido, suspensão, recusa e restauração validados em Production.
+- [x] Validar `content_editor` com uma segunda conta real: apenas a área Conteúdos ficou disponível, sem criar ou publicar itens; papel temporário removido no fim do ensaio.
 - [x] Confirmar que `service_role` tem privilégios SQL explícitos nas tabelas do backend, enquanto `anon` e `authenticated` continuam sem acesso direto a `staff_roles`.
 - [x] Confirmar com as duas contas reais que a RLS da Jornada devolve apenas a linha da identidade autenticada e nenhuma linha da outra conta.
 - [x] Testar escolha entre copia local e copia da conta nos dois sentidos.
