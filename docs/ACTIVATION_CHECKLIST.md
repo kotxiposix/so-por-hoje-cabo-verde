@@ -125,9 +125,10 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Acesso direto pelo browser removido; gestão exige endpoint administrativo protegido.
 - [x] O browser revalida e deduplica a resposta pública, rejeitando recursos expirados, malformados ou sem contacto obrigatório antes de substituir o fallback local.
 - [x] Linha SOS Álcool, contactos gerais da CCAD e telefones oficiais do Centro de Saúde de Tira Chapéu revistos em fontes públicas atuais; horários comunitários continuam claramente assinalados para confirmação.
-- [x] Importar os 17 contactos como rascunho no Supabase, sem os tornar públicos; painel confirmou 17 itens `draft`, nenhum verificado e nenhuma chave duplicada.
+- [x] Importar os 17 contactos como rascunho no Supabase, sem os tornar públicos; painel confirmou 17 itens e nenhuma chave duplicada.
+- [x] Aceitar provisoriamente a informação existente e verificar os 10 recursos que cumprem os requisitos mínimos, com revisão marcada para 28 de dezembro de 2026; manter 7 reuniões sem horário/contacto suficiente em rascunho.
 - [ ] Confirmar cada contacto e horário diretamente com a entidade responsável.
-- [ ] Guardar a fonte e definir o prazo de revisão de cada recurso.
+- [ ] Completar a fonte e definir o prazo de revisão dos 7 recursos que permanecem em rascunho.
 - [ ] Testar expiração, retirada e indisponibilidade do diretório em Preview.
 - [ ] Mudar `HELP_DIRECTORY_READY=true` apenas depois de todos os recursos visíveis estarem confirmados.
 

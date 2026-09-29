@@ -612,7 +612,7 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 - A Sala Anonima atual permanece local e deve dizer claramente que nao e uma conversa com outras pessoas.
 - O backend moderado já está preparado mas fechado por `COMMUNITY_READY=false`: toda partilha entra pendente, o pseudónimo nasce no servidor, a leitura pública omite identidade e a moderação exige acesso administrativo.
 - O cliente comunitário também está preparado atrás da mesma flag: leitura pública mínima, envio e denúncia autenticados e renderização de texto sem HTML dinâmico.
-- O diretório de ajuda gerido contém 17 recursos importados como rascunho e continua fechado por `HELP_DIRECTORY_READY=false`: só mostrará recursos com fonte e revisão válida; qualquer alteração regressa a rascunho e contactos vencidos desaparecem da listagem.
+- O diretório de ajuda gerido contém 17 recursos e continua fechado por `HELP_DIRECTORY_READY=false`: 10 foram aceites provisoriamente e verificados até 28 de dezembro de 2026; 7 reuniões permanecem em rascunho por falta de horário ou contacto suficiente. Qualquer alteração regressa a rascunho e contactos vencidos desaparecem da listagem.
 - Os modais isolam o fundo, mantêm o foco por teclado, fecham com `Escape` e devolvem o foco à origem; check-ins e feedback dinâmico expõem estados às tecnologias assistivas.
 - O botao SOS deve encaminhar para ajuda humana e nunca simular atendimento clinico.
 - Login, sincronizacao e notificacoes so avancam depois de politica de privacidade e modelo de dados minimos.
