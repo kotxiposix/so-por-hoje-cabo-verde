@@ -528,7 +528,7 @@ Permitir que a equipa mantenha conteudos sem depender sempre de programador.
 
 - Confirmar Ajuda e concluir revisoes juridica, editorial e de acessibilidade em dispositivos.
 - Monitorizar Supabase/OTP, sincronizacao e eliminacao agora ativos em producao.
-- Monitorizar o painel administrativo ativo e validar os papéis `moderator` e `help_editor` com contas reais; `content_editor` já foi ensaiado isoladamente sem publicar conteúdo.
+- Monitorizar o painel administrativo ativo e validar o papel `moderator` com uma conta real; `content_editor` e `help_editor` já foram ensaiados isoladamente sem publicar conteúdo ou recursos.
 
 ### Medio prazo
 
