@@ -47,7 +47,7 @@ A AI nunca substitui a meditação oficial. Falha de fornecedor, autenticação,
 
 | Capacidade | Estado | Porta ou limite | Evidência |
 | --- | --- | --- | --- |
-| Diretório verificado | Preparada e fechada | `HELP_DIRECTORY_READY` + equipa autorizada; só publica recursos verificados e dentro do prazo | endpoints públicos/administrativos e importador de rascunhos |
+| Diretório verificado | Rascunhos importados; publicação fechada | `HELP_DIRECTORY_READY` + equipa autorizada; só publica recursos verificados e dentro do prazo | 17 recursos `draft` no Supabase, sem duplicados; endpoints públicos/administrativos e importador idempotente |
 | Sala Anónima local | Ativa localmente | Diário guardado apenas no dispositivo; não simula conversa real | interface pública com modo local explícito |
 | Comunidade moderada | Preparada e fechada | `COMMUNITY_READY`, conta e `STAFF_ACCESS_READY`; saída pública revalidada no servidor e navegador | envio pendente, pseudónimo do servidor, denúncia e moderação |
 | Botão SOS | Ativa localmente | Encaminha para apoio humano; não presta atendimento clínico | modal SOS e secção Ajuda |
