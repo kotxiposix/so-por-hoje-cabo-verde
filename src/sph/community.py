@@ -11,7 +11,7 @@ from urllib.parse import quote
 from urllib.request import Request, urlopen
 from uuid import UUID
 
-from sph.security import is_safe_https_origin, normalize_https_origin
+from sph.security import is_safe_https_origin, normalize_https_origin, supabase_headers
 
 
 class CommunityInputError(ValueError):
@@ -283,11 +283,7 @@ class SupabaseCommunity:
         payload: dict[str, object] | None = None,
         prefer: str | None = None,
     ) -> object:
-        headers = {
-            "apikey": self.config.service_role_key,
-            "Authorization": f"Bearer {self.config.service_role_key}",
-            "Content-Type": "application/json",
-        }
+        headers = supabase_headers(self.config.service_role_key)
         if prefer:
             headers["Prefer"] = prefer
         request = Request(

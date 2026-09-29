@@ -9,7 +9,7 @@ from urllib.request import Request, urlopen
 from uuid import UUID
 
 from sph.account_deletion import AccountAuthenticationError, bearer_token
-from sph.security import is_safe_https_origin, normalize_https_origin
+from sph.security import is_safe_https_origin, normalize_https_origin, supabase_headers
 
 
 class StaffAuthenticationError(RuntimeError):
@@ -104,11 +104,10 @@ class SupabaseStaffAccess:
         request = Request(
             f"{self.config.supabase_url}{path}",
             method=method,
-            headers={
-                "apikey": self.config.service_role_key,
-                "Authorization": f"Bearer {authorization}",
-                "Content-Type": "application/json",
-            },
+            headers=supabase_headers(
+                self.config.service_role_key,
+                authorization=authorization,
+            ),
         )
         try:
             with urlopen(request, timeout=15) as response:

@@ -8,6 +8,7 @@ from urllib.request import Request, urlopen
 from uuid import UUID
 
 from sph.staff_access import StaffAccessConfig
+from sph.security import supabase_headers
 
 
 class StaffAuditServiceError(RuntimeError):
@@ -76,11 +77,7 @@ class SupabaseStaffAudit:
             f"{self.config.supabase_url}/rest/v1/staff_audit_events"
             f"?select={quote(fields, safe=',')}&order=created_at.desc,id.desc&limit={safe_limit}",
             method="GET",
-            headers={
-                "apikey": self.config.service_role_key,
-                "Authorization": f"Bearer {self.config.service_role_key}",
-                "Content-Type": "application/json",
-            },
+            headers=supabase_headers(self.config.service_role_key),
         )
         try:
             with urlopen(request, timeout=15) as response:

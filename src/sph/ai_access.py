@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
-from sph.security import is_safe_https_origin, normalize_https_origin
+from sph.security import is_safe_https_origin, normalize_https_origin, supabase_headers
 
 
 class AiUsageError(RuntimeError):
@@ -61,11 +61,7 @@ class SupabaseAiUsage:
             f"{self.config.supabase_url}/rest/v1/rpc/claim_ai_daily_request",
             data=body,
             method="POST",
-            headers={
-                "apikey": self.config.service_role_key,
-                "Authorization": f"Bearer {self.config.service_role_key}",
-                "Content-Type": "application/json",
-            },
+            headers=supabase_headers(self.config.service_role_key),
         )
         try:
             with urlopen(request, timeout=10) as response:

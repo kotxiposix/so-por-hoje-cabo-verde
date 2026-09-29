@@ -11,7 +11,7 @@ from urllib.parse import quote, urlsplit
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from sph.security import is_bearer_secret, normalize_https_origin
+from sph.security import is_bearer_secret, normalize_https_origin, supabase_headers
 
 
 class HttpTransport(Protocol):
@@ -268,9 +268,7 @@ class SupabaseRestTransport:
             data=body,
             method=method,
             headers={
-                "apikey": self.config.service_role_key,
-                "Authorization": f"Bearer {self.config.service_role_key}",
-                "Content-Type": "application/json",
+                **supabase_headers(self.config.service_role_key),
                 "Prefer": "return=minimal" if method == "PATCH" else "",
             },
         )

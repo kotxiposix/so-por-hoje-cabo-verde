@@ -75,6 +75,25 @@ class StaffAccessTests(unittest.TestCase):
 
         self.assertEqual(identity.roles, ("admin",))
 
+    def test_opaque_secret_key_is_not_used_as_a_bearer_token(self) -> None:
+        opaque_config = StaffAccessConfig(
+            True,
+            "https://project.supabase.co",
+            "sb_secret_example",
+        )
+        responses = [FakeResponse({"id": USER_ID}), FakeResponse([{"role": "admin"}])]
+
+        with patch("sph.staff_access.urlopen", side_effect=responses) as urlopen_mock:
+            SupabaseStaffAccess(opaque_config).authorize(
+                "Bearer user-access-token",
+                {"admin"},
+            )
+
+        user_request = urlopen_mock.call_args_list[0].args[0]
+        role_request = urlopen_mock.call_args_list[1].args[0]
+        self.assertEqual(user_request.headers["Authorization"], "Bearer user-access-token")
+        self.assertNotIn("Authorization", role_request.headers)
+
     def test_content_editor_is_a_valid_minimum_role(self) -> None:
         responses = [FakeResponse({"id": USER_ID}), FakeResponse([{"role": "content_editor"}])]
         with patch("sph.staff_access.urlopen", side_effect=responses):

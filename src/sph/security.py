@@ -6,6 +6,21 @@ from typing import Mapping
 from urllib.parse import urlsplit
 
 
+def supabase_headers(
+    api_key: str,
+    *,
+    authorization: str | None = None,
+) -> dict[str, str]:
+    headers = {
+        "apikey": api_key,
+        "Content-Type": "application/json",
+    }
+    bearer = authorization if authorization is not None else api_key
+    if bearer and (bearer != api_key or not api_key.startswith("sb_secret_")):
+        headers["Authorization"] = f"Bearer {bearer}"
+    return headers
+
+
 def normalize_https_origin(value: object) -> str:
     if not isinstance(value, str):
         return ""
