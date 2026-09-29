@@ -116,8 +116,13 @@ class StaffAccessTests(unittest.TestCase):
 
     def test_browser_has_no_direct_staff_role_policy(self) -> None:
         schema = SCHEMA_PATH.read_text(encoding="utf-8")
+        service_role_grant = schema.split(
+            "-- New Supabase projects can omit default table grants.", 1
+        )[1].split("-- Supabase may install this event-trigger helper", 1)[0]
 
         self.assertIn("alter table public.staff_roles enable row level security", schema)
+        self.assertIn("public.staff_roles,", service_role_grant)
+        self.assertIn("to service_role;", service_role_grant)
         self.assertIn('drop policy if exists "Users read staff roles"', schema)
         self.assertNotIn('create policy "Users read staff roles"', schema)
 

@@ -486,8 +486,9 @@ Permitir que a equipa mantenha conteudos sem depender sempre de programador.
 ### Estado da evolucao
 
 - A base local, as cinco areas, a PWA parcial, o arquivo e a exportacao/importacao estao implementados.
-- A API FastAPI, o esquema Supabase e a conta opcional com sincronizacao estao ativos em producao; o painel administrativo, o diretorio, a comunidade moderada, o catálogo editorial, a AI e o Web Push continuam preparados e protegidos pelas respetivas flags.
-- As ativacoes restantes dependem de VAPID/cron, chaves OpenAI, papéis reais da equipa, moderadores, validacao de contactos, revisao juridica e testes em dispositivos.
+- A API FastAPI, o esquema Supabase, a conta opcional com sincronizacao e o painel administrativo para o papel `admin` estao ativos em producao; o diretorio, a comunidade moderada, o catálogo editorial, a AI e o Web Push continuam preparados e protegidos pelas respetivas flags.
+- O acesso administrativo foi validado com OTP e uma conta real: acesso permitido, suspensao com recusa imediata e restauracao para `active`. O browser continua sem acesso direto a `staff_roles`; o backend usa privilegios SQL explicitos de `service_role`.
+- As ativacoes restantes dependem de VAPID/cron, chaves OpenAI, restantes papéis reais da equipa, moderadores, validacao de contactos, revisao juridica e testes em dispositivos.
 - App mobile nativa, canais WhatsApp/Telegram/email, loja e doacao nao estao iniciados e exigem decisoes proprias antes de desenvolvimento.
 
 ## 17. Riscos
@@ -527,7 +528,7 @@ Permitir que a equipa mantenha conteudos sem depender sempre de programador.
 
 - Confirmar Ajuda e concluir revisoes juridica, editorial e de acessibilidade em dispositivos.
 - Monitorizar Supabase/OTP, sincronizacao e eliminacao agora ativos em producao.
-- Validar o painel administrativo com contas reais e papéis minimos.
+- Monitorizar o painel administrativo ativo e validar em Preview os papéis `moderator`, `help_editor` e `content_editor` com contas reais.
 
 ### Medio prazo
 

@@ -58,9 +58,10 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Guardar `TURNSTILE_SITE_KEY` nos três ambientes da Vercel depois de criar o widget definitivo.
 - [x] `ACCOUNT_READY=false` mantém conta, sincronização, AI, push e comunidade ocultos enquanto o Supabase está em configuração.
 - [x] Ativar `ACCOUNT_READY=true` em Production depois de validar RLS, Email OTP, SMTP, CAPTCHA e os fluxos com duas contas; acesso OTP confirmado novamente em `www.soporhoje.cv` após o deploy definitivo.
-- [ ] Gerar e guardar `ADMIN_API_SECRET` para os endpoints tecnicos; nao o reutilizar noutros servicos.
+- [x] Gerar e guardar `ADMIN_API_SECRET` para os endpoints tecnicos; segredo configurado nos ambientes Vercel sem reutilizacao noutros servicos.
 - [x] Papéis individuais `admin`, `moderator` e `help_editor` preparados no esquema e validados pelo servidor sem exposição ao browser.
-- [ ] Atribuir papéis mínimos a contas reais da equipa e ativar `STAFF_ACCESS_READY=true` apenas depois de testar suspensão e acesso negado.
+- [x] Atribuir o papel `admin` a uma conta real da equipa e ativar `STAFF_ACCESS_READY=true`; acesso permitido, suspensão, recusa e restauração validados em Production.
+- [x] Confirmar que `service_role` tem privilégios SQL explícitos nas tabelas do backend, enquanto `anon` e `authenticated` continuam sem acesso direto a `staff_roles`.
 - [x] Confirmar com as duas contas reais que a RLS da Jornada devolve apenas a linha da identidade autenticada e nenhuma linha da outra conta.
 - [x] Testar escolha entre copia local e copia da conta nos dois sentidos.
 - [x] Apagar uma cópia remota da Jornada e confirmar no Supabase que a linha não é recriada automaticamente.

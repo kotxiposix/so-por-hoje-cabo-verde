@@ -57,8 +57,8 @@ A AI nunca substitui a meditação oficial. Falha de fornecedor, autenticação,
 
 | Capacidade | Estado | Proteção | Evidência |
 | --- | --- | --- | --- |
-| Painel da equipa | Preparada e fechada | `/admin`, OTP sem criação automática e `STAFF_ACCESS_READY` | papéis individuais e `no-store` |
-| Papéis mínimos | Preparada e fechada | `admin`, `moderator`, `help_editor`, `content_editor` | `staff_roles`, validação por endpoint |
+| Painel da equipa | Ativa em produção | `/admin`, OTP sem criação automática e `STAFF_ACCESS_READY` | conta `admin` real; acesso permitido, suspensão, recusa e restauração validados; respostas `no-store` |
+| Papéis mínimos | Admin ativo; restantes preparados | `admin`, `moderator`, `help_editor`, `content_editor` | `staff_roles`; validação por endpoint e privilégios SQL explícitos para `service_role` |
 | Auditoria editorial | Preparada e fechada | eventos mínimos por trigger; sem texto privado | `staff_audit_events` |
 | Limites comunitários e AI | Preparada e fechada | reclamação atómica diária no servidor | RPCs de quota no Supabase |
 | Política de privacidade | Depende da equipa | versão preliminar pública; revisão jurídica pendente | `/privacidade` |

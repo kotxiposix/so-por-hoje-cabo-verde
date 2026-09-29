@@ -597,6 +597,23 @@ grant select, insert, update, delete on table public.notification_preferences to
 revoke all on table public.push_subscriptions from anon, authenticated;
 grant select, insert, update, delete on table public.push_subscriptions to authenticated;
 
+-- New Supabase projects can omit default table grants. The secret API key
+-- assumes the service_role database role, but RLS bypass does not replace the
+-- underlying SQL privileges required by PostgREST.
+grant select, insert, update, delete on table
+  public.journey_state,
+  public.staff_roles,
+  public.staff_audit_events,
+  public.anonymous_posts,
+  public.anonymous_reports,
+  public.help_resources,
+  public.editorial_content,
+  public.notification_preferences,
+  public.push_subscriptions,
+  public.ai_daily_usage,
+  public.community_daily_usage
+to service_role;
+
 -- Supabase may install this event-trigger helper to enable RLS on new tables.
 -- Event triggers do not need browser roles to execute the helper directly.
 do $$
