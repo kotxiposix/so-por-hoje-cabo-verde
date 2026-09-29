@@ -50,7 +50,9 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Validar o limite de pedidos OTP por utilizador: repetição imediata bloqueada com espera de 45 segundos.
 - [x] Criar o widget Turnstile para os domínios autorizados, guardar a secret key em `Authentication > Attack Protection` no Supabase e `TURNSTILE_SITE_KEY` na Vercel.
 - [x] Isolar o teste de conta: Preview usa as chaves oficiais de teste Turnstile e `ACCOUNT_READY=true`; Production conserva a chave real e `ACCOUNT_READY=false`.
-- [ ] Antes de ativar contas em produção, restaurar a secret key real no Supabase, validar o hostname definitivo e testar novamente com a site key real.
+- [x] Restaurar a secret key real do Turnstile em `Authentication > Attack Protection` no Supabase.
+- [x] Confirmar no widget real os hostnames `soporhoje.cv`, `www.soporhoje.cv` e `so-por-hoje-cabo-verde.vercel.app`.
+- [ ] Antes de ativar contas em produção, testar novamente o pedido OTP com a site key real num hostname autorizado.
 - [x] Configurar Site URL `https://soporhoje.cv` e Redirect URLs para produção, Vercel e preview local autorizado.
 - [x] Guardar na Vercel Production, Preview e Development: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` e `SUPABASE_SERVICE_ROLE_KEY`.
 - [x] Guardar `TURNSTILE_SITE_KEY` nos três ambientes da Vercel depois de criar o widget definitivo.
