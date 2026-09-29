@@ -63,6 +63,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Atribuir o papel `admin` a uma conta real da equipa e ativar `STAFF_ACCESS_READY=true`; acesso permitido, suspensão, recusa e restauração validados em Production.
 - [x] Validar `content_editor` com uma segunda conta real: apenas a área Conteúdos ficou disponível, sem criar ou publicar itens; papel temporário removido no fim do ensaio.
 - [x] Validar `help_editor` com uma segunda conta real: apenas o Diretório de ajuda ficou disponível, sem criar, verificar ou publicar recursos; papel temporário removido no fim do ensaio.
+- [x] Validar `moderator` com uma segunda conta real: apenas a área Moderação ficou disponível e mostrou corretamente a comunidade ainda inativa; papel temporário removido no fim do ensaio.
 - [x] Confirmar que `service_role` tem privilégios SQL explícitos nas tabelas do backend, enquanto `anon` e `authenticated` continuam sem acesso direto a `staff_roles`.
 - [x] Confirmar com as duas contas reais que a RLS da Jornada devolve apenas a linha da identidade autenticada e nenhuma linha da outra conta.
 - [x] Testar escolha entre copia local e copia da conta nos dois sentidos.
@@ -160,7 +161,7 @@ Nao ativar antes de existirem moderadores identificados, horario e tempo de resp
 - [ ] Importar o catálogo editorial inicial em Preview e rever cada título, resumo, ligação, imagem, autoria e consentimento.
 - [ ] Testar criação, edição, publicação e retirada de conteúdos editoriais com uma conta real em Preview.
 - [ ] Ativar `EDITORIAL_CONTENT_READY=true` apenas depois de rever todas as ligações e confirmar autoria/consentimento dos conteúdos publicados.
-- [ ] Testar `/admin` com contas reais de cada papel antes de ativar `STAFF_ACCESS_READY=true`.
+- [x] Testar `/admin` com contas reais para `admin`, `moderator`, `help_editor` e `content_editor`, incluindo isolamento das áreas e remoção dos papéis temporários.
 - [ ] Testar publicação, rejeição, ocultação, denúncia duplicada e eliminação de conta em Preview.
 - [ ] Só depois destes passos ativar `COMMUNITY_READY=true` em Preview.
 
