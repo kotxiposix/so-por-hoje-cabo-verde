@@ -131,7 +131,7 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [ ] Completar a fonte e definir o prazo de revisão dos 7 recursos que permanecem em rascunho.
 - [x] Cobrir automaticamente expiração, retirada sem apagar o histórico e indisponibilidade do serviço gerido.
 - [x] Confirmar no Preview autenticado que `HELP_DIRECTORY_READY=false` mantém o endpoint gerido fechado e preserva os 17 recursos locais como fallback.
-- [ ] Repetir em Preview, com um registo temporário isolado, os ensaios de expiração e retirada antes da ativação pública.
+- [x] Repetir em Preview, com um registo temporário isolado, os ensaios de expiração e retirada; o recurso expirado ficou oculto, o recurso válido apareceu, a retirada voltou a ocultá-lo, `HELP_DIRECTORY_READY=false` foi restaurado e o registo temporário foi apagado.
 - [ ] Mudar `HELP_DIRECTORY_READY=true` apenas depois de todos os recursos visíveis estarem confirmados.
 
 ## 6. Funcionalidades que ficam fechadas
