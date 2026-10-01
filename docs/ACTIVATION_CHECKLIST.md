@@ -175,12 +175,14 @@ Nao ativar antes de definir entidade responsavel, catalogo, stock, precos, pagam
 ## 7. Promocao para producao
 
 - [ ] Repetir no projeto e variaveis de Production tudo o que foi validado em Preview.
-- [ ] Confirmar `production` como Production Branch na Vercel.
+- [x] Confirmar `production` como Production Branch na Vercel.
 - [ ] Executar a suite automatica e o roteiro manual em telemovel e desktop.
-- [ ] Verificar `soporhoje.cv`, `/expo`, `/privacidade` e os endpoints publicos.
-- [ ] Confirmar que endpoints internos recusam pedidos sem credenciais.
-- [ ] Confirmar no deploy os cabecalhos CSP, HSTS, `no-store` da API e revalidacao de `sw.js`.
+- [x] Verificar `soporhoje.cv`, `/expo`, `/privacidade` e os endpoints publicos.
+- [x] Confirmar que endpoints internos recusam pedidos sem credenciais.
+- [x] Confirmar no deploy os cabecalhos CSP, HSTS, `no-store` da API e revalidacao de `sw.js`.
 - [ ] Preparar responsavel e contacto para incidentes antes de anunciar conta ou push.
+
+Validação técnica de produção repetida em 1 de outubro de 2026: `production` confirmada pela API da Vercel; páginas públicas responderam `200`; funcionalidades ainda fechadas responderam `503`; endpoints administrativos e internos sem credenciais responderam `401`; CSP, HSTS e restantes cabeçalhos de proteção chegaram pelo domínio público; API e `/admin` usaram `private, no-store`; `sw.js` v85 usou `public, max-age=0, must-revalidate`. A Cloudflare recebeu uma regra limitada a `/sw.js` para respeitar o TTL da origem.
 
 ## Dados que a equipa precisa fornecer
 
