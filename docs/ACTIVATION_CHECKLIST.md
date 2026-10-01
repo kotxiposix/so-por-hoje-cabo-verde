@@ -175,14 +175,18 @@ Nao ativar antes de definir entidade responsavel, catalogo, stock, precos, pagam
 ## 7. Promocao para producao
 
 - [ ] Repetir no projeto e variaveis de Production tudo o que foi validado em Preview.
+- [x] Auditar na Vercel os nomes e destinos das variaveis do nucleo ativo: Supabase, Turnstile, conta e acesso da equipa estao definidos em Development, Preview e Production; AI, push, comunidade, diretorio e conteudo editorial permanecem explicitamente fechados nos tres ambientes.
 - [x] Confirmar `production` como Production Branch na Vercel.
 - [ ] Executar a suite automatica e o roteiro manual em telemovel e desktop.
+- [x] Executar a suite automatica antes da validacao de producao: 164 testes Python e 68 testes JavaScript aprovados.
+- [x] Percorrer as cinco areas publicas em producao com viewports de navegador `390x844` e `1440x900`; todas abriram pela navegacao principal sem deslocamento horizontal.
+- [ ] Concluir o roteiro PWA em Android Chrome e iPhone Safari reais; a emulacao responsiva nao valida instalacao, modo autonomo, area segura, atualizacao ou abertura offline do dispositivo.
 - [x] Verificar `soporhoje.cv`, `/expo`, `/privacidade` e os endpoints publicos.
 - [x] Confirmar que endpoints internos recusam pedidos sem credenciais.
 - [x] Confirmar no deploy os cabecalhos CSP, HSTS, `no-store` da API e revalidacao de `sw.js`.
 - [ ] Preparar responsavel e contacto para incidentes antes de anunciar conta ou push.
 
-Validação técnica de produção repetida em 1 de outubro de 2026: `production` confirmada pela API da Vercel; páginas públicas responderam `200`; funcionalidades ainda fechadas responderam `503`; endpoints administrativos e internos sem credenciais responderam `401`; CSP, HSTS e restantes cabeçalhos de proteção chegaram pelo domínio público; API e `/admin` usaram `private, no-store`; `sw.js` v85 usou `public, max-age=0, must-revalidate`. A Cloudflare recebeu uma regra limitada a `/sw.js` para respeitar o TTL da origem.
+Validação técnica de produção repetida em 1 de outubro de 2026: `production` confirmada pela API da Vercel; variaveis do nucleo ativo presentes nos tres destinos sem expor valores; configuracao publica confirmou a site key real do Turnstile; páginas públicas responderam `200`; funcionalidades ainda fechadas responderam `503`; endpoints administrativos e internos sem credenciais responderam `401`; CSP, HSTS e restantes cabeçalhos de proteção chegaram pelo domínio público; API e `/admin` usaram `private, no-store`; `sw.js` v85 usou `public, max-age=0, must-revalidate`. A Cloudflare recebeu uma regra limitada a `/sw.js` para respeitar o TTL da origem. As cinco areas publicas tambem foram percorridas em `390x844` e `1440x900`, sem deslocamento horizontal; a validacao em dispositivos fisicos continua separada.
 
 ## Dados que a equipa precisa fornecer
 
