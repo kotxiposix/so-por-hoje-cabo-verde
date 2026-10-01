@@ -35,7 +35,8 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Navegação principal suporta atalho para o conteúdo, setas/Home/End, ativação explícita e anúncio da área aberta para tecnologias de apoio.
 - [x] Breakpoints visuais e interativos do menu da exposição estão alinhados; links fora do ecrã ficam inertes e movimento reduzido é respeitado.
 - [ ] Confirmar instalacao e atualizacao da PWA em Android Chrome e iPhone Safari seguindo `docs/PWA_DEVICE_TEST.md`.
-- [ ] Confirmar os contactos e horarios comunitarios diretamente com cada entidade.
+- [x] Aceitar provisoriamente os horarios comunitarios atualmente registados, reconhecendo que podem mudar conforme a dinamica de cada grupo e devem continuar editaveis.
+- [ ] Confirmar diretamente os contactos das entidades e completar recursos que ainda nao tenham horario ou contacto suficiente.
 
 ## 2. Supabase no ambiente dev
 
@@ -127,7 +128,8 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Linha SOS Álcool, contactos gerais da CCAD e telefones oficiais do Centro de Saúde de Tira Chapéu revistos em fontes públicas atuais; horários comunitários continuam claramente assinalados para confirmação.
 - [x] Importar os 17 contactos como rascunho no Supabase, sem os tornar públicos; painel confirmou 17 itens e nenhuma chave duplicada.
 - [x] Aceitar provisoriamente a informação existente e verificar os 10 recursos que cumprem os requisitos mínimos, com revisão marcada para 28 de dezembro de 2026; manter 7 reuniões sem horário/contacto suficiente em rascunho.
-- [ ] Confirmar cada contacto e horário diretamente com a entidade responsável.
+- [x] Aceitar provisoriamente como corretos os horários existentes, mantendo revisão e edição posterior no painel.
+- [ ] Confirmar diretamente cada contacto e completar os recursos sem horário ou contacto suficiente.
 - [ ] Completar a fonte e definir o prazo de revisão dos 7 recursos que permanecem em rascunho.
 - [x] Cobrir automaticamente expiração, retirada sem apagar o histórico e indisponibilidade do serviço gerido.
 - [x] Confirmar no Preview autenticado que `HELP_DIRECTORY_READY=false` mantém o endpoint gerido fechado e preserva os 17 recursos locais como fallback.

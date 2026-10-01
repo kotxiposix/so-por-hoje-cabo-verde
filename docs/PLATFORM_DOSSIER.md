@@ -503,7 +503,7 @@ Permitir que a equipa mantenha conteudos sem depender sempre de programador.
 ## 18. Recomendacoes imediatas
 
 1. Validar juridicamente a exibicao das meditacoes oficiais e a politica de privacidade preliminar.
-2. Confirmar diretamente contactos, horarios e responsaveis dos recursos de Ajuda.
+2. Confirmar diretamente os contactos e responsáveis dos recursos de Ajuda; os horários existentes ficam aceites provisoriamente e editáveis, mas recursos sem horário ou contacto suficiente continuam em rascunho.
 3. Criar o projeto Supabase de Preview, aplicar o esquema e testar RLS com duas contas.
 4. Configurar Email OTP, SMTP e CAPTCHA sem enviar segredos por mensagens ou guardar no Git.
 5. Definir substitutos, escalas e procedimentos para privacidade, suporte, moderacao e incidentes; Viver Saudável, em `viversaudavel@soporhoje.cv`, e o contacto responsavel comum registado em `OPERATIONS_DECISIONS.md`.
@@ -570,7 +570,7 @@ O mapa funcional apresentado pela equipa passa a orientar a evolucao da platafor
 | Jornada | Funcional no dispositivo e com sincronizacao opcional ativa no Supabase | Monitorizar conflitos e manter testes de regressao com duas contas |
 | Viver Saudavel | Podcast, documentario, historia do projeto, exposicao e recursos educativos | Adicionar novos testemunhos apenas com consentimento |
 | Catálogo editorial | Gestão por rascunho/publicação preparada e fechada por flag | Testar o papel `content_editor` em Preview e rever autoria/consentimento |
-| Ajuda | Fluxo SOS, contactos oficiais acionaveis e estado de verificacao por recurso | Confirmar horarios e restantes respostas diretamente com cada entidade |
+| Ajuda | Fluxo SOS, contactos oficiais acionaveis e estado de verificacao por recurso | Horários existentes aceites provisoriamente e editáveis; confirmar contactos e completar recursos sem dados suficientes |
 | Sala anonima | Diário local ativo; backend e cliente público moderado preparados atrás de `COMMUNITY_READY=false` | Não ativar sem equipa, regras, retenção e protocolo de crise |
 | Sobre | Missao, visao, historia, coordenacao, privacidade, contactos e FAQ | Identificar parceiros apenas depois de confirmacao |
 | Conta/login | Email OTP e escolha de sincronizacao ativos em producao | Monitorizar entrega SMTP, CAPTCHA, RLS e erros de sincronizacao |

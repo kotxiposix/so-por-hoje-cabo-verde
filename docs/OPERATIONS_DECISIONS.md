@@ -86,7 +86,8 @@ Nenhum prazo deve ser escolhido apenas por conveniência técnica. A equipa deve
 
 ## 5. Diretório de ajuda
 
-- [ ] Confirmar nome, âmbito, ilha/município, telefone, horário e fonte com cada entidade.
+- [x] Aceitar provisoriamente os horários atualmente registados; podem ser atualizados quando a dinâmica de cada grupo mudar.
+- [ ] Confirmar nome, âmbito, ilha/município, telefone e fonte com cada entidade, e completar recursos sem horário ou contacto suficiente.
 - [ ] Definir prazo de revisão por categoria e nível de risco.
 - [x] Definir responsável pela revisão: Viver Saudável, em viversaudavel@soporhoje.cv.
 - [ ] Definir substituto pela revisão.
