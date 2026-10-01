@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from fastapi import FastAPI, Header, HTTPException, Query
+from fastapi import FastAPI, Header, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from sph.account_deletion import (
@@ -36,6 +36,7 @@ from sph.help_directory import (
     HelpDirectoryServiceError,
     SupabaseHelpDirectory,
 )
+from sph.http_headers import NO_STORE, SECURITY_HEADERS
 from sph.public_config import public_runtime_config
 from sph.push_delivery import PushDeliveryConfig, deliver_due_notifications, is_authorized
 from sph.repository import MeditationRepository
@@ -59,6 +60,15 @@ service = DailyMeditationService(repository, settings.timezone)
 send_log = JsonlSendLog(settings.send_log_path)
 sender = DailySender(service, send_log, settings.timezone)
 app = FastAPI(title="So Por Hoje Cabo Verde", version="0.1.0")
+
+
+@app.middleware("http")
+async def add_api_response_headers(request: Request, call_next):
+    response = await call_next(request)
+    for key, value in SECURITY_HEADERS.items():
+        response.headers[key] = value
+    response.headers["Cache-Control"] = NO_STORE
+    return response
 
 
 class DailyMeditationPayload(BaseModel):

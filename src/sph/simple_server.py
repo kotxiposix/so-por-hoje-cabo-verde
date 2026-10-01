@@ -19,6 +19,7 @@ from sph.account_deletion import (
 from sph.ai_support import DailySupportRequest, build_daily_support, support_to_dict
 from sph.config import settings
 from sph.help_directory import HelpDirectoryConfig, HelpDirectoryServiceError, SupabaseHelpDirectory
+from sph.http_headers import NO_STORE, REVALIDATE, SECURITY_HEADERS
 from sph.public_config import public_runtime_config
 from sph.push_delivery import PushDeliveryConfig, deliver_due_notifications, is_authorized
 from sph.repository import MeditationRepository
@@ -29,24 +30,6 @@ repository = MeditationRepository(settings.data_path)
 service = DailyMeditationService(repository, settings.timezone)
 PUBLIC_DIR = settings.data_path.parents[1] / "public"
 MAX_JSON_BODY_BYTES = 64 * 1024
-CONTENT_SECURITY_POLICY = (
-    "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; "
-    "script-src 'self' https://challenges.cloudflare.com; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; "
-    "connect-src 'self' https://*.supabase.co; "
-    "frame-src https://www.youtube-nocookie.com https://challenges.cloudflare.com; worker-src 'self'; manifest-src 'self'; "
-    "form-action 'self' mailto:"
-)
-SECURITY_HEADERS = {
-    "Content-Security-Policy": CONTENT_SECURITY_POLICY,
-    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-    "X-Content-Type-Options": "nosniff",
-    "X-Frame-Options": "DENY",
-}
-NO_STORE = "private, no-store"
-REVALIDATE = "public, max-age=0, must-revalidate"
-
-
 class RequestBodyTooLarge(ValueError):
     pass
 

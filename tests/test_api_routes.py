@@ -64,6 +64,10 @@ class ApiRouteContractTests(unittest.TestCase):
 
         self.assertEqual(status, 200)
         self.assertEqual(headers["content-type"], "application/json")
+        self.assertEqual(headers["cache-control"], "private, no-store")
+        self.assertEqual(headers["x-content-type-options"], "nosniff")
+        self.assertEqual(headers["x-frame-options"], "DENY")
+        self.assertIn("frame-ancestors 'none'", headers["content-security-policy"])
         self.assertEqual(
             payload,
             {

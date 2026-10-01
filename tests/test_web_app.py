@@ -305,19 +305,24 @@ class WebAppStructureTests(unittest.TestCase):
         config = json.loads((ROOT / "vercel.json").read_text(encoding="utf-8"))
         routes = config["routes"]
 
-        self.assertEqual(routes[0]["src"], "/api/(.*)")
-        self.assertEqual(routes[0]["dest"], "/api/index.py")
+        api_route = next(route for route in routes if route.get("dest") == "/api/index.py")
+        self.assertEqual(api_route["src"], "/api/(.*)")
         self.assertIn({"src": "/admin/?", "dest": "/public/admin/index.html"}, routes)
         self.assertIn({"src": "/expo/?", "dest": "/public/expo/index.html"}, routes)
         self.assertIn({"src": "/privacidade/?", "dest": "/public/privacidade/index.html"}, routes)
 
     def test_vercel_security_and_cache_headers_are_present(self) -> None:
         config = json.loads((ROOT / "vercel.json").read_text(encoding="utf-8"))
-        rules = {rule["source"]: {item["key"]: item["value"] for item in rule["headers"]} for rule in config["headers"]}
+        self.assertNotIn("headers", config)
+        rules = {
+            rule["src"]: rule["headers"]
+            for rule in config["routes"]
+            if "headers" in rule
+        }
 
-        self.assertEqual(rules["/sw.js"]["Cache-Control"], "public, max-age=0, must-revalidate")
+        self.assertEqual(rules["/sw\\.js"]["Cache-Control"], "public, max-age=0, must-revalidate")
         self.assertEqual(rules["/api/(.*)"]["Cache-Control"], "private, no-store")
-        self.assertEqual(rules["/admin"]["Cache-Control"], "private, no-store")
+        self.assertEqual(rules["/admin/?"]["Cache-Control"], "private, no-store")
         self.assertEqual(rules["/admin/(.*)"]["Cache-Control"], "private, no-store")
         security = rules["/(.*)"]
         self.assertIn("frame-ancestors 'none'", security["Content-Security-Policy"])
@@ -329,6 +334,9 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertEqual(security["X-Content-Type-Options"], "nosniff")
         self.assertEqual(security["X-Frame-Options"], "DENY")
         self.assertEqual(security["Referrer-Policy"], "strict-origin-when-cross-origin")
+        for route in config["routes"]:
+            if "headers" in route:
+                self.assertTrue(route["continue"])
 
     def test_server_secrets_are_not_shipped_in_public_files(self) -> None:
         public_text = "\n".join(

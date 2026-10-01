@@ -78,8 +78,9 @@ class ApiLimitTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         config = json.loads((root / "vercel.json").read_text(encoding="utf-8"))
         rules = {
-            rule["source"]: {item["key"]: item["value"] for item in rule["headers"]}
-            for rule in config["headers"]
+            rule["src"]: rule["headers"]
+            for rule in config["routes"]
+            if "headers" in rule
         }
         vercel_security = rules["/(.*)"].copy()
         vercel_security.pop("Strict-Transport-Security")
