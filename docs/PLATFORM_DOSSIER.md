@@ -506,7 +506,7 @@ Permitir que a equipa mantenha conteudos sem depender sempre de programador.
 2. Confirmar diretamente contactos, horarios e responsaveis dos recursos de Ajuda.
 3. Criar o projeto Supabase de Preview, aplicar o esquema e testar RLS com duas contas.
 4. Configurar Email OTP, SMTP e CAPTCHA sem enviar segredos por mensagens ou guardar no Git.
-5. Nomear responsaveis por privacidade, suporte, moderacao e incidentes; preencher `OPERATIONS_DECISIONS.md`.
+5. Definir substitutos, escalas e procedimentos para privacidade, suporte, moderacao e incidentes; Viver Saudável, em `viversaudavel@soporhoje.cv`, e o contacto responsavel comum registado em `OPERATIONS_DECISIONS.md`.
 6. Testar PWA, atualizacao, VoiceOver/TalkBack e Web Push em dispositivos reais.
 7. Rever o catálogo editorial e o conteudo complementar com autoria, consentimento e apoio clinico/comunitario.
 8. Ativar cada flag primeiro em Preview; promover para producao apenas depois da checklist respetiva.

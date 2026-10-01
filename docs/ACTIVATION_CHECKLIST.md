@@ -184,7 +184,8 @@ Nao ativar antes de definir entidade responsavel, catalogo, stock, precos, pagam
 - [x] Verificar `soporhoje.cv`, `/expo`, `/privacidade` e os endpoints publicos.
 - [x] Confirmar que endpoints internos recusam pedidos sem credenciais.
 - [x] Confirmar no deploy os cabecalhos CSP, HSTS, `no-store` da API e revalidacao de `sw.js`.
-- [ ] Preparar responsavel e contacto para incidentes antes de anunciar conta ou push.
+- [x] Definir Viver Saudável, em `viversaudavel@soporhoje.cv`, como responsável e contacto operacional para incidentes.
+- [ ] Definir um substituto e o procedimento de resposta a incidentes antes de anunciar push.
 
 Validação técnica de produção repetida em 1 de outubro de 2026: `production` confirmada pela API da Vercel; variaveis do nucleo ativo presentes nos tres destinos sem expor valores; configuracao publica confirmou a site key real do Turnstile; páginas públicas responderam `200`; funcionalidades ainda fechadas responderam `503`; endpoints administrativos e internos sem credenciais responderam `401`; CSP, HSTS e restantes cabeçalhos de proteção chegaram pelo domínio público; API e `/admin` usaram `private, no-store`; `sw.js` v85 usou `public, max-age=0, must-revalidate`. A Cloudflare recebeu uma regra limitada a `/sw.js` para respeitar o TTL da origem. As cinco areas publicas tambem foram percorridas em `390x844` e `1440x900`, sem deslocamento horizontal; a validacao em dispositivos fisicos continua separada.
 
@@ -193,7 +194,7 @@ Validação técnica de produção repetida em 1 de outubro de 2026: `production
 1. Projeto Supabase e decisao de regiao.
 2. Servico SMTP/remetente e CAPTCHA.
 3. Email oficial para `VAPID_SUBJECT`.
-4. Responsaveis por privacidade, suporte e moderacao.
+4. Substitutos, escalas e procedimentos para privacidade, suporte, moderacao e incidentes; o contacto responsavel comum e `viversaudavel@soporhoje.cv`.
 5. Confirmacao operacional para loja/doacao, caso avancem.
 
 Segredos devem ser introduzidos diretamente nos painéis Supabase e Vercel. Nunca devem ser enviados em mensagens, colocados em capturas de ecrã ou guardados no Git.
