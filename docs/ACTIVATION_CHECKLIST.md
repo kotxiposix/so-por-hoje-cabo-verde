@@ -204,3 +204,55 @@ Validação técnica repetida em produção em 5 de outubro de 2026: migração 
 5. Confirmacao operacional para loja/doacao, caso avancem.
 
 Segredos devem ser introduzidos diretamente nos painéis Supabase e Vercel. Nunca devem ser enviados em mensagens, colocados em capturas de ecrã ou guardados no Git.
+
+## Guia dos blocos pendentes
+
+Esta secção explica o que é cada bloco, por que é necessário e como o concluir. A ordem recomendada evita ativar funcionalidades antes de existirem pessoas, regras e testes para as acompanhar.
+
+### 1. Teste da PWA em dispositivos reais
+
+**O que é:** confirmar que a plataforma pode ser instalada e usada como aplicação no Android e no iPhone. A simulação no computador não valida instalação, modo autónomo, atualização, abertura offline nem as margens seguras do ecrã.
+
+**Como executar:** seguir `docs/PWA_DEVICE_TEST.md` num Android com Chrome e num iPhone com Safari. Em cada dispositivo, abrir `https://www.soporhoje.cv`, instalar a aplicação, fechar e voltar a abrir pelo ícone, percorrer as áreas públicas, testar sem rede, voltar a ligar a rede e confirmar que uma atualização fica disponível sem perder os dados locais.
+
+**Concluído quando:** o roteiro estiver preenchido para os dois sistemas, com modelo do dispositivo, versão do sistema, data, resultado e eventuais falhas, sem incluir dados pessoais.
+
+### 2. Confirmação do diretório de ajuda
+
+**O que é:** verificar com cada entidade que nome, âmbito, ilha/município, telefone, fonte e horário continuam corretos. Os horários existentes são provisoriamente aceites e podem mudar conforme a dinâmica de cada grupo; recursos sem contacto ou horário suficiente permanecem em rascunho.
+
+**Como executar:** contactar cada entidade por um canal oficial, usando **Viver Saudável — viversaudavel@soporhoje.cv** como contacto responsável. Registar a data e a fonte da confirmação no arquivo operacional privado, atualizar o recurso no painel e definir a próxima revisão. Não guardar conversas pessoais ou documentos de contacto no Git.
+
+**Concluído quando:** todos os recursos visíveis tiverem contacto e fonte confirmados, os sete rascunhos estiverem completos ou explicitamente mantidos fora da publicação, e cada recurso tiver prazo de revisão.
+
+### 3. Substituto, retenção e resposta a incidentes
+
+**O que é:** garantir continuidade quando a pessoa responsável não está disponível e definir o que acontece quando existe uma falha. Incidentes incluem conta comprometida, chave exposta, acesso entre contas, publicação de dados pessoais, contacto de ajuda incorreto, push enviado após cancelamento ou conteúdo publicado sem consentimento. Retenção define durante quanto tempo cada tipo de dado é guardado e como é eliminado ou anonimizado.
+
+**Como executar:** nomear pelo menos uma pessoa substituta num registo privado; definir quem recebe o alerta, quem pode desligar cada funcionalidade e qual o tempo de resposta. Para cada incidente, documentar triagem, contenção, evidência mínima, comunicação, correção e revisão posterior. Completar a tabela de retenção em `docs/OPERATIONS_DECISIONS.md` após revisão jurídica adequada a Cabo Verde. O registo de incidentes não deve copiar textos privados da Jornada ou da comunidade.
+
+**Concluído quando:** responsável e substituto estiverem identificados, o procedimento tiver sido ensaiado com cenários fictícios e os prazos de retenção estiverem aprovados.
+
+### 4. Notificações Push
+
+**O que é:** permitir lembretes automáticos mesmo quando a aplicação não está aberta. Usa um par VAPID para identificar o serviço e um cron para procurar, a cada minuto, lembretes que devem ser enviados.
+
+**Como executar:** gerar o par VAPID fora do repositório; guardar `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` e `PUSH_CRON_SECRET` diretamente na Vercel Preview; guardar o endpoint e o segredo do cron no Supabase Vault; manter `PUSH_DELIVERY_READY=false`; agendar o pedido interno; testar subscrição, hora/fuso, entrega com a aplicação fechada, cancelamento, endpoint expirado e mensagem do ecrã bloqueado em dois dispositivos.
+
+**Concluído quando:** todos os testes passarem, nenhuma informação privada aparecer na notificação ou nos logs e a equipa tiver substituto e resposta a incidentes. Só então `PUSH_DELIVERY_READY=true` pode ser testado em Preview.
+
+### 5. Apoio diário com AI
+
+**O que é:** gerar uma atividade, frase e desafio curtos a partir da meditação oficial e do mínimo contexto escolhido pela pessoa. A AI não substitui apoio clínico, não reescreve o texto oficial e, se falhar, a plataforma usa o conteúdo local preparado.
+
+**Como executar:** rever os formatos com pessoas de experiência clínica e comunitária; definir custo e limite diário inicial, recomendado em `3`; guardar `OPENAI_API_KEY`, `OPENAI_MODEL` e `AI_DAILY_LIMIT` diretamente na Vercel Preview; confirmar que `ai_daily_usage` contém apenas conta, data, contador e atualização; manter `AI_DELIVERY_READY=false` durante a configuração; testar respostas, recusas, latência, falhas e fallback local sem enviar identidade da conta à OpenAI.
+
+**Concluído quando:** conteúdo, custo, privacidade e comportamento de falha estiverem aprovados e monitorizados em Preview. A passagem a produção exige decisão separada.
+
+### 6. Revisões jurídica, clínica e comunitária
+
+**O que é:** obter validação humana para matérias que o código não pode decidir: política de privacidade, consentimento de imagem/voz, autoria, encaminhamento em situação de risco, regras de publicação e adequação das atividades.
+
+**Como executar:** entregar a política e a tabela de retenção a apoio jurídico adequado a Cabo Verde; rever atividades e respostas de risco com pessoas de experiência clínica e comunitária; confirmar autoria, titularidade e consentimento revogável do catálogo editorial num arquivo privado; aprovar regras de comunidade, denúncia e escalamento; ensaiar cenários fictícios antes de abrir a Sala Anónima.
+
+**Concluído quando:** as aprovações, responsáveis, datas e condições estiverem registados sem colocar documentos pessoais no repositório. Só depois podem ser ativados `HELP_DIRECTORY_READY`, `EDITORIAL_CONTENT_READY` ou `COMMUNITY_READY`, cada um através do seu próprio roteiro e período de Preview.
