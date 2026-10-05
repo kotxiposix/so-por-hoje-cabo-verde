@@ -66,7 +66,8 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] Validar `help_editor` com uma segunda conta real: apenas o Diretório de ajuda ficou disponível, sem criar, verificar ou publicar recursos; papel temporário removido no fim do ensaio.
 - [x] Validar `moderator` com uma segunda conta real: apenas a área Moderação ficou disponível e mostrou corretamente a comunidade ainda inativa; papel temporário removido no fim do ensaio.
 - [x] Confirmar que `service_role` tem privilégios SQL explícitos nas tabelas do backend, enquanto `anon` e `authenticated` continuam sem acesso direto a `staff_roles`.
-- [ ] Aplicar `supabase/migrations/20261005_staff_role_management.sql` e validar no painel que um administrador consegue ativar e suspender papéis sem conseguir suspender o último administrador.
+- [x] Aplicar `supabase/migrations/20261005_staff_role_management.sql`; funções privadas e permissões verificadas no projeto Supabase.
+- [ ] Validar no painel que um administrador consegue ativar e suspender papéis sem conseguir suspender o último administrador.
 - [x] Confirmar com as duas contas reais que a RLS da Jornada devolve apenas a linha da identidade autenticada e nenhuma linha da outra conta.
 - [x] Testar escolha entre copia local e copia da conta nos dois sentidos.
 - [x] Apagar uma cópia remota da Jornada e confirmar no Supabase que a linha não é recriada automaticamente.
