@@ -124,6 +124,15 @@ button { min-height: 42px; padding: 0 15px; border: 1px solid var(--navy); borde
 .operation-status { width: fit-content; padding: 4px 7px; border-radius: 999px; color: #fff; background: var(--green); font-size: 12px; font-weight: 800; }
 .operation-status.failed { background: var(--coral); }
 
+.team-layout { display: grid; grid-template-columns: minmax(280px, 360px) minmax(0, 1fr); gap: 20px; align-items: start; }
+.team-list { display: grid; gap: 8px; }
+.team-record { display: grid; grid-template-columns: minmax(180px, 1.4fr) minmax(130px, 1fr) auto; gap: 14px; align-items: center; min-height: 68px; padding: 12px 14px; border-color: var(--line); color: var(--ink); background: var(--paper); text-align: left; }
+.team-record > span:first-child { display: grid; min-width: 0; gap: 2px; }
+.team-record strong, .team-record small { min-width: 0; overflow-wrap: anywhere; }
+.team-record small { color: var(--muted); }
+.team-status { width: fit-content; padding: 4px 7px; border-radius: 999px; color: #fff; background: var(--green); font-size: 12px; font-weight: 800; }
+.team-status.suspended { background: var(--coral); }
+
 :focus-visible { outline: 3px solid #f4aa29; outline-offset: 2px; }
 
 @media (max-width: 760px) {
@@ -131,6 +140,7 @@ button { min-height: 42px; padding: 0 15px; border: 1px solid var(--navy); borde
   .auth-panel, .resource-form { padding: 20px; }
   .workspace-header, .section-heading { align-items: flex-start; }
   .directory-layout { grid-template-columns: 1fr; }
+  .team-layout { grid-template-columns: 1fr; }
   .resource-list { max-height: 280px; }
   .field-grid, .record-actions { grid-template-columns: 1fr; }
   .inline-form { grid-template-columns: 1fr; }
@@ -138,4 +148,5 @@ button { min-height: 42px; padding: 0 15px; border: 1px solid var(--navy); borde
   .admin-tabs button { flex: 1 0 auto; }
   .operations-summary { grid-template-columns: 1fr; }
   .operation-record { grid-template-columns: 1fr 1fr; }
+  .team-record { grid-template-columns: 1fr; }
 }

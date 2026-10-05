@@ -99,11 +99,11 @@ O catalogo estatico continua disponivel enquanto `HELP_DIRECTORY_READY=false`. O
 
 Quando a flag está ativa, o cliente lê apenas publicações aprovadas. Enviar ou denunciar exige uma sessão válida; novas partilhas nunca aparecem diretamente e entram primeiro na fila de moderação. O conteúdo comunitário é construído com `textContent`, sem interpolação de HTML.
 
-As ações editoriais usam papéis individuais guardados em `staff_roles`: `moderator` para a comunidade, `help_editor` para o diretório e `admin` para ambas. `STAFF_ACCESS_READY=false` mantém estes acessos fechados até existirem contas reais testadas; `ADMIN_API_SECRET` fica reservado aos endpoints técnicos internos.
+As ações editoriais usam papéis individuais guardados em `staff_roles`: `moderator` para a comunidade, `help_editor` para o diretório, `content_editor` para o catálogo e `admin` para todas as áreas. O separador Equipa permite ao administrador ativar ou suspender papéis de contas já existentes através de RPCs privadas; o browser nunca acede diretamente à tabela, cada alteração é auditada e a base impede suspender o último administrador. `STAFF_ACCESS_READY=false` mantém estes acessos fechados até existirem contas reais testadas; `ADMIN_API_SECRET` fica reservado aos endpoints técnicos internos.
 
 O painel `/admin` é uma superfície operacional separada da aplicação pública. Não é apresentado no menu, não é indexável nem guardado pelo service worker. A interface pede autenticação individual, consulta `/api/v1/admin/me` e mostra apenas as ferramentas permitidas pelos papéis ativos. A vista de operação, exclusiva de `admin`, recebe apenas data, canal, estado e hora dos envios; identificadores de destino, conteúdo, hashes e erros brutos permanecem no lado do servidor.
 
-As decisões editoriais usam autoria mínima nas tabelas de origem e triggers PostgreSQL para inserir `staff_audit_events` atomicamente. O evento contém apenas ação, alvo técnico, conta e data; a API administrativa ainda abrevia os identificadores antes de os enviar ao browser. A tabela de auditoria tem RLS sem política direta e as funções de trigger não são executáveis por `anon` ou `authenticated`.
+As decisões editoriais e alterações de papéis usam autoria mínima nas tabelas de origem e triggers PostgreSQL para inserir `staff_audit_events` atomicamente. O evento contém apenas ação, alvo técnico, conta e data; a API administrativa ainda abrevia os identificadores antes de os enviar ao browser. A tabela de auditoria tem RLS sem política direta e as funções de trigger não são executáveis por `anon` ou `authenticated`.
 
 ## 6. Portoes de ativacao
 

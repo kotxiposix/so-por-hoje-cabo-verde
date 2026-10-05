@@ -14,6 +14,7 @@ from sph.staff_access import (
     StaffForbiddenError,
     StaffIdentity,
 )
+from sph.staff_roles import StaffRoleConflictError
 
 
 class AdminApiTests(unittest.TestCase):
@@ -109,6 +110,54 @@ class AdminApiTests(unittest.TestCase):
         self.assertEqual(result, [])
         require_access.assert_called_once_with("Bearer token", {"admin"})
         audit_service.return_value.list_events.assert_called_once_with(25)
+
+    def test_team_routes_require_admin_and_attach_the_actor(self) -> None:
+        identity = StaffIdentity(
+            user_id="7d40d2bb-6202-4e1f-9231-724d15fc8e02",
+            roles=("admin",),
+        )
+        with patch("sph.api.require_staff_access", return_value=identity) as require_access, patch(
+            "sph.api.staff_roles_service"
+        ) as role_service:
+            role_service.return_value.list_roles.return_value = []
+            self.assertEqual(api.staff_team("Bearer token"), [])
+
+            payload = api.StaffRolePayload(
+                email="moderator@example.cv",
+                role="moderator",
+                status="active",
+            )
+            role_service.return_value.set_role.return_value = {"status": "active"}
+            self.assertEqual(api.set_staff_role(payload, "Bearer token"), {"status": "active"})
+
+        self.assertEqual(require_access.call_count, 2)
+        require_access.assert_any_call("Bearer token", {"admin"})
+        role_service.return_value.list_roles.assert_called_once_with(identity.user_id)
+        role_service.return_value.set_role.assert_called_once_with(
+            identity.user_id,
+            "moderator@example.cv",
+            "moderator",
+            "active",
+        )
+
+    def test_last_admin_conflict_is_returned_without_mutating_again(self) -> None:
+        identity = StaffIdentity(
+            user_id="7d40d2bb-6202-4e1f-9231-724d15fc8e02",
+            roles=("admin",),
+        )
+        payload = api.StaffRolePayload(
+            email="admin@example.cv",
+            role="admin",
+            status="suspended",
+        )
+        with patch("sph.api.require_staff_access", return_value=identity), patch(
+            "sph.api.staff_roles_service"
+        ) as role_service:
+            role_service.return_value.set_role.side_effect = StaffRoleConflictError("último administrador")
+            with self.assertRaises(HTTPException) as raised:
+                api.set_staff_role(payload, "Bearer token")
+
+        self.assertEqual(raised.exception.status_code, 409)
 
     def test_editorial_mutations_attach_the_authenticated_staff_identity(self) -> None:
         identity = StaffIdentity(

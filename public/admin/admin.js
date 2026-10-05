@@ -10,22 +10,24 @@ const state = {
   roles: new Set(),
   resources: [],
   content: [],
+  teamRoles: [],
   actionPending: false,
 };
 const els = Object.fromEntries([
   "auth-panel", "auth-summary", "auth-status", "email-form", "staff-email", "staff-captcha", "code-form", "staff-code",
-  "workspace", "workspace-status", "signout", "role-list", "community-tab", "directory-tab", "content-tab", "operations-tab",
-  "community-view", "directory-view", "content-view", "operations-view", "refresh-community", "community-list", "new-resource", "resource-list",
+  "workspace", "workspace-status", "signout", "role-list", "community-tab", "directory-tab", "content-tab", "team-tab", "operations-tab",
+  "community-view", "directory-view", "content-view", "team-view", "operations-view", "refresh-community", "community-list", "new-resource", "resource-list",
   "resource-form", "resource-id", "resource-name", "resource-category", "resource-island", "resource-municipality",
   "resource-description", "resource-phone", "resource-email", "resource-website", "resource-source",
   "resource-schedule", "resource-emergency", "review-days", "verify-resource", "retire-resource",
   "refresh-operations", "operations-summary", "operations-list", "audit-list",
+  "refresh-team", "team-list", "team-role-form", "team-email", "team-role", "team-status",
   "new-content", "content-list", "content-form", "content-id", "content-name", "content-kind", "content-summary",
   "content-url", "content-image", "content-date", "content-order", "publish-content", "retire-content",
 ].map((id) => [id.replaceAll("-", "_"), document.getElementById(id)]));
 
 let pendingEmail = "";
-const adminTabs = [els.community_tab, els.directory_tab, els.content_tab, els.operations_tab];
+const adminTabs = [els.community_tab, els.directory_tab, els.content_tab, els.team_tab, els.operations_tab];
 
 function loadSession() {
   try {
@@ -106,6 +108,7 @@ async function authenticate() {
   els.community_tab.hidden = !canModerate;
   els.directory_tab.hidden = !canEditHelp;
   els.content_tab.hidden = !canEditContent;
+  els.team_tab.hidden = !canOperate;
   els.operations_tab.hidden = !canOperate;
   const initialView = canOperate ? "operations" : canEditContent ? "content" : canEditHelp ? "directory" : "community";
   try {
@@ -120,6 +123,7 @@ async function showView(view) {
     community: [els.community_tab, els.community_view, loadCommunity],
     directory: [els.directory_tab, els.directory_view, loadResources],
     content: [els.content_tab, els.content_view, loadContent],
+    team: [els.team_tab, els.team_view, loadTeam],
     operations: [els.operations_tab, els.operations_view, loadOperations],
   };
   if (!views[view] || views[view][0].hidden) return;
@@ -429,6 +433,73 @@ async function retireContent(button) {
   });
 }
 
+const teamRoleLabels = {
+  admin: "Administração",
+  moderator: "Moderação",
+  help_editor: "Diretório de ajuda",
+  content_editor: "Conteúdos",
+};
+
+async function loadTeam() {
+  setStatus("A atualizar a equipa...");
+  const roles = await platformRequest("/api/v1/admin/team");
+  state.teamRoles = Array.isArray(roles) ? roles : [];
+  renderTeam();
+  setStatus(`${state.teamRoles.length} papel(is) atribuído(s).`);
+}
+
+function renderTeam() {
+  els.team_list.replaceChildren();
+  if (!state.teamRoles.length) els.team_list.append(emptyState("Ainda não existem papéis atribuídos."));
+  state.teamRoles.forEach((entry) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "team-record";
+    const identity = document.createElement("span");
+    const email = document.createElement("strong");
+    email.textContent = entry.email || "Email indisponível";
+    const reference = document.createElement("small");
+    reference.textContent = entry.user_ref || "Conta indisponível";
+    identity.append(email, reference);
+    const role = document.createElement("span");
+    role.textContent = teamRoleLabels[entry.role] || entry.role || "Papel indisponível";
+    const status = document.createElement("span");
+    status.className = `team-status${entry.status === "suspended" ? " suspended" : ""}`;
+    status.textContent = entry.status === "active" ? "Ativo" : "Suspenso";
+    button.append(identity, role, status);
+    button.addEventListener("click", () => fillTeamRole(entry));
+    els.team_list.append(button);
+  });
+}
+
+function fillTeamRole(entry) {
+  els.team_email.value = entry.email || "";
+  els.team_role.value = entry.role || "moderator";
+  els.team_status.value = entry.status || "active";
+  els.team_status.focus();
+}
+
+async function saveTeamRole(event) {
+  event.preventDefault();
+  const payload = {
+    email: els.team_email.value.trim().toLowerCase(),
+    role: els.team_role.value,
+    status: els.team_status.value,
+  };
+  if (payload.status === "suspended" && !window.confirm("Suspender este papel da equipa?")) return;
+  await runAdministrativeAction(event.submitter, async () => {
+    setStatus("A guardar o papel...");
+    try {
+      await platformRequest("/api/v1/admin/team/roles", {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+      await loadTeam();
+      setStatus(payload.status === "active" ? "Papel ativo." : "Papel suspenso.");
+    } catch (error) { setStatus(error.message, true); }
+  });
+}
+
 function summaryMetric(label, value) {
   const article = document.createElement("article");
   const caption = document.createElement("span");
@@ -489,6 +560,14 @@ function renderAuditEvents(events) {
     "content.updated": "Conteúdo atualizado",
     "content.published": "Conteúdo publicado",
     "content.retired": "Conteúdo retirado",
+    "staff_role.admin.activated": "Administrador ativado",
+    "staff_role.admin.suspended": "Administrador suspenso",
+    "staff_role.moderator.activated": "Moderador ativado",
+    "staff_role.moderator.suspended": "Moderador suspenso",
+    "staff_role.help_editor.activated": "Editor de ajuda ativado",
+    "staff_role.help_editor.suspended": "Editor de ajuda suspenso",
+    "staff_role.content_editor.activated": "Editor de conteúdo ativado",
+    "staff_role.content_editor.suspended": "Editor de conteúdo suspenso",
   };
   els.audit_list.replaceChildren();
   if (!events.length) els.audit_list.append(emptyState("Ainda não existem eventos editoriais."));
@@ -576,6 +655,7 @@ els.signout.addEventListener("click", async () => {
 els.community_tab.addEventListener("click", () => showView("community").catch((error) => setStatus(error.message, true)));
 els.directory_tab.addEventListener("click", () => showView("directory").catch((error) => setStatus(error.message, true)));
 els.content_tab.addEventListener("click", () => showView("content").catch((error) => setStatus(error.message, true)));
+els.team_tab.addEventListener("click", () => showView("team").catch((error) => setStatus(error.message, true)));
 els.operations_tab.addEventListener("click", () => showView("operations").catch((error) => setStatus(error.message, true)));
 adminTabs.forEach((tab) => {
   tab.addEventListener("keydown", (event) => {
@@ -586,6 +666,8 @@ adminTabs.forEach((tab) => {
 });
 els.refresh_community.addEventListener("click", () => loadCommunity().catch((error) => setStatus(error.message, true)));
 els.refresh_operations.addEventListener("click", () => loadOperations().catch((error) => setStatus(error.message, true)));
+els.refresh_team.addEventListener("click", () => loadTeam().catch((error) => setStatus(error.message, true)));
+els.team_role_form.addEventListener("submit", saveTeamRole);
 els.new_resource.addEventListener("click", () => fillResource());
 els.resource_form.addEventListener("submit", saveResource);
 els.verify_resource.addEventListener("click", (event) => verifyResource(event.currentTarget));

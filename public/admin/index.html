@@ -8,7 +8,7 @@
     <meta name="description" content="Área reservada da equipa Só Por Hoje Cabo Verde." />
     <title>Equipa · Só Por Hoje Cabo Verde</title>
     <link rel="icon" type="image/png" href="../favicon-32.png" />
-    <link rel="stylesheet" href="/admin/admin.css?v=8" />
+    <link rel="stylesheet" href="/admin/admin.css?v=9" />
   </head>
   <body>
     <a class="skip-link" href="#admin-main">Ir para o conteúdo principal</a>
@@ -56,6 +56,7 @@
           <button id="community-tab" type="button" role="tab" aria-selected="false" aria-controls="community-view" tabindex="-1" data-admin-view="community">Moderação</button>
           <button id="directory-tab" type="button" role="tab" aria-selected="false" aria-controls="directory-view" tabindex="-1" data-admin-view="directory">Diretório de ajuda</button>
           <button id="content-tab" type="button" role="tab" aria-selected="false" aria-controls="content-view" tabindex="-1" data-admin-view="content">Conteúdos</button>
+          <button id="team-tab" type="button" role="tab" aria-selected="false" aria-controls="team-view" tabindex="-1" data-admin-view="team">Equipa</button>
           <button id="operations-tab" type="button" role="tab" aria-selected="false" aria-controls="operations-view" tabindex="-1" data-admin-view="operations">Operação</button>
         </nav>
 
@@ -152,6 +153,36 @@
           </div>
         </section>
 
+        <section id="team-view" class="admin-view" role="tabpanel" aria-labelledby="team-tab team-title" hidden>
+          <div class="section-heading">
+            <div><span class="eyebrow">Acessos</span><h2 id="team-title">Papéis da equipa</h2></div>
+            <button id="refresh-team" class="quiet-button" type="button">Atualizar</button>
+          </div>
+          <div class="team-layout">
+            <form id="team-role-form" class="resource-form">
+              <label>Email da conta<input id="team-email" type="email" maxlength="254" autocomplete="off" required /></label>
+              <div class="field-grid">
+                <label>Papel
+                  <select id="team-role" required>
+                    <option value="moderator">Moderação</option>
+                    <option value="help_editor">Diretório de ajuda</option>
+                    <option value="content_editor">Conteúdos</option>
+                    <option value="admin">Administração</option>
+                  </select>
+                </label>
+                <label>Estado
+                  <select id="team-status" required>
+                    <option value="active">Ativo</option>
+                    <option value="suspended">Suspenso</option>
+                  </select>
+                </label>
+              </div>
+              <button type="submit">Guardar papel</button>
+            </form>
+            <div id="team-list" class="team-list" aria-label="Papéis atribuídos"></div>
+          </div>
+        </section>
+
         <section id="operations-view" class="admin-view" role="tabpanel" aria-labelledby="operations-tab operations-title" hidden>
           <div class="section-heading">
             <div><span class="eyebrow">Entregas técnicas</span><h2 id="operations-title">Estado dos envios</h2></div>
@@ -171,6 +202,6 @@
       </section>
     </main>
 
-    <script type="module" src="/admin/admin.js?v=8"></script>
+    <script type="module" src="/admin/admin.js?v=9"></script>
   </body>
 </html>

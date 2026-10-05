@@ -50,6 +50,12 @@ from sph.staff_access import (
     SupabaseStaffAccess,
 )
 from sph.staff_audit import StaffAuditServiceError, SupabaseStaffAudit
+from sph.staff_roles import (
+    StaffRoleConflictError,
+    StaffRoleInputError,
+    StaffRoleServiceError,
+    SupabaseStaffRoles,
+)
 from sph.send_log import JsonlSendLog
 from sph.sender import DailySender
 from sph.service import DailyMeditationService
@@ -135,6 +141,14 @@ class EditorialContentPayload(BaseModel):
     sort_order: int = Field(default=0, ge=-999, le=999)
 
 
+class StaffRolePayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    email: str = Field(min_length=3, max_length=254)
+    role: str = Field(min_length=3, max_length=30)
+    status: str = Field(min_length=6, max_length=10)
+
+
 def require_technical_admin_access(authorization: str | None) -> None:
     if not admin_access_allowed(authorization):
         raise HTTPException(status_code=401, detail="Não autorizado")
@@ -186,6 +200,13 @@ def staff_audit_service() -> SupabaseStaffAudit:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
+def staff_roles_service() -> SupabaseStaffRoles:
+    try:
+        return SupabaseStaffRoles(StaffAccessConfig.from_environment())
+    except (StaffRoleServiceError, StaffAccessServiceError) as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
 def editorial_catalog_service() -> SupabaseEditorialCatalog:
     try:
         return SupabaseEditorialCatalog(EditorialConfig.from_environment())
@@ -210,6 +231,40 @@ def staff_profile(authorization: str | None = Header(default=None)) -> dict[str,
         {"admin", "moderator", "help_editor", "content_editor"},
     )
     return {"roles": list(identity.roles)}
+
+
+@app.get("/api/v1/admin/team")
+def staff_team(authorization: str | None = Header(default=None)) -> list[dict[str, str]]:
+    identity = require_staff_access(authorization, {"admin"})
+    try:
+        return staff_roles_service().list_roles(identity.user_id)
+    except StaffRoleInputError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except StaffRoleConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except StaffRoleServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.put("/api/v1/admin/team/roles")
+def set_staff_role(
+    payload: StaffRolePayload,
+    authorization: str | None = Header(default=None),
+) -> dict[str, str]:
+    identity = require_staff_access(authorization, {"admin"})
+    try:
+        return staff_roles_service().set_role(
+            identity.user_id,
+            payload.email,
+            payload.role,
+            payload.status,
+        )
+    except StaffRoleInputError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except StaffRoleConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except StaffRoleServiceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @app.get("/api/v1/today")

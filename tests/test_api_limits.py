@@ -9,7 +9,7 @@ from unittest.mock import MagicMock
 
 from pydantic import ValidationError
 
-from sph.api import AiDailySupportPayload
+from sph.api import AiDailySupportPayload, StaffRolePayload
 from sph.send_log import JsonlSendLog, SendLogEntry
 from sph.simple_server import (
     Handler,
@@ -106,6 +106,17 @@ class ApiLimitTests(unittest.TestCase):
                     "source": "campo não aceite",
                 }
             )
+
+    def test_staff_role_payload_rejects_extra_or_oversized_fields(self) -> None:
+        with self.assertRaises(ValidationError):
+            StaffRolePayload(
+                email="moderator@example.cv",
+                role="moderator",
+                status="active",
+                user_id="not accepted",
+            )
+        with self.assertRaises(ValidationError):
+            StaffRolePayload(email="a" * 255, role="moderator", status="active")
 
     def test_send_log_limit_returns_latest_entries(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

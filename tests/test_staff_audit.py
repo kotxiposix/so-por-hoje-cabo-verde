@@ -64,6 +64,17 @@ class StaffAuditTests(unittest.TestCase):
         self.assertEqual(request.headers["Authorization"], "Bearer service-role")
         self.assertEqual(len(visible), 1)
 
+    def test_role_event_uses_a_short_account_reference(self) -> None:
+        visible = public_audit_event(
+            {
+                **event(),
+                "action": "staff_role.moderator.suspended",
+                "target_type": "staff_role",
+            }
+        )
+
+        self.assertEqual(visible["target_ref"], "Conta …88dfee")
+
     def test_schema_audit_is_atomic_private_and_content_free(self) -> None:
         schema = SCHEMA_PATH.read_text(encoding="utf-8")
         table = schema.split("create table if not exists public.staff_audit_events", 1)[1].split(");", 1)[0]
@@ -76,6 +87,7 @@ class StaffAuditTests(unittest.TestCase):
         self.assertIn("after update of status on public.anonymous_posts", schema)
         self.assertIn("after insert or update on public.help_resources", schema)
         self.assertIn("after insert or update on public.editorial_content", schema)
+        self.assertIn("after insert or update of status on public.staff_roles", schema)
         self.assertIn("revoke all on function public.audit_community_moderation()", schema)
         self.assertIn("revoke all on function public.audit_help_resource_change()", schema)
         self.assertIn("revoke all on function public.audit_editorial_content_change()", schema)

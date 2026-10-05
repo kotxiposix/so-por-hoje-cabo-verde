@@ -28,8 +28,16 @@ ALLOWED_ACTIONS = {
     "content.updated",
     "content.published",
     "content.retired",
+    "staff_role.admin.activated",
+    "staff_role.admin.suspended",
+    "staff_role.moderator.activated",
+    "staff_role.moderator.suspended",
+    "staff_role.help_editor.activated",
+    "staff_role.help_editor.suspended",
+    "staff_role.content_editor.activated",
+    "staff_role.content_editor.suspended",
 }
-ALLOWED_TARGETS = {"community_post", "help_resource", "editorial_content"}
+ALLOWED_TARGETS = {"community_post", "help_resource", "editorial_content", "staff_role"}
 
 
 def short_reference(value: object, prefix: str) -> str:
@@ -56,10 +64,11 @@ def public_audit_event(record: object) -> dict[str, str]:
         raise StaffAuditServiceError("A auditoria devolveu uma data inválida.")
     actor_id = record.get("actor_id")
     actor_ref = "Conta removida" if actor_id is None else short_reference(actor_id, "Conta")
+    target_prefix = "Conta" if target_type == "staff_role" else "Item"
     return {
         "action": action,
         "target_type": target_type,
-        "target_ref": short_reference(record.get("target_id"), "Item"),
+        "target_ref": short_reference(record.get("target_id"), target_prefix),
         "actor_ref": actor_ref,
         "created_at": created_at,
     }
