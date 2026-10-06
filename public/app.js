@@ -594,7 +594,7 @@ async function runAccountOperation(operation) {
 }
 
 function renderNotificationOperationState() {
-  const pending = notificationOperationPending || accountState.operationPending;
+  const pending = notificationOperationPending;
   [els.reminder, els.notificationsSecondary, els.disableNotifications]
     .filter(Boolean)
     .forEach((control) => {
@@ -604,11 +604,13 @@ function renderNotificationOperationState() {
 }
 
 async function runNotificationOperation(operation) {
-  if (notificationOperationPending || accountState.operationPending) return;
+  if (notificationOperationPending) return;
   notificationOperationPending = true;
   renderNotificationOperationState();
   try {
     await operation();
+  } catch (error) {
+    els.pwaInstallStatus.textContent = error?.message || "Não foi possível gerir as notificações agora.";
   } finally {
     notificationOperationPending = false;
     renderNotificationOperationState();
@@ -2115,10 +2117,12 @@ function removeAnonymousShare(index) {
 
 async function activateNotifications() {
   if (!("Notification" in window)) {
+    els.pwaInstallStatus.textContent = "Este navegador não disponibiliza notificações.";
     flashStatus("Notificações indisponíveis", "Este navegador não suporta notificações locais.");
     return;
   }
 
+  els.pwaInstallStatus.textContent = "A pedir autorização para mostrar notificações...";
   const permission = await Notification.requestPermission();
   state.progress.notifications = permission === "granted" ? "on" : "off";
   saveProgress({ touch: false, sync: false });
@@ -2139,6 +2143,9 @@ async function activateNotifications() {
       // Permission is stored even when the browser suppresses the confirmation notification.
     }
     scheduleSessionReminder();
+    els.pwaInstallStatus.textContent = pushActive
+      ? "Notificações em segundo plano ativas neste dispositivo."
+      : "Notificação local ativa. Entra na conta para receber com a aplicação fechada.";
     flashStatus(
       "Notificação ativada",
       pushActive
@@ -2148,6 +2155,7 @@ async function activateNotifications() {
     return;
   }
 
+  els.pwaInstallStatus.textContent = "A permissão não foi concedida. Revê as notificações nas definições do dispositivo.";
   flashStatus("Notificação não ativada", "Podes tentar novamente nas permissões do navegador.");
 }
 

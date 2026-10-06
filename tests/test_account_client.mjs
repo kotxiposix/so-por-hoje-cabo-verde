@@ -222,6 +222,22 @@ test("non-JSON failures preserve a useful message", async () => {
   await assert.rejects(client.sendOtp("person@example.com"), /Serviço indisponível/);
 });
 
+test("requests stop waiting and show a useful timeout message", async () => {
+  const client = new SupabaseAccountClient({
+    url: "https://project.supabase.co",
+    publishableKey: "public-key",
+    requestTimeoutMs: 5,
+    fetchImpl: async (_url, options) => new Promise((_resolve, reject) => {
+      options.signal.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")));
+    }),
+  });
+
+  await assert.rejects(
+    client.sendOtp("person@example.com"),
+    /O pedido demorou demasiado/,
+  );
+});
+
 test("journey deletion is limited to the signed-in user", async () => {
   let request;
   const client = new SupabaseAccountClient({

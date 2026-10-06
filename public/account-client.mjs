@@ -1,6 +1,8 @@
 import { JOURNEY_SCHEMA_VERSION } from "./journey-sync.mjs";
 import { normalizePushEndpoint, normalizePushSubscription } from "./push-subscription.mjs";
 
+const REQUEST_TIMEOUT_MS = 15000;
+
 function normalizeSupabaseOrigin(value) {
   if (typeof value !== "string" || !value.trim()) return "";
   try {
@@ -34,11 +36,20 @@ function normalizeCaptchaToken(value) {
 }
 
 export class SupabaseAccountClient {
-  constructor({ url, publishableKey, fetchImpl = fetch, platformFetchImpl = fetch }) {
+  constructor({
+    url,
+    publishableKey,
+    fetchImpl = fetch,
+    platformFetchImpl = fetch,
+    requestTimeoutMs = REQUEST_TIMEOUT_MS,
+  }) {
     this.url = normalizeSupabaseOrigin(url);
     this.publishableKey = normalizePublishableKey(publishableKey);
     this.fetchImpl = fetchImpl.bind(globalThis);
     this.platformFetchImpl = platformFetchImpl.bind(globalThis);
+    this.requestTimeoutMs = Number.isFinite(requestTimeoutMs) && requestTimeoutMs > 0
+      ? requestTimeoutMs
+      : REQUEST_TIMEOUT_MS;
     if (!this.url || !this.publishableKey) {
       throw new Error("Configuração Supabase inválida ou incompleta.");
     }
@@ -203,16 +214,29 @@ export class SupabaseAccountClient {
   }
 
   async request(path, { method = "GET", body, session, headers = {} } = {}) {
-    const response = await this.fetchImpl(`${this.url}${path}`, {
-      method,
-      headers: {
-        apikey: this.publishableKey,
-        "Content-Type": "application/json",
-        ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-        ...headers,
-      },
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-    });
+    const controller = new AbortController();
+    const timeout = globalThis.setTimeout(() => controller.abort(), this.requestTimeoutMs);
+    let response;
+    try {
+      response = await this.fetchImpl(`${this.url}${path}`, {
+        method,
+        headers: {
+          apikey: this.publishableKey,
+          "Content-Type": "application/json",
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+          ...headers,
+        },
+        signal: controller.signal,
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      });
+    } catch (error) {
+      if (controller.signal.aborted) {
+        throw new Error("O pedido demorou demasiado. Confirma a ligação e tenta novamente.");
+      }
+      throw error;
+    } finally {
+      globalThis.clearTimeout(timeout);
+    }
 
     const text = await response.text();
     let payload = null;
