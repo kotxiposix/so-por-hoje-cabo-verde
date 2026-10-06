@@ -76,9 +76,9 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 
 ## 3. Notificacoes em segundo plano
 
-- [ ] Gerar um par VAPID fora do repositorio.
-- [ ] Guardar na Vercel Preview: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` e `PUSH_CRON_SECRET`.
-- [ ] Manter `PUSH_DELIVERY_READY=false` durante os primeiros testes.
+- [x] Gerar um par VAPID fora do repositorio, apenas em memória e sem imprimir ou guardar as chaves em ficheiros locais.
+- [x] Guardar na Vercel Preview: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` e `PUSH_CRON_SECRET`.
+- [x] Manter `PUSH_DELIVERY_READY=false` durante a configuração e os primeiros testes.
 - [x] `PUSH_DELIVERY_READY=false` bloqueia o emissor no servidor, mesmo com Supabase, VAPID e segredo do cron configurados.
 - [x] O browser só recebe a funcionalidade push quando todas as credenciais de subscrição e entrega estão presentes no servidor.
 - [x] O estado mostrado é reconciliado com a permissão e a subscrição reais do navegador; uma subscrição órfã é removida sem reagir destrutivamente a uma falha transitória de configuração.
@@ -182,18 +182,21 @@ Nao ativar antes de definir entidade responsavel, catalogo, stock, precos, pagam
 - [x] Auditar na Vercel os nomes e destinos das variaveis do nucleo ativo: Supabase, Turnstile, conta e acesso da equipa estao definidos em Development, Preview e Production; AI, push, comunidade, diretorio e conteudo editorial permanecem explicitamente fechados nos tres ambientes.
 - [x] Confirmar `production` como Production Branch na Vercel.
 - [ ] Executar a suite automatica e o roteiro manual em telemovel e desktop.
-- [x] Executar a suite automatica antes da validacao de producao: 174 testes Python e 68 testes JavaScript aprovados.
+- [x] Executar a suite automatica antes da validacao de producao: 175 testes Python e 68 testes JavaScript aprovados.
 - [x] Percorrer as cinco areas publicas em producao com viewports de navegador `390x844` e `1440x900`; todas abriram pela navegacao principal sem deslocamento horizontal.
 - [ ] Concluir o roteiro PWA em Android Chrome e iPhone Safari reais; a emulacao responsiva nao valida instalacao, modo autonomo, area segura, atualizacao ou abertura offline do dispositivo.
 - [x] Verificar `soporhoje.cv`, `/expo`, `/privacidade` e os endpoints publicos.
 - [x] Confirmar que endpoints internos recusam pedidos sem credenciais.
 - [x] Confirmar no deploy os cabecalhos CSP, HSTS, `no-store` da API e revalidacao de `sw.js`.
 - [x] Definir Viver Saudável, em `viversaudavel@soporhoje.cv`, como responsável e contacto operacional para incidentes.
+- [x] Preparar em `docs/INCIDENT_RESPONSE_RUNBOOK.md` um procedimento inicial de classificação, contenção, evidência mínima, recuperação e ensaio, sem o apresentar como aprovado.
 - [ ] Definir um substituto e o procedimento de resposta a incidentes antes de anunciar push.
 
 Validação técnica de produção repetida em 1 de outubro de 2026: `production` confirmada pela API da Vercel; variaveis do nucleo ativo presentes nos tres destinos sem expor valores; configuracao publica confirmou a site key real do Turnstile; páginas públicas responderam `200`; funcionalidades ainda fechadas responderam `503`; endpoints administrativos e internos sem credenciais responderam `401`; CSP, HSTS e restantes cabeçalhos de proteção chegaram pelo domínio público; API e `/admin` usaram `private, no-store`; `sw.js` v85 usou `public, max-age=0, must-revalidate`. A Cloudflare recebeu uma regra limitada a `/sw.js` para respeitar o TTL da origem. As cinco areas publicas tambem foram percorridas em `390x844` e `1440x900`, sem deslocamento horizontal; a validacao em dispositivos fisicos continua separada.
 
 Validação técnica repetida em produção em 5 de outubro de 2026: migração de gestão de papéis aplicada sem eliminar registos; funções privadas devolveram a lista esperada e confirmaram execução exclusiva por `service_role`; `/admin` carregou a nova área **Equipa** com `private, no-store`; o endpoint sem sessão respondeu `401`; uma conta `admin` real iniciou sessão e visualizou o único papel ativo. O ensaio opcional de ativação/suspensão foi dispensado pela equipa e permanece assinalado separadamente.
+
+Preparação de Push em 6 de outubro de 2026: par VAPID e segredo do agendador gerados apenas em memória e guardados diretamente na Vercel Preview; `VAPID_SUBJECT` usa `mailto:viversaudavel@soporhoje.cv`; os quatro nomes e o destino Preview foram confirmados sem expor valores; `PUSH_DELIVERY_READY=false` permaneceu aplicado. O agendamento, Vault e testes físicos continuam pendentes e nenhum envio Push foi ativado.
 
 ## Dados que a equipa precisa fornecer
 

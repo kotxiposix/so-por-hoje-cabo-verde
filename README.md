@@ -162,6 +162,8 @@ O estado das integrações pode ser auditado sem revelar valores com:
 PYTHONPATH=src python scripts/check_readiness.py
 ```
 
+O diagnóstico não mostra valores: assinala apenas variáveis ausentes, dependências fechadas e formatos inválidos de VAPID, segredo do agendador e configuração da AI.
+
 Depois de aplicar o esquema no Supabase, verificar as tabelas e RPCs esperadas, sem escrever dados, com:
 
 ```bash

@@ -112,6 +112,8 @@ O repositório guarda apenas metadados editoriais necessários; provas e documen
 
 ## 7. Incidentes
 
+O procedimento técnico inicial está descrito em `docs/INCIDENT_RESPONSE_RUNBOOK.md`. Continua em estado de rascunho até a equipa nomear um substituto, aprovar tempos de resposta e ensaiar os cenários aplicáveis.
+
 | Etapa | Decisão da equipa |
 | --- | --- |
 | Receção e triagem | Viver Saudável, em viversaudavel@soporhoje.cv; procedimento por definir |

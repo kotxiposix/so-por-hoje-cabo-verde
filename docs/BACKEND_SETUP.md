@@ -40,6 +40,7 @@ A URL, a chave pública do Supabase e a site key do Turnstile só são enviadas 
 Depois de configurar SMTP próprio, aplicar o assunto e o HTML de `docs/OTP_EMAIL_TEMPLATE.md` ao template **Magic Link**. O cliente verifica `{{ .Token }}` como OTP; o email não deve incluir `{{ .ConfirmationURL }}` nem qualquer link rastreado.
 
 Para rever a configuração sem imprimir qualquer valor secreto, executar `PYTHONPATH=src python scripts/check_readiness.py`. O relatório mostra apenas se cada integração está fechada ou ativa e os nomes das variáveis ainda em falta.
+Também assinala pelo nome credenciais VAPID, assunto, segredo do agendador, modelo ou limite de AI que estejam presentes mas com formato inválido; os valores nunca são incluídos no resultado.
 
 Depois de executar `supabase/schema.sql`, confirmar por leitura que as tabelas e funções RPC esperadas estão expostas à chave de serviço:
 
@@ -152,6 +153,8 @@ A interface da equipa está em `/admin` e não aparece na navegação pública. 
 As mutações editoriais e alterações de papéis feitas pelo painel incluem o identificador da conta autorizada. Triggers criam, na mesma transação, eventos mínimos em `staff_audit_events`: ação, tipo e identificador do alvo, conta responsável e data. A tabela não guarda corpo da partilha, nota de moderação, nome, telefone, email, horário nem descrição do recurso. A resposta ao browser reduz os UUID a referências curtas. Importações iniciais executadas antes de existirem contas de equipa podem criar rascunhos sem autoria; esses rascunhos devem ser revistos e verificados posteriormente no painel.
 
 ## 7. Checklist antes de producao
+
+O roteiro técnico inicial de contenção e recuperação está em `docs/INCIDENT_RESPONSE_RUNBOOK.md`. Ele permanece um rascunho até existir substituto, tempos de resposta aprovados e ensaio operacional.
 
 - Politica de privacidade aprovada e publicada.
 - SMTP e remetente validados.
