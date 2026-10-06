@@ -154,6 +154,7 @@ const els = {
   accountSummary: document.querySelector("#account-summary"),
   accountAuth: document.querySelector("#account-auth"),
   accountEmailForm: document.querySelector("#account-email-form"),
+  accountSendCode: document.querySelector("#account-send-code"),
   accountEmail: document.querySelector("#account-email"),
   accountCaptcha: document.querySelector("#account-captcha"),
   accountCodeForm: document.querySelector("#account-code-form"),
@@ -415,12 +416,12 @@ async function setupAccount() {
     }
     if (!config.features?.account || !config.supabase) {
       renderAccount();
-      await runNotificationOperation(reconcilePushRegistration);
+      reconcilePushRegistration().catch(() => {});
       return;
     }
 
     const [{ SupabaseAccountClient }, { TurnstileWidget }] = await Promise.all([
-      import("./account-client.mjs?account=2"),
+      import("./account-client.mjs?account=3"),
       import("./turnstile.mjs"),
     ]);
     accountState.client = new SupabaseAccountClient(config.supabase);
@@ -442,7 +443,7 @@ async function setupAccount() {
       }
     }
     renderAccount();
-    await runNotificationOperation(reconcilePushRegistration);
+    reconcilePushRegistration().catch(() => {});
   } catch {
     // Keep the last known local state during a transient configuration outage.
     renderAccount();
@@ -581,10 +582,13 @@ function setAccountOperationPending(pending) {
     });
   renderNotificationOperationState();
   renderAnonymousRoom();
+  if (els.accountSendCode) {
+    els.accountSendCode.textContent = pending ? "A enviar..." : "Enviar código";
+  }
 }
 
 async function runAccountOperation(operation) {
-  if (accountState.operationPending || notificationOperationPending || communitySubmitPending) return;
+  if (accountState.operationPending) return;
   setAccountOperationPending(true);
   try {
     await operation();
@@ -615,6 +619,16 @@ async function runNotificationOperation(operation) {
     notificationOperationPending = false;
     renderNotificationOperationState();
   }
+}
+
+function waitWithTimeout(promise, timeoutMs, message) {
+  let timeout;
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      timeout = window.setTimeout(() => reject(new Error(message)), timeoutMs);
+    }),
+  ]).finally(() => window.clearTimeout(timeout));
 }
 
 function renderPrivacyState() {
@@ -2123,7 +2137,11 @@ async function activateNotifications() {
   }
 
   els.pwaInstallStatus.textContent = "A pedir autorização para mostrar notificações...";
-  const permission = await Notification.requestPermission();
+  const permission = await waitWithTimeout(
+    Notification.requestPermission(),
+    15000,
+    "O navegador não abriu as permissões. Abre as definições do dispositivo e autoriza as notificações para Só Por Hoje.",
+  );
   state.progress.notifications = permission === "granted" ? "on" : "off";
   saveProgress({ touch: false, sync: false });
 

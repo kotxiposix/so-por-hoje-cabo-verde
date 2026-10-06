@@ -198,7 +198,7 @@ class WebAppStructureTests(unittest.TestCase):
         )
 
         worker = (PUBLIC / "sw.js").read_text(encoding="utf-8")
-        self.assertIn('const CACHE_NAME = "sph-shell-v86"', worker)
+        self.assertIn('const CACHE_NAME = "sph-shell-v87"', worker)
         self.assertIn('"/push-subscription.mjs"', worker)
         self.assertIn('"/turnstile.mjs"', worker)
         assets_block = re.search(r"const CORE_ASSETS = \[(.*?)\];", worker, re.S)
@@ -251,18 +251,19 @@ class WebAppStructureTests(unittest.TestCase):
         self.assertIn("if (!removeLocalPlatformData())", script)
         self.assertIn("async function runNotificationOperation(operation)", script)
         self.assertNotIn("notificationOperationPending || accountState.operationPending", script)
+        self.assertIn("if (accountState.operationPending) return;", script)
+        self.assertIn("reconcilePushRegistration().catch(() => {});", script)
         self.assertIn("runNotificationOperation(activateNotifications)", script)
         self.assertIn('els.pwaInstallStatus.textContent = "A pedir autorização', script)
         self.assertIn("const pending = notificationOperationPending;", script)
+        self.assertIn("Notification.requestPermission(),", script)
+        self.assertIn("function waitWithTimeout", script)
         self.assertIn("runNotificationOperation(disableNotifications)", script)
         self.assertIn("communitySubmitPending || accountState.operationPending", script)
         self.assertIn('els.anonymousSubmit.textContent = communitySubmitPending ? "A enviar..."', script)
         self.assertIn("pushAvailable: accountState.pushEnabled", script)
         self.assertIn("async function runAccountOperation(operation)", script)
-        self.assertIn(
-            "if (accountState.operationPending || notificationOperationPending || communitySubmitPending) return",
-            script,
-        )
+        self.assertIn('accountSendCode: document.querySelector("#account-send-code")', script)
         self.assertIn('container.setAttribute("aria-busy", String(pending))', script)
         self.assertIn("runAccountOperation(deleteCurrentAccount)", script)
         self.assertIn('els.prayer.addEventListener("click", () => openPrayer())', script)
