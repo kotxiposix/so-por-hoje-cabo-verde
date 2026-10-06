@@ -84,8 +84,8 @@ Esta checklist separa o que ja esta implementado do que precisa de configuracao,
 - [x] O estado mostrado é reconciliado com a permissão e a subscrição reais do navegador; uma subscrição órfã é removida sem reagir destrutivamente a uma falha transitória de configuração.
 - [x] Textos de privacidade distinguem a cópia da Jornada do registo técnico separado usado apenas quando o push real é ativado.
 - [x] A reconciliação push exige também a preferência local ativa e tenta retirar o endpoint remoto antes de remover uma subscrição que deixou de ser válida.
-- [ ] Guardar o endpoint e o segredo do cron no Supabase Vault.
-- [ ] Agendar `POST /api/v1/internal/push/deliver` a cada minuto com `Authorization: Bearer $PUSH_CRON_SECRET`.
+- [x] Guardar o endpoint protegido e o segredo do cron no Supabase Vault.
+- [x] Agendar `POST /api/v1/internal/push/deliver` a cada minuto com `Authorization: Bearer $PUSH_CRON_SECRET`.
 - [ ] Testar subscricao, hora/fuso, entrega com app fechada, cancelamento e endpoint expirado em dois dispositivos.
 - [x] O servidor e o service worker limitam o ecrã bloqueado a uma mensagem genérica e ignoram texto recebido no payload push.
 - [x] Uma reserva atómica por conta e dia impede notificações duplicadas em ciclos concorrentes e permite repetir falhas transitórias.
@@ -196,7 +196,7 @@ Validação técnica de produção repetida em 1 de outubro de 2026: `production
 
 Validação técnica repetida em produção em 5 de outubro de 2026: migração de gestão de papéis aplicada sem eliminar registos; funções privadas devolveram a lista esperada e confirmaram execução exclusiva por `service_role`; `/admin` carregou a nova área **Equipa** com `private, no-store`; o endpoint sem sessão respondeu `401`; uma conta `admin` real iniciou sessão e visualizou o único papel ativo. O ensaio opcional de ativação/suspensão foi dispensado pela equipa e permanece assinalado separadamente.
 
-Preparação de Push em 6 de outubro de 2026: par VAPID e segredo do agendador gerados apenas em memória e guardados diretamente na Vercel Preview; `VAPID_SUBJECT` usa `mailto:viversaudavel@soporhoje.cv`; os quatro nomes e o destino Preview foram confirmados sem expor valores; `PUSH_DELIVERY_READY=false` permaneceu aplicado. O agendamento, Vault e testes físicos continuam pendentes e nenhum envio Push foi ativado.
+Preparação de Push em 6 de outubro de 2026: par VAPID e segredo do agendador gerados apenas em memória e guardados diretamente na Vercel Preview; `VAPID_SUBJECT` usa `mailto:viversaudavel@soporhoje.cv`; os quatro nomes e o destino Preview foram confirmados sem expor valores. O endpoint Preview protegido e o segredo coordenado foram guardados no Supabase Vault, e o Supabase Cron ficou ativo a cada minuto. `PUSH_DELIVERY_READY=false` permaneceu aplicado; os testes físicos continuam pendentes e nenhum envio Push foi ativado.
 
 ## Dados que a equipa precisa fornecer
 
